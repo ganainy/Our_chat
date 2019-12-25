@@ -1,4 +1,4 @@
-package com.example.ourchat.signup
+package com.example.ourchat.ui.signup
 
 import androidx.lifecycle.ViewModel
 
