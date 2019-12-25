@@ -25,7 +25,6 @@ class SignupFragment : Fragment() {
         fun newInstance() = SignupFragment()
     }
 
-    private lateinit var callbackManager: CallbackManager
     private lateinit var viewModel: SignupViewModel
 
     override fun onCreateView(
@@ -39,49 +38,7 @@ class SignupFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(SignupViewModel::class.java)
         // TODO: Use the ViewModel
-        FacebookSdk.sdkInitialize(getApplicationContext())
-        AppEventsLogger.activateApp(activity)
 
-
-        callbackManager = CallbackManager.Factory.create()
-
-//
-        val EMAIL = "email"
-
-        login_button.setReadPermissions(Arrays.asList(EMAIL))
-        login_button.fragment = this
-
-
-// Callback registration
-        login_button.registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
-            override fun onSuccess(loginResult: LoginResult?) { // App code
-                println("SignupFragment.onSuccess:${loginResult.toString()}")
-
-            }
-
-            override fun onCancel() { // App code
-                println("SignupFragment.onCancel:")
-            }
-
-            override fun onError(exception: FacebookException) { // App code
-                println("SignupFragment.onError:${exception.message}")
-            }
-        })
-        //
-
-        callbackManager = CallbackManager.Factory.create()
-
-        LoginManager.getInstance().registerCallback(callbackManager,
-            object : FacebookCallback<LoginResult?> {
-                override fun onSuccess(loginResult: LoginResult?) {  println("SignupFragment.onSuccess:${loginResult.toString()}")
-                }
-
-                override fun onCancel() {  println("SignupFragment.onCancel:")
-                }
-
-                override fun onError(exception: FacebookException) {  println("SignupFragment.onError:${exception.message}")
-                }
-            })
 
 
     }
