@@ -26,8 +26,8 @@ android {
         }
     }
 
-    dataBinding{
-        enabled=true
+    dataBinding {
+        enabled = true
     }
 }
 
@@ -43,6 +43,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.1.0'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.annotation:annotation:1.0.2'
+    implementation 'com.google.firebase:firebase-firestore:17.1.2'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
@@ -71,7 +72,6 @@ dependencies {
 
     //facebook login
     implementation 'com.facebook.android:facebook-android-sdk:[5,6)'
-
 
 
 }

@@ -20,5 +20,7 @@
     <string name="login">login</string>
     <string name="register">Register</string>
     <string name="social_login">Social login</string>
+    <string name="wrong_email_format">Wrong email format</string>
+    <string name="password_size">Password must be at least 6 characters</string>
 
 </resources>
