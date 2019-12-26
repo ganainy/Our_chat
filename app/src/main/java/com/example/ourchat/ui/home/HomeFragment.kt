@@ -27,6 +27,8 @@ class HomeFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
         // TODO: Use the ViewModel
+        //todo store last logged in/sign up user on device and compare with uid to only load user data
+        // if changed account,sign out ,botoom app bar ,image both saved or camera
     }
 
 }
