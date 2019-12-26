@@ -1,4 +1,4 @@
-package com.example.ourchat.ui.signup
+package com.example.ourchat.ui.login
 
 import android.app.Activity
 import android.content.Context
@@ -10,8 +10,10 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.findNavController
 import com.example.ourchat.R
-import com.example.ourchat.databinding.SignupFragmentBinding
+import com.example.ourchat.databinding.LoginFragmentBinding
+import com.example.ourchat.ui.signup.SignupFragment
 import com.facebook.AccessToken
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
@@ -21,46 +23,33 @@ import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
+class LoginFragment : Fragment() {
 
-class SignupFragment : Fragment() {
-
-    private lateinit var binding: SignupFragmentBinding
-
-    companion object {
-        fun newInstance() = SignupFragment()
-    }
-
-    private lateinit var viewModel: SignupViewModel
-
+    private lateinit var binding: LoginFragmentBinding
     private lateinit var callbackManager: CallbackManager
     private lateinit var auth: FirebaseAuth
 
-    private lateinit var mCallback : ReturnCallBackManager
+    private lateinit var mCallback: SignupFragment.ReturnCallBackManager
     private lateinit var mActivity: Activity
 
+    companion object {
+        fun newInstance() = LoginFragment()
+    }
+
+    private lateinit var viewModel: LoginViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = DataBindingUtil.inflate(inflater, R.layout.signup_fragment, container, false)
+        binding = DataBindingUtil.inflate(inflater, R.layout.login_fragment, container, false)
         return binding.root
     }
 
-
-        interface ReturnCallBackManager{
-        fun bringBackCallbackManager(callbackManager:CallbackManager )
-    }
-
-
-
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProviders.of(this).get(SignupViewModel::class.java)
+        viewModel = ViewModelProviders.of(this).get(LoginViewModel::class.java)
         // TODO: Use the ViewModel
-
-
-
         // Initialize Facebook Login button
         callbackManager = CallbackManager.Factory.create()
         mCallback.bringBackCallbackManager(callbackManager)
@@ -69,17 +58,17 @@ class SignupFragment : Fragment() {
         binding.FBloginButton.registerCallback(callbackManager, object :
             FacebookCallback<LoginResult> {
             override fun onSuccess(loginResult: LoginResult) {
-                println( "facebook:onSuccess:$loginResult")
+                println("facebook:onSuccess:$loginResult")
                 handleFacebookAccessToken(loginResult.accessToken)
             }
 
             override fun onCancel() {
-                println( "facebook:onCancel")
+                println("facebook:onCancel")
                 // ...
             }
 
             override fun onError(error: FacebookException) {
-                println( "facebook:onError${error.message}")
+                println("facebook:onError${error.message}")
                 // ...
             }
         })
@@ -89,17 +78,18 @@ class SignupFragment : Fragment() {
         auth = FirebaseAuth.getInstance()
 
 
+        binding.registerLayout.setOnClickListener { }
+        // Navigate to signup fragment
+        binding.gotoSignUpFragmentTextView.setOnClickListener {
+            it.findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
+        }
 
     }
-
-
-
-
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
         mActivity = context as Activity
-        mCallback = mActivity as ReturnCallBackManager
+        mCallback = mActivity as SignupFragment.ReturnCallBackManager
     }
 
     private fun handleFacebookAccessToken(token: AccessToken) {

@@ -25,6 +25,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    dataBinding{
+        enabled=true
+    }
 }
 
 dependencies {
@@ -67,6 +71,7 @@ dependencies {
 
     //facebook login
     implementation 'com.facebook.android:facebook-android-sdk:[5,6)'
+
 
 
 }
