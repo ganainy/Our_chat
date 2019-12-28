@@ -30,5 +30,17 @@
         android:id="@+id/homeFragment"
         android:name="com.example.ourchat.ui.home.HomeFragment"
         android:label="home_fragment"
-        tools:layout="@layout/home_fragment" />
+        tools:layout="@layout/home_fragment">
+        <action
+            android:id="@+id/action_homeFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@+id/nav_view" />
+        <action
+            android:id="@+id/action_homeFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.ourchat.ui.profile.ProfileFragment"
+        android:label="ProfileFragment" />
 </navigation>

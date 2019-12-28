@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/item_settings"
+        android:icon="@drawable/ic_settings_black_24dp"
+        android:title="@string/settings" />
+
+    <item
+        android:id="@+id/item_edit_profile"
+        android:icon="@drawable/ic_edit_black_24dp"
+        android:title="@string/edit_profle" />
+
+    <item
+        android:id="@+id/item_logout"
+        android:icon="@drawable/ic_person_black_24dp"
+        android:title="@string/logout" />
+
+
+    <item
+        android:id="@+id/item_search"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:title="@string/search"
+        app:showAsAction="ifRoom" />
+</menu>
