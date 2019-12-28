@@ -27,10 +27,13 @@
     <string name="logout">Logout</string>
     <string name="add_friend">Add friend</string>
     <string name="search">Search</string>
-    <string name="about_me">About me</string>
+    <string name="about_me">Bio</string>
     <string name="edit">Edit</string>
     <string name="friends">Friends</string>
     <string name="select_profile_picture">Select profile picture</string>
     <string name="take_new_profile_picture">Take new profile picture</string>
+    <string name="uploading">Uploading...</string>
+    <string name="type_something_to_let_your_friends_know_you_better">Type something to let your friends know you better</string>
+    <string name="submit">Submit</string>
 
 </resources>

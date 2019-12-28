@@ -58,6 +58,23 @@
                             android:scaleType="centerCrop"
                             android:src="@drawable/anonymous_profile" />
 
+                        <ProgressBar
+                            android:id="@+id/uploadProgressBar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/uploadText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom"
+                            android:gravity="center"
+                            android:text="@string/uploading"
+                            android:visibility="gone" />
+
+
                     </androidx.cardview.widget.CardView>
 
 
@@ -130,20 +147,36 @@
                                 android:textSize="17sp"
                                 android:textStyle="bold" />
 
+
                             <Space
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1" />
 
                             <TextView
-                                android:id="@+id/edit"
+                                android:id="@+id/edit_textview"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginEnd="10dp"
                                 android:text="@string/edit"
-                                android:textColor="#FFCF66"
+                                android:textColor="#00FFFF "
                                 android:textSize="14sp" />
                         </LinearLayout>
+
+                        <EditText
+                            android:id="@+id/edit_edittext"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/type_something_to_let_your_friends_know_you_better"
+                            android:visibility="gone" />
+
+                        <ProgressBar
+                            android:id="@+id/bioProgressBar"
+                            style="?android:attr/progressBarStyleSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/about_me_text"

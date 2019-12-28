@@ -68,7 +68,7 @@ class LoginViewModel : ViewModel() {
             firebaseUser.photoUrl?.toString()
         )
         val db = FirebaseFirestore.getInstance()
-        db.collection("users").add(user).addOnSuccessListener {
+        db.collection("users").document(firebaseUser.uid).set(user).addOnSuccessListener {
             userStored.value = true
             loadingState.value = true
         }.addOnFailureListener {

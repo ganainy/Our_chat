@@ -39,7 +39,7 @@ class SignupViewModel : ViewModel() {
 
     fun storeUserInFirebase(user: User) {
         val db = FirebaseFirestore.getInstance()
-        db.collection("users").add(user).addOnSuccessListener {
+        db.collection("users").document(user.uid!!).set(user).addOnSuccessListener {
             userStored.value = true
         }.addOnFailureListener {
             println("<top>.storeUserInDatabase:${it.message}")
@@ -60,7 +60,7 @@ class SignupViewModel : ViewModel() {
             firebaseUser.photoUrl?.toString()
         )
         val db = FirebaseFirestore.getInstance()
-        db.collection("users").add(user).addOnSuccessListener {
+        db.collection("users").document(firebaseUser.uid).set(user).addOnSuccessListener {
             userStored.value = true
             loadingState.value = true
         }.addOnFailureListener {
