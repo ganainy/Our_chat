@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.ourchat.data.LoadState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -12,19 +13,19 @@ import com.google.firebase.storage.StorageReference
 
 class SharedViewModel : ViewModel() {
 
-    val uploadState = MutableLiveData<UploadState>()
+    val uploadState = MutableLiveData<LoadState>()
     private lateinit var mStorageRef: StorageReference
 
     fun uploadImageAsBytearray(bytes: ByteArray) {
 
         //show upload ui
-        uploadState.value = UploadState.UPLOADING
+        uploadState.value = LoadState.UPLOADING
 
         mStorageRef = FirebaseStorage.getInstance().reference
         val ref = mStorageRef.child("profile_pictures/" + System.currentTimeMillis())
         var uploadTask = bytes.let { ref.putBytes(it) }
 
-        val urlTask = uploadTask?.continueWithTask { task ->
+        val urlTask = uploadTask.continueWithTask { task ->
             if (!task.isSuccessful) {
                 task.exception?.let {
                     throw it
@@ -37,19 +38,18 @@ class SharedViewModel : ViewModel() {
                 saveImageUriInFirebase(downloadUri)
             } else {
                 println("SharedViewModel.uploadImageByUri:${task.exception}")
-                uploadState.value = UploadState.FAILURE
+                uploadState.value = LoadState.FAILURE
             }
         }
 
 
     }
 
-    enum class UploadState { UPLOADING, SUCCESS, FAILURE }
 
     fun uploadImageByUri(data: Uri?) {
 
         //show upload ui
-        uploadState.value = UploadState.UPLOADING
+        uploadState.value = LoadState.UPLOADING
 
         mStorageRef = FirebaseStorage.getInstance().reference
         val ref = mStorageRef.child("profile_pictures/" + data?.path)
@@ -68,7 +68,7 @@ class SharedViewModel : ViewModel() {
                 saveImageUriInFirebase(downloadUri)
             } else {
                 println("SharedViewModel.uploadImageByUri:${task.exception}")
-                uploadState.value = UploadState.FAILURE
+                uploadState.value = LoadState.FAILURE
             }
         }
 
@@ -82,11 +82,11 @@ class SharedViewModel : ViewModel() {
         db.collection("users").document(FirebaseAuth.getInstance().uid!!)
             .update("profile_picture_url", downloadUri.toString())
             .addOnSuccessListener {
-                uploadState.value = UploadState.SUCCESS
+                uploadState.value = LoadState.SUCCESS
 
             }
             .addOnFailureListener {
-                uploadState.value = UploadState.FAILURE
+                uploadState.value = LoadState.FAILURE
             }
 
 

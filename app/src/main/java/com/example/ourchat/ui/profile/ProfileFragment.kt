@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.example.ourchat.R
+import com.example.ourchat.data.LoadState
 import com.example.ourchat.databinding.ProfileFragmentBinding
 import com.example.ourchat.ui.main.MainActivity
 import com.example.ourchat.ui.main.SharedViewModel
@@ -52,7 +53,8 @@ class ProfileFragment : Fragment() {
             activity?.let { ViewModelProviders.of(it).get(SharedViewModel::class.java) }
 
 
-        //todo show user data(image , about , friends)
+        //todo show user friends
+        //download user bio and image on fragment start
         viewModel.downloadBio()
         viewModel.downloadProfileImage()
 
@@ -99,26 +101,7 @@ class ProfileFragment : Fragment() {
 
         //Observe upload image state and show appropriate ui
         sharedViewModel?.uploadState?.observe(this, androidx.lifecycle.Observer {
-            when (it) {
-                SharedViewModel.UploadState.UPLOADING -> {
-                    binding.uploadProgressBar.visibility = View.VISIBLE
-                    binding.uploadText.visibility = View.VISIBLE
-                    binding.profileImage.alpha = .5f
-
-                }
-                SharedViewModel.UploadState.SUCCESS -> {
-                    binding.uploadProgressBar.visibility = View.GONE
-                    binding.uploadText.visibility = View.GONE
-                    binding.profileImage.alpha = 1f
-                    Toast.makeText(context, "Upload successful.", Toast.LENGTH_SHORT).show()
-                }
-                SharedViewModel.UploadState.FAILURE -> {
-                    binding.uploadProgressBar.visibility = View.GONE
-                    binding.uploadText.visibility = View.GONE
-                    binding.profileImage.alpha = 1f
-                    Toast.makeText(context, "Upload failed, retry later.", Toast.LENGTH_LONG).show()
-                }
-            }
+            setProfileImageLoadUi(it)
         })
 
 
@@ -151,18 +134,18 @@ class ProfileFragment : Fragment() {
         //Observe if bio uploaded to user document
         viewModel.bioUploadState.observe(this, Observer {
             when (it) {
-                ProfileViewModel.BioState.UPLOADING -> {
+                LoadState.UPLOADING -> {
                     binding.bioProgressBar.visibility = View.VISIBLE
                 }
 
-                ProfileViewModel.BioState.SUCCESS -> {
+                LoadState.SUCCESS -> {
                     //bio updated successfully
                     binding.aboutMeText.text = binding.editEdittext.text
                     Toast.makeText(context, "Bio updated", Toast.LENGTH_SHORT).show()
                     binding.bioProgressBar.visibility = View.GONE
                 }
 
-                ProfileViewModel.BioState.FAILURE -> {
+                LoadState.FAILURE -> {
                     Toast.makeText(context, "Error updating bio, retry later.", Toast.LENGTH_LONG)
                         .show()
                     binding.bioProgressBar.visibility = View.GONE
@@ -175,16 +158,16 @@ class ProfileFragment : Fragment() {
         //Show loading untill bio is downloaded
         viewModel.bioDownloadState.observe(this, Observer {
             when (it) {
-                ProfileViewModel.BioState.DOWNLOADING -> {
+                LoadState.DOWNLOADING -> {
                     binding.bioProgressBar.visibility = View.VISIBLE
                 }
 
-                ProfileViewModel.BioState.SUCCESS -> {
+                LoadState.SUCCESS -> {
                     //bio updated successfully
                     binding.bioProgressBar.visibility = View.GONE
                 }
 
-                ProfileViewModel.BioState.FAILURE -> {
+                LoadState.FAILURE -> {
                     binding.bioProgressBar.visibility = View.GONE
                 }
             }
@@ -197,7 +180,46 @@ class ProfileFragment : Fragment() {
         })
 
 
+        //show downloaded image in profile imageview
+        viewModel.loadedImage.observe(this, Observer {
+            it.into(binding.profileImage)
+        })
 
+
+        //show loading state while profile image loading
+        viewModel.profileImageDownloadState.observe(this, Observer {
+            setProfileImageLoadUi(it)
+        })
+
+
+
+    }
+
+    private fun setProfileImageLoadUi(it: LoadState?) {
+        when (it) {
+            LoadState.UPLOADING -> {
+                binding.uploadProgressBar.visibility = View.VISIBLE
+                binding.uploadText.visibility = View.VISIBLE
+                binding.profileImage.alpha = .5f
+
+            }
+            LoadState.SUCCESS -> {
+                binding.uploadProgressBar.visibility = View.GONE
+                binding.uploadText.visibility = View.GONE
+                binding.profileImage.alpha = 1f
+            }
+            LoadState.FAILURE -> {
+                binding.uploadProgressBar.visibility = View.GONE
+                binding.uploadText.visibility = View.GONE
+                binding.profileImage.alpha = 1f
+            }
+            LoadState.DOWNLOADING -> {
+                binding.uploadProgressBar.visibility = View.VISIBLE
+                binding.uploadText.visibility = View.GONE
+                binding.profileImage.alpha = .5f
+
+            }
+        }
     }
 
 
