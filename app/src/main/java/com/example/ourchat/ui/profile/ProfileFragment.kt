@@ -14,7 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.example.ourchat.R
-import com.example.ourchat.data.LoadState
+import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.databinding.ProfileFragmentBinding
 import com.example.ourchat.ui.main.MainActivity
 import com.example.ourchat.ui.main.SharedViewModel
