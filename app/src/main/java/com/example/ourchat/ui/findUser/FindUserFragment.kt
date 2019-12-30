@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.RecyclerView
@@ -23,7 +22,6 @@ class FindUserFragment : Fragment() {
 
     companion object {
         fun newInstance() = FindUserFragment()
-        val mQueryString = MutableLiveData<String>()
     }
 
     private lateinit var viewModel: FindUserViewModel
@@ -101,12 +99,14 @@ class FindUserFragment : Fragment() {
             SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(queryString: String): Boolean {
                 adapter.filter.filter(queryString)
-                mQueryString.value = queryString
+
                 return false
             }
 
             override fun onQueryTextChange(queryString: String): Boolean {
                 adapter.filter.filter(queryString)
+                adapter.onChange(queryString)
+
                 return false
             }
         })

@@ -1,5 +1,11 @@
 package com.example.ourchat.ui.findUser
 
+import android.graphics.Color
+import android.graphics.Typeface
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Filter
@@ -8,12 +14,16 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ourchat.databinding.UserItemBinding
-import com.example.ourchat.ui.findUser.FindUserFragment.Companion.mQueryString
 import com.google.firebase.firestore.DocumentSnapshot
 import java.util.*
 
+
+var mQuery = ""
+
+
 class UserAdapter(private val clickListener: UserClickListener) :
-    ListAdapter<DocumentSnapshot, UserAdapter.ViewHolder>(DiffCallbackUsers()), Filterable {
+    ListAdapter<DocumentSnapshot, UserAdapter.ViewHolder>(DiffCallbackUsers()), Filterable,
+    OnQueryTextChange {
 
 
     var userList = mutableListOf<DocumentSnapshot>()
@@ -34,10 +44,37 @@ class UserAdapter(private val clickListener: UserClickListener) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(clickListener: UserClickListener, item: DocumentSnapshot) {
-            binding.user = item
+            println("ViewHolder.bind:")
+
+            val userName: String = item.get("username").toString()
+
+            //if query text isn't empty set the selected text with sky blue+bold
+            if (mQuery.isEmpty()) {
+                binding.usernameTextView.text = userName
+            } else {
+                var index = userName.indexOf(mQuery, 0, true)
+                val sb = SpannableStringBuilder(userName)
+                while (index >= 0) {
+                    val fcs = ForegroundColorSpan(Color.rgb(135, 206, 235))
+                    sb.setSpan(
+                        fcs,
+                        index,
+                        index + mQuery.length,
+                        Spannable.SPAN_INCLUSIVE_INCLUSIVE
+                    )
+                    sb.setSpan(
+                        StyleSpan(Typeface.BOLD),
+                        index,
+                        index + mQuery.length,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    index = userName.indexOf(mQuery, index + 1)
+                }
+                binding.usernameTextView.text = sb
+            }
             binding.clickListener = clickListener
+            binding.user = item
             binding.executePendingBindings()
-            println("ViewHolder.bindcalled:$mQueryString")
         }
 
         companion object {
@@ -78,9 +115,17 @@ class UserAdapter(private val clickListener: UserClickListener) :
             override fun publishResults(charSequence: CharSequence, filterResults: FilterResults) {
 
                 submitList(filterResults.values as MutableList<DocumentSnapshot>?)
+                notifyDataSetChanged()//todo find other way to force call on bind after filtering
+                println("UserAdapter.publishResults:")
 
             }
         }
+    }
+
+    //get search text from fragment using callback
+    override fun onChange(query: String) {
+        mQuery = query
+        println("UserAdapter.onChange:$query")
     }
 
 
@@ -106,4 +151,9 @@ class UserClickListener(val clickListener: (user: DocumentSnapshot) -> Unit) {
     fun onClick(user: DocumentSnapshot) {
         return clickListener(user)
     }
+}
+
+
+interface OnQueryTextChange {
+    fun onChange(query: String)
 }

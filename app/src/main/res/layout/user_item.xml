@@ -43,7 +43,7 @@
             tools:src="@color/red" />
 
         <TextView
-            android:id="@+id/mealNameTextView"
+            android:id="@+id/usernameTextView"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
@@ -59,8 +59,7 @@
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/userImageView"
             app:layout_constraintTop_toTopOf="parent"
-            app:mySetText="@{user}"
-            tools:text="Spaghetti " />
+            tools:text="Amr mohammed " />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
