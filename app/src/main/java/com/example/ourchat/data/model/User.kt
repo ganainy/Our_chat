@@ -1,8 +1,12 @@
 package com.example.ourchat.data.model
 
+
 data class User(
     val uid: String? = null,
     val username: String? = null,
     val email: String? = null,
-    val photo: String? = null
+    val photo: String? = null,
+    var sentRequests: List<String>? = null,
+    var receivedRequests: List<String>? = null,
+    var friends: List<String>? = null
 )

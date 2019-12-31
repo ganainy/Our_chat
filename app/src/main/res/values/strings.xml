@@ -35,5 +35,9 @@
     <string name="uploading">Uploading...</string>
     <string name="type_something_to_let_your_friends_know_you_better">Type something to let your friends know you better</string>
     <string name="submit">Submit</string>
+    <string name="send_friend_request">Send friend request</string>
+    <string name="send_message">Send message</string>
+    <string name="friend_request_sent">Friend request sent.</string>
+    <string name="friend_request_not_sent">Send friend request</string>
 
 </resources>

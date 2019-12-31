@@ -50,5 +50,15 @@
         android:id="@+id/findUserFragment"
         android:name="com.example.ourchat.ui.findUser.FindUserFragment"
         android:label="find_user_fragment"
-        tools:layout="@layout/find_user_fragment" />
+        tools:layout="@layout/find_user_fragment">
+        <action
+            android:id="@+id/action_findUserFragment_to_differentUserProfile"
+            app:destination="@id/differentUserProfile">
+
+        </action>
+    </fragment>
+    <fragment
+        android:id="@+id/differentUserProfile"
+        android:name="com.example.ourchat.ui.different_user_profile.DifferentUserProfileFragment"
+        android:label="DifferentUserProfile" />
 </navigation>

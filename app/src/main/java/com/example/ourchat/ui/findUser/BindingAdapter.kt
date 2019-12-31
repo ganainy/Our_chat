@@ -6,6 +6,8 @@ import androidx.databinding.BindingAdapter
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.ourchat.R
+import com.example.ourchat.Utils.LoadState
+import com.google.android.material.button.MaterialButton
 import com.google.firebase.firestore.DocumentSnapshot
 
 
@@ -66,27 +68,24 @@ fun mySetText(textView: TextView, user: DocumentSnapshot) {
     textView.text = user.get("username").toString()
 
 }
-/*
+
 
 @BindingAdapter("setLoadingState")
-fun ImageView.setTheLoadingState(state: HomeViewModel.State) {
-    visibility = when (state) {
-        HomeViewModel.State.LOADING -> {
-            setImageResource(R.drawable.loading_animation)
-            View.VISIBLE
+fun MaterialButton.setTheLoadingState(state: LoadState) {
+    when (state) {
+        LoadState.SUCCESS -> {
+            setIconResource(R.drawable.ic_person_add_black_24dp)
         }
-        HomeViewModel.State.FAILED -> {
-            setImageResource(R.drawable.ic_connection_error)
-            View.VISIBLE
+        LoadState.DOWNLOADING -> {
+            setIconResource(R.drawable.loading_animation)
         }
-        HomeViewModel.State.SUCCESS -> {
-            View.GONE
-        }
+
+
     }
 
 }
 
-
+/*
 @BindingAdapter("setVisibility")
 fun TextView.setVisibility(favouriteListSize: Int): Unit {
     visibility = if (favouriteListSize == 0) {

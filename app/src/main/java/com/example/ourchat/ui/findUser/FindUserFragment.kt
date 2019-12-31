@@ -5,10 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
 import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE
@@ -42,6 +44,7 @@ class FindUserFragment : Fragment() {
 
 
         //get list of all users
+        //todo don't load user if already friend
         //todo add pagination to get users 20 by 20(coding in flow video)
         viewModel.userDocuments.observe(this, Observer {
             adapter.submitList(it)
@@ -71,7 +74,19 @@ class FindUserFragment : Fragment() {
 
         //setup recycler
         adapter = UserAdapter(UserClickListener {
-            println("FindUserFragment.onActivityCreated:${it.get("username")}")
+
+
+            var bundle = bundleOf(
+                "uid" to it.get("uid").toString(),
+                "bio" to it.get("bio").toString(),
+                "profile_picture_url" to it.get("profile_picture_url").toString(),
+                "username" to it.get("username").toString()
+            )
+
+            findNavController().navigate(
+                R.id.action_findUserFragment_to_differentUserProfile,
+                bundle
+            )
         })
 
         binding.recycler.adapter = adapter
