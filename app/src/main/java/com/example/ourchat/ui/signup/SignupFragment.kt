@@ -82,7 +82,6 @@ class SignupFragment : Fragment() {
         binding.FBloginButton.registerCallback(callbackManager, object :
             FacebookCallback<LoginResult> {
             override fun onSuccess(loginResult: LoginResult) {
-                println("facebook:onSuccess:$loginResult")
                 viewModel.handleFacebookAccessToken(auth, loginResult.accessToken)
             }
 

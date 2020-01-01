@@ -7,6 +7,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.ourchat.R
 import com.example.ourchat.Utils.LoadState
+import com.example.ourchat.data.model.User
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.firestore.DocumentSnapshot
 
@@ -36,6 +37,23 @@ fun setRoundImage(imageView: ImageView, item: DocumentSnapshot) {
         val imageUri = it.get("profile_picture_url")
         Glide.with(imageView.context)
             .load(imageUri)
+            .apply(
+                RequestOptions()
+                    .placeholder(R.drawable.loading_animation)
+                    .error(R.drawable.ic_broken_image)
+                    .circleCrop()
+            )
+            .into(imageView)
+    }
+
+}
+
+
+@BindingAdapter("setRoundImageFromUser")
+fun setRoundImage2(imageView: ImageView, user: User) {
+    user.photo.let {
+        Glide.with(imageView.context)
+            .load(it)
             .apply(
                 RequestOptions()
                     .placeholder(R.drawable.loading_animation)

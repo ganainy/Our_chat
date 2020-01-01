@@ -22,11 +22,13 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
     var loadedImage = MutableLiveData<RequestBuilder<Drawable>>()
 
     fun downloadProfilePicture(profilePictureUrl: String?) {
+        println("DifferentUserProfileFragmentViewModel.downloadProfilePicture:$profilePictureUrl")
+        if (profilePictureUrl == "null") return
         val load: RequestBuilder<Drawable> = Glide.with(app).load(profilePictureUrl)
         loadedImage.value = load
     }
 
-    fun sendFriendRequest(uid: String?) {
+    fun updateSentRequestsForSender(uid: String?) {
 
 
         //add id in sentRequest array for logged in user
@@ -35,17 +37,27 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
         if (uid != null) {
             db.collection("users").document(loggedInUserId)
                 .update(SENT_REQUEST_ARRAY, FieldValue.arrayUnion(uid)).addOnSuccessListener {
-                //add loggedInUserId in receivedRequest array for other user
-                db.collection("users").document(uid)
-                    .update(RECEIVED_REQUEST_ARRAY, FieldValue.arrayUnion(loggedInUserId))
-                    .addOnSuccessListener {
-                    }.addOnFailureListener {
+                    //add loggedInUserId in receivedRequest array for other user
+                    updateReceivedRequestsForReceiver(db, uid, loggedInUserId)
+                }.addOnFailureListener {
+                    throw it
                 }
-            }.addOnFailureListener {
-            }
         }
 
 
+    }
+
+    private fun updateReceivedRequestsForReceiver(
+        db: FirebaseFirestore,
+        uid: String,
+        loggedInUserId: String
+    ) {
+        db.collection("users").document(uid)
+            .update(RECEIVED_REQUEST_ARRAY, FieldValue.arrayUnion(loggedInUserId))
+            .addOnSuccessListener {
+            }.addOnFailureListener {
+                throw it
+            }
     }
 
 
@@ -92,14 +104,14 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
         if (uid != null) {
             db.collection("users").document(loggedInUserId)
                 .update(SENT_REQUEST_ARRAY, FieldValue.arrayRemove(uid)).addOnSuccessListener {
-                //remove loggedInUserId from receivedRequest array for other user
-                db.collection("users").document(uid)
-                    .update(RECEIVED_REQUEST_ARRAY, FieldValue.arrayRemove(loggedInUserId))
-                    .addOnSuccessListener {
-                    }.addOnFailureListener {
+                    //remove loggedInUserId from receivedRequest array for other user
+                    db.collection("users").document(uid)
+                        .update(RECEIVED_REQUEST_ARRAY, FieldValue.arrayRemove(loggedInUserId))
+                        .addOnSuccessListener {
+                        }.addOnFailureListener {
+                        }
+                }.addOnFailureListener {
                 }
-            }.addOnFailureListener {
-            }
         }
 
 

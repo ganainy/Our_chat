@@ -11,17 +11,20 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.HomeFragmentBinding
+import com.example.ourchat.ui.home.ReceivedRequestsAdapter.ButtonCallback
 import com.facebook.login.LoginManager
 import com.google.firebase.auth.FirebaseAuth
 
 
 class HomeFragment : Fragment() {
 
-
+    private lateinit var adapter: ReceivedRequestsAdapter
     lateinit var binding: HomeFragmentBinding
 
     companion object {
@@ -43,9 +46,20 @@ class HomeFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
 
 
-        //todo store last logged in/sign up user on device and compare with uid to only load user data
-        // if changed account
+        //handle click on item of friend request recycler
+        adapter = ReceivedRequestsAdapter(object : ButtonCallback {
+            override fun onConfirmClicked(user: User) {
+                viewModel.addToFriends(user)
+            }
 
+            override fun onDeleteClicked(user: User) {
+                viewModel.deleteRequest(user)
+            }
+
+        })
+
+        //check if there is any incoming friend requests
+        viewModel.checkIncomingFriendRequests()
 
         //show main_menu items on bottom appbar
         binding.bottomAppBar.replaceMenu(R.menu.main_menu)
@@ -87,6 +101,13 @@ class HomeFragment : Fragment() {
             @Suppress("DEPRECATION")
             binding.bottomAppBar.overflowIcon?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
         }
+
+
+        viewModel.receivedRequestsProfiles.observe(this, Observer {
+            println("HomeFragment.onActivityCreated:${it?.size}")
+            adapter.setDataSource(it)
+            binding.receivedRequestsRecycler.adapter = adapter
+        })
     }
 
     private fun logout() {

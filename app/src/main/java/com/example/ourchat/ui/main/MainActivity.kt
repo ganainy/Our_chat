@@ -18,6 +18,7 @@ import com.facebook.CallbackManager
 
 class MainActivity : AppCompatActivity(), SignupFragment.ReturnCallBackManager {
 
+
     val REQUEST_IMAGE_CAPTURE = 1
     private val PICK_IMAGE_REQUEST = 2
 lateinit var mCallbackManager:CallbackManager
@@ -26,7 +27,6 @@ lateinit var mCallbackManager:CallbackManager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
 
         sharedViewModel = ViewModelProviders.of(this).get(SharedViewModel::class.java)
         val navController = this.findNavController(R.id.nav_host_fragment)

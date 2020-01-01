@@ -77,6 +77,7 @@ class LoginFragment : Fragment() {
             override fun onSuccess(loginResult: LoginResult) {
                 println("facebook:onSuccess:$loginResult")
                 viewModel.handleFacebookAccessToken(auth, loginResult.accessToken)
+
             }
 
             override fun onCancel() {

@@ -64,7 +64,7 @@ class DifferentUserProfileFragment : Fragment() {
         binding.sendFriendRequestButton.setOnClickListener {
             //add id to sentRequests document in user
             if (binding.sendFriendRequestButton.text == getString(R.string.friend_request_not_sent)) {
-                viewModel.sendFriendRequest(uid)
+                viewModel.updateSentRequestsForSender(uid)
             } else if (binding.sendFriendRequestButton.text == getString(R.string.friend_request_sent)) {
                 viewModel.cancelFriendRequest(uid)
             }

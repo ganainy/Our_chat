@@ -10,6 +10,7 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/secondaryLightColor"
         tools:context=".ui.home.HomeFragment">
 
         <com.google.android.material.bottomappbar.BottomAppBar
@@ -20,6 +21,22 @@
             app:backgroundTint="@color/primaryColor"
             app:fabAlignmentMode="center"
             app:navigationIcon="@drawable/ic_person_add_white_24dp" />
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="56dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/receivedRequestsRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/received_request_item" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
