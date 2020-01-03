@@ -41,6 +41,9 @@
         <action
             android:id="@+id/action_homeFragment_to_findUserFragment"
             app:destination="@id/findUserFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_incomingRequestsFragment"
+            app:destination="@id/incomingRequestsFragment" />
     </fragment>
     <fragment
         android:id="@+id/profileFragment"
@@ -61,4 +64,8 @@
         android:id="@+id/differentUserProfile"
         android:name="com.example.ourchat.ui.different_user_profile.DifferentUserProfileFragment"
         android:label="DifferentUserProfile" />
+    <fragment
+        android:id="@+id/incomingRequestsFragment"
+        android:name="com.example.ourchat.ui.incoming_requests.IncomingRequestsFragment"
+        android:label="IncomingRequestsFragment" />
 </navigation>

@@ -1,4 +1,4 @@
-package com.example.ourchat.ui.home
+package com.example.ourchat.ui.incoming_requests
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -7,8 +7,8 @@ import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ReceivedRequestItemBinding
 
 
-class ReceivedRequestsAdapter(private val buttonCallback: ButtonCallback) :
-    RecyclerView.Adapter<ReceivedRequestsAdapter.UserHolder>() {
+class IncomingRequestsAdapter(private val buttonCallback: ButtonCallback) :
+    RecyclerView.Adapter<IncomingRequestsAdapter.UserHolder>() {
 
 
     private var mUsers = listOf<User>()
@@ -23,7 +23,9 @@ class ReceivedRequestsAdapter(private val buttonCallback: ButtonCallback) :
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserHolder {
 
-        return UserHolder.from(parent)
+        return UserHolder.from(
+            parent
+        )
 
     }
 
@@ -63,7 +65,9 @@ class ReceivedRequestsAdapter(private val buttonCallback: ButtonCallback) :
                 val layoutInflater = LayoutInflater.from(parent.context)
                 val binding = ReceivedRequestItemBinding.inflate(layoutInflater, parent, false)
 
-                return UserHolder(binding)
+                return UserHolder(
+                    binding
+                )
             }
         }
 

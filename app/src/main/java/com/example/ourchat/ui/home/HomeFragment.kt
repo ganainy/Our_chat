@@ -9,25 +9,20 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
-import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.HomeFragmentBinding
-import com.example.ourchat.ui.home.ReceivedRequestsAdapter.ButtonCallback
 import com.facebook.login.LoginManager
 import com.google.firebase.auth.FirebaseAuth
 
 
 class HomeFragment : Fragment() {
 
-    private lateinit var adapter: ReceivedRequestsAdapter
     lateinit var binding: HomeFragmentBinding
-    var sendersList: MutableList<User>? = null
 
     companion object {
         fun newInstance() = HomeFragment()
@@ -48,29 +43,19 @@ class HomeFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
 
 
-        //handle click on item of friend request recycler
-        adapter = ReceivedRequestsAdapter(object : ButtonCallback {
-            override fun onConfirmClicked(user: User, position: Int) {
-                viewModel.addToFriends(user)
-                Toast.makeText(context, "${user.username} added to your friends", Toast.LENGTH_LONG)
-                    .show()
-                sendersList?.removeAt(position)
-                adapter.setDataSource(sendersList)
-                adapter.notifyItemRemoved(position)
-            }
+        viewModel.getIncomingRequestsCount().observe(this, Observer {
+            println("HomeFragment.onActivityCreated:$it")
+            when (it) {
+                /* 1-> binding.bottomAppBar.setNavigationIcon(R.drawable.ic_request_count_1)
+                 2-> binding.bottomAppBar.setNavigationIcon(R.drawable.request_count_2)
+                 3-> binding.bottomAppBar.setNavigationIcon(R.drawable.request_count_3)
+                 4-> binding.bottomAppBar.setNavigationIcon(R.drawable.request_count_4)
+                 5-> binding.bottomAppBar.setNavigationIcon(R.drawable.request_count_5)
+                  else ->binding.bottomAppBar.setNavigationIcon(R.drawable.request_count_plus_5)*/
 
-            override fun onDeleteClicked(user: User, position: Int) {
-                viewModel.deleteRequest(user)
-                Toast.makeText(context, "Request deleted", Toast.LENGTH_LONG).show()
-                sendersList?.removeAt(position)
-                adapter.setDataSource(sendersList)
-                adapter.notifyItemRemoved(position)
             }
-
         })
 
-        //check if there is any incoming friend requests
-        viewModel.checkIncomingFriendRequests()
 
         //show main_menu items on bottom appbar
         binding.bottomAppBar.replaceMenu(R.menu.main_menu)
@@ -88,14 +73,17 @@ class HomeFragment : Fragment() {
                 R.id.item_edit_profile -> {
                     findNavController().navigate(R.id.action_homeFragment_to_profileFragment)
                 }
+                R.id.item_add_friend -> {
+                    findNavController().navigate(R.id.action_homeFragment_to_findUserFragment)
+                }
             }
             true
 
         }
 
-        //handle add friend click
+        //show incoming friend requests on click
         binding.bottomAppBar.setNavigationOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_findUserFragment)
+            findNavController().navigate(R.id.action_homeFragment_to_incomingRequestsFragment)
         }
 
         //handle fab click
@@ -114,12 +102,6 @@ class HomeFragment : Fragment() {
         }
 
 
-        viewModel.senders.observe(this, Observer {
-            println("HomeFragment.onActivityCreated:${it?.size}")
-            adapter.setDataSource(it)
-            sendersList = it
-            binding.receivedRequestsRecycler.adapter = adapter
-        })
     }
 
     private fun logout() {

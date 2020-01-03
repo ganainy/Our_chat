@@ -19,8 +19,8 @@
 
 
     <item
-        android:id="@+id/item_search"
-        android:icon="@drawable/ic_search_white_24dp"
-        android:title="@string/search"
+        android:id="@+id/item_add_friend"
+        android:icon="@drawable/ic_person_add_white_24dp"
+        android:title="@string/add_friend"
         app:showAsAction="ifRoom" />
 </menu>

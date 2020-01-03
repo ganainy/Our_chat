@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.data.model.User
-import com.example.ourchat.ui.home.FRIENDS
+import com.example.ourchat.ui.incoming_requests.FRIENDS
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
@@ -39,9 +39,9 @@ class FindUserViewModel : ViewModel() {
                 // remove friends of logged in user from result list
                 docRef.whereArrayContains(FRIENDS, FirebaseAuth.getInstance().uid.toString())
                     .addSnapshotListener(
-                        EventListener { t, firebaseFirestoreException ->
+                        EventListener { querySnapshot, firebaseFirestoreException ->
                             if (firebaseFirestoreException == null) {
-                                val documents = t?.documents
+                                val documents = querySnapshot?.documents
                                 if (documents != null) {
                                     for (document in documents) {
                                         val user = document.toObject(User::class.java)
