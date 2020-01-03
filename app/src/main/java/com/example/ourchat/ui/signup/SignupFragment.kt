@@ -13,11 +13,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.ErrorMessage
+import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.databinding.SignupFragmentBinding
 import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.login.LoginResult
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.issue_layout.view.*
 import java.util.regex.Matcher
@@ -34,7 +33,7 @@ class SignupFragment : Fragment() {
 
     private lateinit var viewModel: SignupViewModel
 
-    private lateinit var callbackManager: CallbackManager
+
     private lateinit var auth: FirebaseAuth
 
     private lateinit var mCallback: ReturnCallBackManager
@@ -74,27 +73,7 @@ class SignupFragment : Fragment() {
         }
 
 
-        // Initialize Facebook Login button
-        callbackManager = CallbackManager.Factory.create()
-        mCallback.bringBackCallbackManager(callbackManager)
 
-        binding.FBloginButton.setReadPermissions("email", "public_profile")
-        binding.FBloginButton.registerCallback(callbackManager, object :
-            FacebookCallback<LoginResult> {
-            override fun onSuccess(loginResult: LoginResult) {
-                viewModel.handleFacebookAccessToken(auth, loginResult.accessToken)
-            }
-
-            override fun onCancel() {
-                viewModel.errorMessage.value = "Logging in with facebook cancelled"
-
-            }
-
-            override fun onError(error: FacebookException) {
-                viewModel.errorMessage.value = error.message
-
-            }
-        })
 
 
         val emailRegex = "^[A-Za-z0-9+_.-]+@(.+)\$"
@@ -135,7 +114,7 @@ class SignupFragment : Fragment() {
 
 
 
-            viewModel.registerToFirebase(
+            viewModel.registerEmail(
                 auth,
                 binding.email.editText!!.text.toString(),
                 binding.password.editText!!.text.toString(),
@@ -152,7 +131,7 @@ class SignupFragment : Fragment() {
             }
         })
 
-        //if true user is stored in firebase(wether he is normal or facebook user)
+        //if true user is stored in firebase
         viewModel.userStored.observe(this, Observer {
             if (it) {
                 findNavController().navigate(R.id.action_signupFragment_to_homeFragment)
@@ -161,30 +140,27 @@ class SignupFragment : Fragment() {
         })
 
 
-        //if firebase user isn't null it means registeration with facebook successful
-        viewModel.firebaseUser.observe(this, Observer {
-            if (it != null) {
-                //save user info in firebase
-                viewModel.storeFacebookUserInFirebase(it)
-            }
-        })
 
-
-
-
-
-        viewModel.errorMessage.observe(this, Observer {
-            binding.issueLayout.textViewIssue.text = it
-            binding.issueLayout.visibility = View.VISIBLE
-        })
-
-
-        //One observable to show/hide loading layout
+        binding.issueLayout.cancelImage.setOnClickListener {
+            binding.issueLayout.visibility = View.GONE
+        }
+        //show proper loading/error ui
         viewModel.loadingState.observe(this, Observer {
-            if (it) {
-                binding.loadingLayout.visibility = View.VISIBLE
-            } else {
-                binding.loadingLayout.visibility = View.GONE
+            when (it) {
+                LoadState.LOADING -> {
+                    binding.loadingLayout.visibility = View.VISIBLE
+                    binding.issueLayout.visibility = View.GONE
+                }
+                LoadState.SUCCESS -> {
+                    binding.loadingLayout.visibility = View.GONE
+                    binding.issueLayout.visibility = View.GONE
+                }
+                LoadState.FAILURE -> {
+                    binding.loadingLayout.visibility = View.GONE
+                    binding.issueLayout.visibility = View.VISIBLE
+                    binding.issueLayout.textViewIssue.text = ErrorMessage.errorMessage
+                }
+
             }
         })
     }

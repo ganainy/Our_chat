@@ -50,7 +50,7 @@ class DifferentUserProfileFragment : Fragment() {
         viewModel.checkIfFriends(uid)
 
         //set data to views and download image
-        binding.aboutMeText.text = bio ?: "No bio yet"
+        binding.bioTextView.text = bio ?: "No bio yet"
         binding.name.text = username
         viewModel.downloadProfilePicture(profile_picture_url)
 

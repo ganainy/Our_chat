@@ -9,11 +9,16 @@ import android.provider.MediaStore
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.navigation.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.ErrorMessage
+import com.example.ourchat.Utils.LoadState
+import com.example.ourchat.databinding.ActivityMainBinding
 import com.example.ourchat.ui.signup.SignupFragment
 import com.facebook.CallbackManager
+import kotlinx.android.synthetic.main.issue_layout.view.*
 
 
 class MainActivity : AppCompatActivity(), SignupFragment.ReturnCallBackManager {
@@ -26,13 +31,36 @@ lateinit var mCallbackManager:CallbackManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        val binding: ActivityMainBinding =
+            DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         sharedViewModel = ViewModelProviders.of(this).get(SharedViewModel::class.java)
-        val navController = this.findNavController(R.id.nav_host_fragment)
 
 
+        //handle any change in loading state in whole app
+        binding.issueLayout.cancelImage.setOnClickListener {
+            binding.issueLayout.visibility = View.GONE
+        }
 
+        sharedViewModel.loadState.observe(this, Observer {
+
+            when (it) {
+                LoadState.LOADING -> {
+                    binding.loadingLayout.visibility = View.VISIBLE
+                    binding.issueLayout.visibility = View.GONE
+                }
+                LoadState.SUCCESS -> {
+                    binding.loadingLayout.visibility = View.GONE
+                    binding.issueLayout.visibility = View.GONE
+                }
+                LoadState.FAILURE -> {
+                    binding.loadingLayout.visibility = View.GONE
+                    binding.issueLayout.visibility = View.VISIBLE
+                    binding.issueLayout.textViewIssue.text = ErrorMessage.errorMessage
+                }
+
+            }
+        })
 
 
     }

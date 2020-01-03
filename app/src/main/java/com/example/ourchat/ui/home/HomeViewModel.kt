@@ -15,29 +15,27 @@ const val FRIENDS = "friends"
 class HomeViewModel : ViewModel() {
 
     val usersRef = FirebaseFirestore.getInstance().collection("users")
-    val receivedRequestsProfiles = MutableLiveData<List<User>?>()
+    val senders = MutableLiveData<MutableList<User>?>()
 
     fun checkIncomingFriendRequests() {
-        usersRef.document(FirebaseAuth.getInstance().uid.toString())
-            .addSnapshotListener { t, firebaseFirestoreException ->
-                if (firebaseFirestoreException == null) {
-                    val user = t?.toObject(User::class.java)
-                    val receivedRequestListSize = user?.receivedRequests?.size ?: -1
-                    if (receivedRequestListSize > 0) {
-                        downloadUsers(user?.receivedRequests)
-                    } else {
-                        receivedRequestsProfiles.value = null
-                    }
-                } else {
-                    receivedRequestsProfiles.value = null
-                    //error
-                }
+        usersRef.document(FirebaseAuth.getInstance().uid.toString()).get().addOnSuccessListener {
+            val user = it?.toObject(User::class.java)
+            val receivedRequestListSize = user?.receivedRequests?.size ?: -1
+            if (receivedRequestListSize > 0) {
+                downloadSenders(user?.receivedRequests)
+            } else {
+                senders.value = null
             }
+        }.addOnFailureListener {
+            senders.value = null
+            //error
+        }
+
     }
 
 
     //get info of the users that sent friend requests
-    private fun downloadUsers(receivedRequests: List<String>?) {
+    private fun downloadSenders(receivedRequests: List<String>?) {
 
         val users = mutableListOf<User>()
 
@@ -46,7 +44,7 @@ class HomeViewModel : ViewModel() {
                 usersRef.document(receivedRequest).get().addOnSuccessListener {
                     val user = it?.toObject(User::class.java)
                     user?.let { it1 -> users.add(it1) }
-                    receivedRequestsProfiles.value = users
+                    senders.value = users
 
                 }.addOnFailureListener {
 

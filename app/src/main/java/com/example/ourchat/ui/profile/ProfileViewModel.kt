@@ -6,9 +6,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.request.RequestOptions
+import com.example.ourchat.R
 import com.example.ourchat.Utils.LoadState
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
+
 
 class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
 
@@ -16,58 +20,64 @@ class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
 
     private lateinit var db: FirebaseFirestore
 
-    var bioUploadState = MutableLiveData<LoadState>()
-    var bioDownloadState = MutableLiveData<LoadState>()
-    var profileImageDownloadState = MutableLiveData<LoadState>()
+    var bioLoadState = MutableLiveData<LoadState>()
+    var profileImageLoadState = MutableLiveData<LoadState>()
     var loadedImage = MutableLiveData<RequestBuilder<Drawable>>()
 
 
     var bio = MutableLiveData<String>()
 
-    fun uploadBio(bio: String) {
+    fun updateBio(bio: String) {
 
-        bioUploadState.value = LoadState.UPLOADING
+        bioLoadState.value = LoadState.LOADING
         db = FirebaseFirestore.getInstance()
-        db.collection("users").document(FirebaseAuth.getInstance().uid!!)
+        val addOnFailureListener = db.collection("users").document(FirebaseAuth.getInstance().uid!!)
             .update("bio", bio)
             .addOnSuccessListener {
-                bioUploadState.value = LoadState.SUCCESS
+                bioLoadState.value = LoadState.SUCCESS
 
             }
             .addOnFailureListener {
-                bioUploadState.value = LoadState.FAILURE
+                bioLoadState.value = LoadState.FAILURE
             }
+
     }
+
 
     fun downloadBio() {
-        bioDownloadState.value = LoadState.DOWNLOADING
+        bioLoadState.value = LoadState.LOADING
         db = FirebaseFirestore.getInstance()
         val docRef = db.collection("users").document(FirebaseAuth.getInstance().uid!!)
-        docRef.get()
-            .addOnSuccessListener { document ->
-                bioDownloadState.value = LoadState.SUCCESS
-                bio.value = document.get("bio")?.toString() ?: "No bio"
+        docRef.addSnapshotListener(EventListener { document, firebaseFirestoreException ->
+            if (firebaseFirestoreException == null) {
+                bioLoadState.value = LoadState.SUCCESS
+                bio.value = document?.get("bio")?.toString() ?: "No bio"
+            } else {
+                bioLoadState.value = LoadState.FAILURE
+            }
+        })
 
-            }
-            .addOnFailureListener { exception ->
-                bioDownloadState.value = LoadState.FAILURE
-            }
     }
+
+
 
     fun downloadProfileImage() {
 
-        profileImageDownloadState.value = LoadState.DOWNLOADING
+        profileImageLoadState.value = LoadState.LOADING
         db = FirebaseFirestore.getInstance()
         val docRef = db.collection("users").document(FirebaseAuth.getInstance().uid!!)
         docRef.get()
             .addOnSuccessListener { document ->
                 var profileImageUrl = document.get("profile_picture_url").toString()
-                loadedImage.value = Glide.with(app).load(profileImageUrl)
-                profileImageDownloadState.value = LoadState.SUCCESS
+                loadedImage.value = Glide.with(app).load(profileImageUrl).apply(
+                    RequestOptions()
+                        .placeholder(R.drawable.loading_animation).error(R.drawable.anonymous_profile)
+                )
+                profileImageLoadState.value = LoadState.SUCCESS
 
             }
             .addOnFailureListener { exception ->
-                profileImageDownloadState.value = LoadState.FAILURE
+                profileImageLoadState.value = LoadState.FAILURE
             }
 
 

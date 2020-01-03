@@ -54,9 +54,9 @@ class FindUserFragment : Fragment() {
 
 
         //Show loading until list of all users is downloaded
-        viewModel.usersDownloadState.observe(this, Observer {
+        viewModel.usersLoadState.observe(this, Observer {
             when (it) {
-                LoadState.DOWNLOADING -> {
+                LoadState.LOADING -> {
                     binding.loadingLayout.visibility = View.VISIBLE
                 }
 
@@ -77,10 +77,10 @@ class FindUserFragment : Fragment() {
 
 
             var bundle = bundleOf(
-                "uid" to it.get("uid").toString(),
-                "bio" to it.get("bio").toString(),
-                "profile_picture_url" to it.get("profile_picture_url").toString(),
-                "username" to it.get("username").toString()
+                "uid" to it.uid,
+                "bio" to it.bio,
+                "profile_picture_url" to it.profile_picture_url,
+                "username" to it.username
             )
 
             findNavController().navigate(

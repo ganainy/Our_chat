@@ -51,10 +51,10 @@ class ReceivedRequestsAdapter(private val buttonCallback: ButtonCallback) :
 
             //callback to parent fragment when button clicked
             binding.confirmButton.setOnClickListener {
-                buttonCallback.onConfirmClicked(item)
+                buttonCallback.onConfirmClicked(item, adapterPosition)
             }
             binding.deleteButton.setOnClickListener {
-                buttonCallback.onDeleteClicked(item)
+                buttonCallback.onDeleteClicked(item, adapterPosition)
             }
         }
 
@@ -72,8 +72,8 @@ class ReceivedRequestsAdapter(private val buttonCallback: ButtonCallback) :
 
 
     interface ButtonCallback {
-        fun onConfirmClicked(user: User)
-        fun onDeleteClicked(user: User)
+        fun onConfirmClicked(user: User, position: Int)
+        fun onDeleteClicked(user: User, position: Int)
     }
 
 

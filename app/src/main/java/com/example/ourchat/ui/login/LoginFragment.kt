@@ -1,7 +1,5 @@
 package com.example.ourchat.ui.login
 
-import android.app.Activity
-import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -16,12 +14,9 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.ErrorMessage
+import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.databinding.LoginFragmentBinding
-import com.example.ourchat.ui.signup.SignupFragment
-import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.login.LoginResult
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.issue_layout.view.*
@@ -29,11 +24,9 @@ import kotlinx.android.synthetic.main.issue_layout.view.*
 class LoginFragment : Fragment() {
 
     private lateinit var binding: LoginFragmentBinding
-    private lateinit var callbackManager: CallbackManager
+
     private lateinit var auth: FirebaseAuth
 
-    private lateinit var mCallback: SignupFragment.ReturnCallBackManager
-    private lateinit var mActivity: Activity
 
     companion object {
         fun newInstance() = LoginFragment()
@@ -60,38 +53,6 @@ class LoginFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(LoginViewModel::class.java)
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
-
-        //cancel error layout on image click
-        binding.issueLayout.cancelImage.setOnClickListener {
-            binding.issueLayout.visibility = View.GONE
-        }
-
-
-        // Initialize Facebook Login button
-        callbackManager = CallbackManager.Factory.create()
-        mCallback.bringBackCallbackManager(callbackManager)
-
-        binding.FBloginButton.setReadPermissions("email", "public_profile")
-        binding.FBloginButton.registerCallback(callbackManager, object :
-            FacebookCallback<LoginResult> {
-            override fun onSuccess(loginResult: LoginResult) {
-                println("facebook:onSuccess:$loginResult")
-                viewModel.handleFacebookAccessToken(auth, loginResult.accessToken)
-
-            }
-
-            override fun onCancel() {
-                viewModel.errorMessage.value = "Logging in with facebook cancelled"
-
-            }
-
-            override fun onError(error: FacebookException) {
-                viewModel.errorMessage.value = error.message
-
-            }
-        })
-
-
 
 
         // Navigate to signup fragment
@@ -133,8 +94,6 @@ class LoginFragment : Fragment() {
             } else {
 
                 //All fields are correct we can register
-
-
                 viewModel.login(
                     auth,
                     binding.email.editText!!.text.toString(),
@@ -152,46 +111,35 @@ class LoginFragment : Fragment() {
             }
         })
 
-        //show appropriate error message on layout
-        viewModel.errorMessage.observe(this, Observer {
-            binding.issueLayout.textViewIssue.text = it
-            binding.issueLayout.visibility = View.VISIBLE
-        })
 
 
-        //if firebase user isn't null it means login with facebook successful
-        viewModel.firebaseUser.observe(this, Observer {
-            if (it != null) {
-                viewModel.storeFacebookUserInFirebase(it)
-            }
-        })
-
-
-        //One observable to show/hide loading layout
+        binding.issueLayout.cancelImage.setOnClickListener {
+            binding.issueLayout.visibility = View.GONE
+        }
+        //show loading ui
         viewModel.loadingState.observe(this, Observer {
-            if (it) {
-                binding.loadingLayout.visibility = View.VISIBLE
-            } else {
-                binding.loadingLayout.visibility = View.GONE
+            when (it) {
+                LoadState.LOADING -> {
+                    binding.loadingLayout.visibility = View.VISIBLE
+                    binding.issueLayout.visibility = View.GONE
+                }
+                LoadState.SUCCESS -> {
+                    binding.loadingLayout.visibility = View.GONE
+                    binding.issueLayout.visibility = View.GONE
+                }
+                LoadState.FAILURE -> {
+                    binding.loadingLayout.visibility = View.GONE
+                    binding.issueLayout.visibility = View.VISIBLE
+                    binding.issueLayout.textViewIssue.text = ErrorMessage.errorMessage
+                }
+
             }
         })
 
 
-        //if true facebook user is stored in firebase
-        viewModel.userStored.observe(this, Observer {
-            if (it) {
-                findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
-                Toast.makeText(context, "Sign up successful", Toast.LENGTH_LONG).show()
-            }
-        })
 
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        mActivity = context as Activity
-        mCallback = mActivity as SignupFragment.ReturnCallBackManager
-    }
 
 
     /**

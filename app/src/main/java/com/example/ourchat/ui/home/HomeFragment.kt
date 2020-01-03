@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -26,6 +27,7 @@ class HomeFragment : Fragment() {
 
     private lateinit var adapter: ReceivedRequestsAdapter
     lateinit var binding: HomeFragmentBinding
+    var sendersList: MutableList<User>? = null
 
     companion object {
         fun newInstance() = HomeFragment()
@@ -48,12 +50,21 @@ class HomeFragment : Fragment() {
 
         //handle click on item of friend request recycler
         adapter = ReceivedRequestsAdapter(object : ButtonCallback {
-            override fun onConfirmClicked(user: User) {
+            override fun onConfirmClicked(user: User, position: Int) {
                 viewModel.addToFriends(user)
+                Toast.makeText(context, "${user.username} added to your friends", Toast.LENGTH_LONG)
+                    .show()
+                sendersList?.removeAt(position)
+                adapter.setDataSource(sendersList)
+                adapter.notifyItemRemoved(position)
             }
 
-            override fun onDeleteClicked(user: User) {
+            override fun onDeleteClicked(user: User, position: Int) {
                 viewModel.deleteRequest(user)
+                Toast.makeText(context, "Request deleted", Toast.LENGTH_LONG).show()
+                sendersList?.removeAt(position)
+                adapter.setDataSource(sendersList)
+                adapter.notifyItemRemoved(position)
             }
 
         })
@@ -103,9 +114,10 @@ class HomeFragment : Fragment() {
         }
 
 
-        viewModel.receivedRequestsProfiles.observe(this, Observer {
+        viewModel.senders.observe(this, Observer {
             println("HomeFragment.onActivityCreated:${it?.size}")
             adapter.setDataSource(it)
+            sendersList = it
             binding.receivedRequestsRecycler.adapter = adapter
         })
     }

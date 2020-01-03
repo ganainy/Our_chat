@@ -31,17 +31,16 @@ fun setImage(imageView: ImageView, imgString: String?) {
 
 
 
-@BindingAdapter("setRoundImage")
-fun setRoundImage(imageView: ImageView, item: DocumentSnapshot) {
+@BindingAdapter("setImage")
+fun setImage(imageView: ImageView, item: User) {
     item.let {
-        val imageUri = it.get("profile_picture_url")
+        val imageUri = it.profile_picture_url
         Glide.with(imageView.context)
             .load(imageUri)
             .apply(
                 RequestOptions()
                     .placeholder(R.drawable.loading_animation)
-                    .error(R.drawable.ic_broken_image)
-                    .circleCrop()
+                    .error(R.drawable.anonymous_profile)
             )
             .into(imageView)
     }
@@ -49,21 +48,7 @@ fun setRoundImage(imageView: ImageView, item: DocumentSnapshot) {
 }
 
 
-@BindingAdapter("setRoundImageFromUser")
-fun setRoundImage2(imageView: ImageView, user: User) {
-    user.photo.let {
-        Glide.with(imageView.context)
-            .load(it)
-            .apply(
-                RequestOptions()
-                    .placeholder(R.drawable.loading_animation)
-                    .error(R.drawable.ic_broken_image)
-                    .circleCrop()
-            )
-            .into(imageView)
-    }
 
-}
 
 
 /*
@@ -94,7 +79,7 @@ fun MaterialButton.setTheLoadingState(state: LoadState) {
         LoadState.SUCCESS -> {
             setIconResource(R.drawable.ic_person_add_black_24dp)
         }
-        LoadState.DOWNLOADING -> {
+        LoadState.LOADING -> {
             setIconResource(R.drawable.loading_animation)
         }
 

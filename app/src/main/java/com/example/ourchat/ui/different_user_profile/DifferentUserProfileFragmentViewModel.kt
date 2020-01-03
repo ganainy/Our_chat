@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
+import com.example.ourchat.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FieldValue
@@ -24,7 +25,8 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
     fun downloadProfilePicture(profilePictureUrl: String?) {
         println("DifferentUserProfileFragmentViewModel.downloadProfilePicture:$profilePictureUrl")
         if (profilePictureUrl == "null") return
-        val load: RequestBuilder<Drawable> = Glide.with(app).load(profilePictureUrl)
+        val load: RequestBuilder<Drawable> =
+            Glide.with(app).load(profilePictureUrl).placeholder(R.drawable.anonymous_profile)
         loadedImage.value = load
     }
 

@@ -13,7 +13,7 @@
 
         <variable
             name="user"
-            type="com.google.firebase.firestore.DocumentSnapshot" />
+            type="com.example.ourchat.data.model.User" />
         <!-- <variable
              name="queryString"
              type="String"
@@ -39,7 +39,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:setRoundImage="@{user}"
+            app:setImage="@{user}"
             tools:src="@color/red" />
 
         <TextView

@@ -13,8 +13,8 @@ import android.widget.Filterable
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.UserItemBinding
-import com.google.firebase.firestore.DocumentSnapshot
 import java.util.*
 
 
@@ -22,12 +22,12 @@ var mQuery = ""
 
 
 class UserAdapter(private val clickListener: UserClickListener) :
-    ListAdapter<DocumentSnapshot, UserAdapter.ViewHolder>(DiffCallbackUsers()), Filterable,
+    ListAdapter<User, UserAdapter.ViewHolder>(DiffCallbackUsers()), Filterable,
     OnQueryTextChange {
 
 
-    var userList = mutableListOf<DocumentSnapshot>()
-    lateinit var filteredUserList: MutableList<DocumentSnapshot>
+    var userList = mutableListOf<User?>()
+    var filteredUserList = mutableListOf<User?>()
 
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -43,10 +43,10 @@ class UserAdapter(private val clickListener: UserClickListener) :
     class ViewHolder private constructor(val binding: UserItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(clickListener: UserClickListener, item: DocumentSnapshot) {
+        fun bind(clickListener: UserClickListener, item: User) {
             println("ViewHolder.bind:")
 
-            val userName: String = item.get("username").toString()
+            val userName: String = item.username.toString()
 
             //if query text isn't empty set the selected text with sky blue+bold
             if (mQuery.isEmpty()) {
@@ -99,7 +99,7 @@ class UserAdapter(private val clickListener: UserClickListener) :
 
                 } else {
                     for (user in userList) {
-                        if (user.get("username")?.toString()?.toLowerCase(Locale.ENGLISH)?.contains(
+                        if (user?.username?.toLowerCase(Locale.ENGLISH)?.contains(
                                 charString.toLowerCase(Locale.ENGLISH)
                             )!!
                         ) {
@@ -114,9 +114,8 @@ class UserAdapter(private val clickListener: UserClickListener) :
 
             override fun publishResults(charSequence: CharSequence, filterResults: FilterResults) {
 
-                submitList(filterResults.values as MutableList<DocumentSnapshot>?)
+                submitList(filterResults.values as MutableList<User?>)
                 notifyDataSetChanged()//todo find other way to force call on bind after filtering
-                println("UserAdapter.publishResults:")
 
             }
         }
@@ -125,7 +124,6 @@ class UserAdapter(private val clickListener: UserClickListener) :
     //get search text from fragment using callback
     override fun onChange(query: String) {
         mQuery = query
-        println("UserAdapter.onChange:$query")
     }
 
 
@@ -137,18 +135,18 @@ class UserAdapter(private val clickListener: UserClickListener) :
  * Used by ListAdapter to calculate the minumum number of changes between and old list and a new
  * list that's been passed to `submitList`.
  */
-class DiffCallbackUsers : DiffUtil.ItemCallback<DocumentSnapshot>() {
-    override fun areItemsTheSame(oldItem: DocumentSnapshot, newItem: DocumentSnapshot): Boolean {
-        return oldItem.get("uid") == newItem.get("uid")
+class DiffCallbackUsers : DiffUtil.ItemCallback<User>() {
+    override fun areItemsTheSame(oldItem: User, newItem: User): Boolean {
+        return oldItem.uid == newItem.uid
     }
 
-    override fun areContentsTheSame(oldItem: DocumentSnapshot, newItem: DocumentSnapshot): Boolean {
+    override fun areContentsTheSame(oldItem: User, newItem: User): Boolean {
         return oldItem == newItem
     }
 }
 
-class UserClickListener(val clickListener: (user: DocumentSnapshot) -> Unit) {
-    fun onClick(user: DocumentSnapshot) {
+class UserClickListener(val clickListener: (user: User) -> Unit) {
+    fun onClick(user: User) {
         return clickListener(user)
     }
 }

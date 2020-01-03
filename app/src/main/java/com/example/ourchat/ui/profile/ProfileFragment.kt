@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -35,7 +34,7 @@ class ProfileFragment : Fragment() {
     }
 
     private lateinit var viewModel: ProfileViewModel
-    private var sharedViewModel: SharedViewModel? = null
+    private lateinit var sharedViewModel: SharedViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,8 +48,7 @@ class ProfileFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         viewModel = ViewModelProviders.of(this).get(ProfileViewModel::class.java)
-        sharedViewModel =
-            activity?.let { ViewModelProviders.of(it).get(SharedViewModel::class.java) }
+        sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
 
         //todo show user friends
@@ -75,7 +73,7 @@ class ProfileFragment : Fragment() {
 
 
         //Observe camera image change from parent activity
-        sharedViewModel?.imageBitmap?.observe(this, androidx.lifecycle.Observer {
+        sharedViewModel.imageBitmap.observe(this, androidx.lifecycle.Observer {
             binding.profileImage.setImageBitmap(it)
 
 
@@ -86,21 +84,21 @@ class ProfileFragment : Fragment() {
             val baos = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
             val data = baos.toByteArray()
-            sharedViewModel?.uploadImageAsBytearray(data)
+            sharedViewModel.uploadImageAsBytearray(data)
 
 
             mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         })
 
         //Observe gallery image change from parent activity
-        sharedViewModel?.galleryImageUri?.observe(this, androidx.lifecycle.Observer {
+        sharedViewModel.galleryImageUri.observe(this, androidx.lifecycle.Observer {
             binding.profileImage.setImageURI(it)
             mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         })
 
 
         //Observe upload image state and show appropriate ui
-        sharedViewModel?.uploadState?.observe(this, androidx.lifecycle.Observer {
+        sharedViewModel.uploadState.observe(this, androidx.lifecycle.Observer {
             setProfileImageLoadUi(it)
         })
 
@@ -111,18 +109,19 @@ class ProfileFragment : Fragment() {
                 //show edit text to allow user to edit bio and change text view text to submit
                 binding.editTextview.text = getString(R.string.submit)
                 binding.editTextview.setTextColor(Color.GREEN)
-
-                binding.editEdittext.visibility = View.VISIBLE
+                binding.bioTextView.visibility = View.GONE
+                binding.newBioEditText.visibility = View.VISIBLE
 
 
             } else if (binding.editTextview.text.equals(getString(R.string.submit))) {
                 //hide edit text and upload changes to user document
                 binding.editTextview.text = getString(R.string.edit)
                 binding.editTextview.setTextColor(Color.CYAN)
+                binding.bioTextView.visibility = View.VISIBLE
+                binding.newBioEditText.visibility = View.GONE
 
                 //upload bio to user document
-                viewModel.uploadBio(binding.editEdittext.text.toString())
-                binding.editEdittext.visibility = View.GONE
+                viewModel.updateBio(binding.newBioEditText.text.toString())
 
                 //hide keyboard
                 mainActivity = activity as MainActivity
@@ -131,34 +130,10 @@ class ProfileFragment : Fragment() {
         }
 
 
-        //Observe if bio uploaded to user document
-        viewModel.bioUploadState.observe(this, Observer {
+        //Show loading until bio is loaded
+        viewModel.bioLoadState.observe(this, Observer {
             when (it) {
-                LoadState.UPLOADING -> {
-                    binding.bioProgressBar.visibility = View.VISIBLE
-                }
-
-                LoadState.SUCCESS -> {
-                    //bio updated successfully
-                    binding.aboutMeText.text = binding.editEdittext.text
-                    Toast.makeText(context, "Bio updated", Toast.LENGTH_SHORT).show()
-                    binding.bioProgressBar.visibility = View.GONE
-                }
-
-                LoadState.FAILURE -> {
-                    Toast.makeText(context, "Error updating bio, retry later.", Toast.LENGTH_LONG)
-                        .show()
-                    binding.bioProgressBar.visibility = View.GONE
-                }
-            }
-
-        })
-
-
-        //Show loading untill bio is downloaded
-        viewModel.bioDownloadState.observe(this, Observer {
-            when (it) {
-                LoadState.DOWNLOADING -> {
+                LoadState.LOADING -> {
                     binding.bioProgressBar.visibility = View.VISIBLE
                 }
 
@@ -176,7 +151,7 @@ class ProfileFragment : Fragment() {
 
         //show downloaded bio in textview
         viewModel.bio.observe(this, Observer {
-            binding.aboutMeText.text = it
+            binding.bioTextView.text = it
         })
 
 
@@ -187,7 +162,7 @@ class ProfileFragment : Fragment() {
 
 
         //show loading state while profile image loading
-        viewModel.profileImageDownloadState.observe(this, Observer {
+        viewModel.profileImageLoadState.observe(this, Observer {
             setProfileImageLoadUi(it)
         })
 
@@ -197,12 +172,7 @@ class ProfileFragment : Fragment() {
 
     private fun setProfileImageLoadUi(it: LoadState?) {
         when (it) {
-            LoadState.UPLOADING -> {
-                binding.uploadProgressBar.visibility = View.VISIBLE
-                binding.uploadText.visibility = View.VISIBLE
-                binding.profileImage.alpha = .5f
 
-            }
             LoadState.SUCCESS -> {
                 binding.uploadProgressBar.visibility = View.GONE
                 binding.uploadText.visibility = View.GONE
@@ -213,7 +183,7 @@ class ProfileFragment : Fragment() {
                 binding.uploadText.visibility = View.GONE
                 binding.profileImage.alpha = 1f
             }
-            LoadState.DOWNLOADING -> {
+            LoadState.LOADING -> {
                 binding.uploadProgressBar.visibility = View.VISIBLE
                 binding.uploadText.visibility = View.GONE
                 binding.profileImage.alpha = .5f

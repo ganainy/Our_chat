@@ -154,7 +154,7 @@
                         </LinearLayout>
 
                         <EditText
-                            android:id="@+id/edit_edittext"
+                            android:id="@+id/newBioEditText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/type_something_to_let_your_friends_know_you_better"
@@ -169,7 +169,7 @@
                             android:visibility="gone" />
 
                         <TextView
-                            android:id="@+id/about_me_text"
+                            android:id="@+id/bioTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"

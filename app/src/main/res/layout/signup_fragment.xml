@@ -221,15 +221,17 @@
                     android:layout_marginEnd="8dp"
                     android:layout_marginBottom="8dp"
                     android:text="@string/social_login"
-                    app:layout_constraintBottom_toTopOf="@+id/FBloginButton"
+                    app:layout_constraintBottom_toTopOf="@+id/facebookLoginFragment"
                     app:layout_constraintEnd_toStartOf="@+id/view5"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintStart_toEndOf="@+id/view4" />
 
-                <com.facebook.login.widget.LoginButton
-                    android:id="@+id/FBloginButton"
+
+                <fragment
                     android:layout_width="wrap_content"
-                    android:layout_height="50dp"
+                    android:id="@+id/facebookLoginFragment"
+                    android:name="com.example.ourchat.ui.fbLoginFragment.FacebookLoginFragment"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginBottom="16dp"
                     app:layout_constraintBottom_toBottomOf="parent"

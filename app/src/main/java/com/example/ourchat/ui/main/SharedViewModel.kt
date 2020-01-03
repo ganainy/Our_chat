@@ -14,12 +14,13 @@ import com.google.firebase.storage.StorageReference
 class SharedViewModel : ViewModel() {
 
     val uploadState = MutableLiveData<LoadState>()
+    val loadState = MutableLiveData<LoadState>()
     private lateinit var mStorageRef: StorageReference
 
     fun uploadImageAsBytearray(bytes: ByteArray) {
 
         //show upload ui
-        uploadState.value = LoadState.UPLOADING
+        uploadState.value = LoadState.LOADING
 
         mStorageRef = FirebaseStorage.getInstance().reference
         val ref = mStorageRef.child("profile_pictures/" + System.currentTimeMillis())
@@ -49,7 +50,7 @@ class SharedViewModel : ViewModel() {
     fun uploadImageByUri(data: Uri?) {
 
         //show upload ui
-        uploadState.value = LoadState.UPLOADING
+        uploadState.value = LoadState.LOADING
 
         mStorageRef = FirebaseStorage.getInstance().reference
         val ref = mStorageRef.child("profile_pictures/" + data?.path)
@@ -90,6 +91,12 @@ class SharedViewModel : ViewModel() {
             }
 
 
+    }
+
+
+    fun showLoadState(mLoadState: LoadState) {
+        loadState.value = mLoadState
+        println("SharedViewModel.showLoadState:${loadState.value.toString()}")
     }
 
     val imageBitmap = MutableLiveData<Bitmap>()
