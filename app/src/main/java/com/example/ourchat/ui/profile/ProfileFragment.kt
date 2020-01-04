@@ -12,8 +12,10 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
 import com.example.ourchat.Utils.LoadState
+import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ProfileFragmentBinding
 import com.example.ourchat.ui.main.MainActivity
 import com.example.ourchat.ui.main.SharedViewModel
@@ -27,6 +29,7 @@ class ProfileFragment : Fragment() {
 
     private lateinit var mBottomSheetBehavior: BottomSheetBehavior<NestedScrollView>
     lateinit var binding: ProfileFragmentBinding
+    lateinit var adapter: FriendsAdapter
     lateinit var mainActivity: MainActivity
 
     companion object {
@@ -51,10 +54,37 @@ class ProfileFragment : Fragment() {
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
 
-        //todo show user friends
         //download user bio and image on fragment start
         viewModel.downloadBio()
         viewModel.downloadProfileImage()
+
+
+
+        adapter = FriendsAdapter(object : FriendsAdapter.ItemClickCallback {
+            override fun onItemClicked(user: User) {
+                //todo open profile of clicked user
+            }
+        })
+
+
+        //load friends of logged in user and show in recycler
+        viewModel.loadFriends().observe(this, Observer {
+            if (it != null) {
+                //user has friends
+                binding.noFriendsLayout.visibility = View.GONE
+                binding.friendsLayout.visibility = View.VISIBLE
+                adapter.setDataSource(it)
+                binding.friendsRecycler.adapter = adapter
+                binding.friendsCountTextView.text = it.size.toString()
+            } else {
+                //user has no friends
+                binding.friendsLayout.visibility = View.GONE
+                binding.noFriendsLayout.visibility = View.VISIBLE
+                binding.addFriendsButton.setOnClickListener { findNavController().navigate(R.id.action_profileFragment_to_findUserFragment) }
+            }
+
+        })
+
 
         mBottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet)
 
@@ -194,7 +224,6 @@ class ProfileFragment : Fragment() {
 
 
     private fun selectProfilePicture() {
-        println("ProfileFragment.selectProfilePicture:")
         mBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 

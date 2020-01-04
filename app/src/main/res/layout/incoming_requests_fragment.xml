@@ -20,5 +20,10 @@
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/received_request_item" />
 
+
+        <include
+            android:id="@+id/no_incoming_requests_layout"
+            layout="@layout/no_incoming_requests"
+            android:visibility="gone" />
     </FrameLayout>
 </layout>

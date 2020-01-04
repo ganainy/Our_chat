@@ -200,7 +200,9 @@
                     app:layout_constraintTop_toBottomOf="@id/about_me">
 
                     <LinearLayout
+                        android:id="@+id/friends_layout"
                         android:layout_width="match_parent"
+                        android:visibility="gone"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
@@ -232,6 +234,39 @@
                             android:layout_marginTop="10dp"
                             app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                             tools:listitem="@layout/friend_item" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/no_friends_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/no_friends_yet"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
+
+                        <com.airbnb.lottie.LottieAnimationView
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            app:lottie_autoPlay="true"
+                            app:lottie_loop="false"
+                            app:lottie_rawRes="@raw/empty_box" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/addFriendsButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:text="@string/find_friends"
+                            android:textAllCaps="false"
+                            app:icon="@drawable/ic_person_add_black_24dp" />
+
+
                     </LinearLayout>
 
                 </LinearLayout>

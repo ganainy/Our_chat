@@ -48,7 +48,11 @@
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.ourchat.ui.profile.ProfileFragment"
-        android:label="ProfileFragment" />
+        android:label="ProfileFragment">
+        <action
+            android:id="@+id/action_profileFragment_to_findUserFragment"
+            app:destination="@id/findUserFragment" />
+    </fragment>
     <fragment
         android:id="@+id/findUserFragment"
         android:name="com.example.ourchat.ui.findUser.FindUserFragment"

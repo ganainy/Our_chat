@@ -12,7 +12,7 @@
     <item
         android:id="@+id/action_edit_profile"
         android:icon="@drawable/ic_edit_black_24dp"
-        android:title="@string/edit_profle" />
+        android:title="@string/profile" />
 
 
     <item

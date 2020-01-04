@@ -72,10 +72,15 @@ class IncomingRequestsFragment : Fragment() {
                 })
 
         viewModel.senders.observe(this, Observer {
-            println("HomeFragment.onActivityCreated:${it?.size}")
-            adapter.setDataSource(it)
-            sendersList = it
-            binding.receivedRequestsRecycler.adapter = adapter
+            println("HomeFrgment.onActivityCreagment.onActivityCreated:${it?.size}")
+            if (it == null) {
+                binding.noIncomingRequestsLayout.visibility = View.VISIBLE
+            } else {
+                binding.noIncomingRequestsLayout.visibility = View.GONE
+                adapter.setDataSource(it)
+                sendersList = it
+                binding.receivedRequestsRecycler.adapter = adapter
+            }
         })
     }
 

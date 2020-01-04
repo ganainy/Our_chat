@@ -43,5 +43,10 @@
     <string name="delete">Delete</string>
     <string name="incoming_requests">Incoming requests</string>
     <string name="share">Share app</string>
+    <string name="loading">Loading...</string>
+    <string name="no_incoming_requests">No incoming requests</string>
+    <string name="no_friends_yet">No friends yet</string>
+    <string name="find_friends">Find friends</string>
+    <string name="profile">Profile</string>
 
 </resources>
