@@ -2,25 +2,41 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+
     <item
-        android:id="@+id/item_settings"
+        android:id="@+id/action_add_friend"
+        android:icon="@drawable/ic_person_add_white_24dp"
+        android:title="@string/add_friend" />
+
+
+    <item
+        android:id="@+id/action_edit_profile"
+        android:icon="@drawable/ic_edit_black_24dp"
+        android:title="@string/edit_profle" />
+
+
+    <item
+        android:id="@+id/action_settings"
         android:icon="@drawable/ic_settings_black_24dp"
         android:title="@string/settings" />
 
     <item
-        android:id="@+id/item_edit_profile"
-        android:icon="@drawable/ic_edit_black_24dp"
-        android:title="@string/edit_profle" />
-
-    <item
-        android:id="@+id/item_logout"
+        android:id="@+id/action_logout"
         android:icon="@drawable/ic_person_black_24dp"
         android:title="@string/logout" />
 
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:title="@string/search"
+        app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/item_add_friend"
-        android:icon="@drawable/ic_person_add_white_24dp"
-        android:title="@string/add_friend"
+        android:id="@+id/action_incoming_requests"
+        android:icon="@drawable/ic_request_white_24dp"
+        android:title="@string/incoming_requests"
+        app:actionLayout="@layout/notification_badge_layout"
         app:showAsAction="ifRoom" />
+
+
 </menu>

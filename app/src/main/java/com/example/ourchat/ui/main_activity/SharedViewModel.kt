@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.ourchat.Utils.FragmentDestination
 import com.example.ourchat.Utils.LoadState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -15,7 +16,10 @@ class SharedViewModel : ViewModel() {
 
     val uploadState = MutableLiveData<LoadState>()
     val loadState = MutableLiveData<LoadState>()
+    val incomingRequestCount = MutableLiveData<Int>()
+    val fragmentDestination = MutableLiveData<FragmentDestination>()
     private lateinit var mStorageRef: StorageReference
+
 
     fun uploadImageAsBytearray(bytes: ByteArray) {
 
@@ -93,6 +97,10 @@ class SharedViewModel : ViewModel() {
 
     }
 
+
+    fun doneNavigation() {
+        fragmentDestination.value = null
+    }
 
     fun showLoadState(mLoadState: LoadState) {
         loadState.value = mLoadState

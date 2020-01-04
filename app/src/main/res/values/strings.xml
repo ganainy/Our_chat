@@ -41,5 +41,7 @@
     <string name="friend_request_not_sent">Send friend request</string>
     <string name="confirm">Confirm</string>
     <string name="delete">Delete</string>
+    <string name="incoming_requests">Incoming requests</string>
+    <string name="share">Share app</string>
 
 </resources>
