@@ -11,11 +11,14 @@ import android.provider.MediaStore
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.Navigation
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupWithNavController
 import com.example.ourchat.R
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
@@ -45,8 +48,23 @@ lateinit var mCallbackManager:CallbackManager
         binding.toolbar.setTitleTextColor(ContextCompat.getColor(applicationContext, R.color.white))
 
 
+        //hide toolbar on signup,login fragments
         val navController = Navigation.findNavController(this, R.id.nav_host_fragment)
-        println("MainActivity.onCreate:${navController.currentDestination?.label}")
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            println("MainActivity.onCreate:")
+            if (destination.label == "SignupFragment" || destination.label == "LoginFragment") {
+                binding.toolbar.visibility = View.GONE
+            } else {
+                binding.toolbar.visibility = View.VISIBLE
+            }
+        }
+
+
+        //setup toolbar with navigation
+        val appBarConfiguration = AppBarConfiguration(setOf(R.id.homeFragment, R.id.loginFragment))
+        findViewById<Toolbar>(R.id.toolbar)
+            .setupWithNavController(navController, appBarConfiguration)
+
 
         //change overflow icon to white
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

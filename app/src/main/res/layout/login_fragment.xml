@@ -242,6 +242,16 @@
                     android:orientation="horizontal"
                     app:layout_constraintGuide_begin="34dp" />
 
+                <TextView
+                    android:id="@+id/textView5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/login"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                    app:layout_constraintBottom_toTopOf="@+id/linear"
+                    app:layout_constraintStart_toStartOf="@+id/linear" />
+
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
