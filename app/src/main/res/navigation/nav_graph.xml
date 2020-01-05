@@ -82,5 +82,12 @@
         <action
             android:id="@+id/action_contactsFragment_to_findUserFragment"
             app:destination="@id/findUserFragment" />
+        <action
+            android:id="@+id/action_contactsFragment_to_chatFragment"
+            app:destination="@id/chatFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.example.ourchat.ui.chat.ChatFragment"
+        android:label="ChatFragment" />
 </navigation>

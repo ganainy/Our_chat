@@ -3,6 +3,7 @@ package com.example.ourchat.ui.contacts
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.widget.SearchView
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -13,6 +14,9 @@ import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ContactsFragmentBinding
 import com.example.ourchat.ui.main_activity.SharedViewModel
 
+const val USERNAME = "username"
+const val PROFILE_PICTURE = "profile_picture_url"
+const val UID = "uid"
 
 class ContactsFragment : Fragment() {
 
@@ -45,10 +49,15 @@ class ContactsFragment : Fragment() {
 
         adapter = ContactsAdapter(object : ContactsAdapter.ItemClickCallback {
             override fun onItemClicked(user: User) {
-                //todo start chat with user
                 println("ContactsFragment.onItemClicked:${user.username}")
+                findNavController().navigate(
+                    R.id.action_contactsFragment_to_chatFragment, bundleOf(
+                        USERNAME to user.username,
+                        PROFILE_PICTURE to user.profile_picture_url,
+                        UID to user.uid
+                    )
+                )
             }
-
         })
 
         sharedViewModel.loadFriends().observe(this, Observer {
