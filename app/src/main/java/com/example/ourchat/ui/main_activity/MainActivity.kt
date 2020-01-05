@@ -8,25 +8,21 @@ import android.graphics.*
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.Navigation
 import com.example.ourchat.R
 import com.example.ourchat.Utils.ErrorMessage
-import com.example.ourchat.Utils.FragmentDestination
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.databinding.ActivityMainBinding
 import com.example.ourchat.ui.signup.SignupFragment
 import com.facebook.CallbackManager
 import kotlinx.android.synthetic.main.issue_layout.view.*
-import java.lang.String
 
 
 class MainActivity : AppCompatActivity(), SignupFragment.ReturnCallBackManager {
@@ -36,7 +32,6 @@ class MainActivity : AppCompatActivity(), SignupFragment.ReturnCallBackManager {
     private val PICK_IMAGE_REQUEST = 2
 lateinit var mCallbackManager:CallbackManager
     private lateinit var sharedViewModel: SharedViewModel
-    private lateinit var countBadgeTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,9 +43,10 @@ lateinit var mCallbackManager:CallbackManager
         setSupportActionBar(binding.toolbar)
         //change title text color of toolbar to white
         binding.toolbar.setTitleTextColor(ContextCompat.getColor(applicationContext, R.color.white))
-        //will hide it here and home fragment will control showing and hiding of toolbar
-        supportActionBar?.hide()
 
+
+        val navController = Navigation.findNavController(this, R.id.nav_host_fragment)
+        println("MainActivity.onCreate:${navController.currentDestination?.label}")
 
         //change overflow icon to white
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -88,12 +84,6 @@ lateinit var mCallbackManager:CallbackManager
         })
 
 
-        //observe friend request count from home activity and show it as notification badge
-        sharedViewModel.incomingRequestCount.observe(this, Observer {
-            if (::countBadgeTextView.isInitialized) {
-                setupBadge(it)
-            }
-        })
 
     }
 
@@ -138,78 +128,7 @@ lateinit var mCallbackManager:CallbackManager
     }
 
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 
-        menuInflater.inflate(R.menu.main_menu, menu)
-        val menuItem = menu?.findItem(R.id.action_incoming_requests)
-        val actionView = menuItem?.actionView
-        countBadgeTextView = actionView?.findViewById<View>(R.id.count_badge) as TextView
-
-
-        actionView.setOnClickListener { onOptionsItemSelected(menuItem) }
-
-        return true
-    }
-
-
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_settings -> {
-            sharedViewModel.fragmentDestination.value = FragmentDestination.SETTINGS
-            true
-        }
-        R.id.action_add_friend -> {
-            sharedViewModel.fragmentDestination.value = FragmentDestination.ADD_FRIEND
-            true
-        }
-        R.id.action_edit_profile -> {
-            sharedViewModel.fragmentDestination.value = FragmentDestination.PROFILE
-            true
-        }
-        R.id.action_logout -> {
-            sharedViewModel.fragmentDestination.value = FragmentDestination.LOGOUT
-            true
-        }
-        R.id.action_search -> {
-            println("MainActivity.onOptionsItemSelected:${item.title}")
-            true
-        }
-        R.id.action_incoming_requests -> {
-            sharedViewModel.fragmentDestination.value = FragmentDestination.INCOMING_REQUEST
-            println("MainActivity.onOptionsItemSelected:${item.title}")
-
-            true
-        }
-
-        else -> {
-            // If we got here, the user's action was not recognized.
-            // Invoke the superclass to handle it.
-            super.onOptionsItemSelected(item)
-        }
-
-    }
-
-
-    fun hideToolbar() {
-        supportActionBar?.hide()
-    }
-
-    fun showToolbar() {
-        supportActionBar?.show()
-    }
-
-
-    private fun setupBadge(count: Int) {
-        if (::countBadgeTextView.isInitialized) {
-            if (count == 0) {
-                countBadgeTextView.visibility = View.GONE
-            } else {
-                countBadgeTextView.visibility = View.VISIBLE
-                countBadgeTextView.text = String.valueOf(
-                    Math.min(count, 99)
-                )
-            }
-        }
-    }
 
 }
 

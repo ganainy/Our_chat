@@ -13,7 +13,18 @@
         tools:context=".ui.main.MainActivity">
 
 
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="4dp"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:subtitleTextColor="@color/white"
+            app:theme="@style/ThemeOverlay.AppCompat.Light" />
+
         <fragment
+            android:layout_marginTop="?attr/actionBarSize"
             android:id="@+id/nav_host_fragment"
             android:name="androidx.navigation.fragment.NavHostFragment"
             android:layout_width="match_parent"
@@ -34,16 +45,6 @@
             layout="@layout/issue_layout"
             android:visibility="gone" />
 
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:elevation="4dp"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:subtitleTextColor="@color/white"
-            app:theme="@style/ThemeOverlay.AppCompat.Light" />
 
     </FrameLayout>
 </layout>

@@ -2,11 +2,15 @@ package com.example.ourchat.ui.main
 
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.ourchat.Utils.FragmentDestination
 import com.example.ourchat.Utils.LoadState
+import com.example.ourchat.data.model.User
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
@@ -16,9 +20,13 @@ class SharedViewModel : ViewModel() {
 
     val uploadState = MutableLiveData<LoadState>()
     val loadState = MutableLiveData<LoadState>()
-    val incomingRequestCount = MutableLiveData<Int>()
-    val fragmentDestination = MutableLiveData<FragmentDestination>()
     private lateinit var mStorageRef: StorageReference
+    private var usersCollectionRef: CollectionReference =
+        FirebaseFirestore.getInstance().collection("users")
+    private var userDocRef: DocumentReference? =
+        FirebaseAuth.getInstance().uid?.let { usersCollectionRef.document(it) }
+    var friendsList = MutableLiveData<List<com.example.ourchat.data.model.User>>()
+
 
 
     fun uploadImageAsBytearray(bytes: ByteArray) {
@@ -84,23 +92,52 @@ class SharedViewModel : ViewModel() {
     //save field of storage uri of image in the user document
     private fun saveImageUriInFirebase(downloadUri: Uri?) {
         val db = FirebaseFirestore.getInstance()
-        db.collection("users").document(FirebaseAuth.getInstance().uid!!)
-            .update("profile_picture_url", downloadUri.toString())
-            .addOnSuccessListener {
-                uploadState.value = LoadState.SUCCESS
+        FirebaseAuth.getInstance().uid?.let {
+            db.collection("users").document(it)
+                .update("profile_picture_url", downloadUri.toString())
+                .addOnSuccessListener {
+                    uploadState.value = LoadState.SUCCESS
 
-            }
-            .addOnFailureListener {
-                uploadState.value = LoadState.FAILURE
-            }
+                }
+                .addOnFailureListener {
+                    uploadState.value = LoadState.FAILURE
+                }
+        }
 
 
     }
 
 
-    fun doneNavigation() {
-        fragmentDestination.value = null
+    fun loadFriends(): LiveData<List<User>> {
+
+
+        userDocRef?.addSnapshotListener(EventListener { snapShopt, firebaseFirestoreException ->
+            if (firebaseFirestoreException == null) {
+                val user = snapShopt?.toObject(User::class.java)
+                val friendsIds = user?.friends
+                if (friendsIds != null && friendsIds.isNotEmpty()) {
+                    val mFriendList = mutableListOf<User>()
+                    for (friendId in friendsIds) {
+                        usersCollectionRef.document(friendId).get().addOnSuccessListener {
+                            val friend =
+                                it.toObject(User::class.java)
+                            friend?.let { user -> mFriendList.add(user) }
+                            friendsList.value = mFriendList
+                        }
+                    }
+
+                } else {
+                    friendsList.value = null
+                }
+            } else {
+                friendsList.value = null
+            }
+        })
+        return friendsList
     }
+
+
+
 
     fun showLoadState(mLoadState: LoadState) {
         loadState.value = mLoadState

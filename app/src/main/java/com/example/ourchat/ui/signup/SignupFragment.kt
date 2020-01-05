@@ -44,12 +44,10 @@ class SignupFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        activity?.title = "Sign up"
         binding = DataBindingUtil.inflate(inflater, R.layout.signup_fragment, container, false)
 
-        //check if user has previously logged in
-        if (FirebaseAuth.getInstance().currentUser != null) {
-            findNavController().navigate(R.id.action_signupFragment_to_homeFragment)
-        }
+
         return binding.root
     }
 
@@ -61,8 +59,10 @@ class SignupFragment : Fragment() {
 
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
+
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(SignupViewModel::class.java)
+
 
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
@@ -172,8 +172,6 @@ class SignupFragment : Fragment() {
         mActivity = context as Activity
         mCallback = mActivity as ReturnCallBackManager
     }
-
-
 
 
 

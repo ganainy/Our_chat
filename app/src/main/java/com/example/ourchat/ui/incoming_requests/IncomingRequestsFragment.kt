@@ -31,6 +31,7 @@ class IncomingRequestsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        activity?.title = "Received friend requests"
         binding =
             DataBindingUtil.inflate(inflater, R.layout.incoming_requests_fragment, container, false)
         return binding.root
@@ -56,17 +57,23 @@ class IncomingRequestsFragment : Fragment() {
                             Toast.LENGTH_LONG
                         )
                             .show()
-                        sendersList?.removeAt(position)
-                        adapter.setDataSource(sendersList)
-                        adapter.notifyItemRemoved(position)
+                        DeleteFromRecycler(position)
                     }
 
                     override fun onDeleteClicked(user: User, position: Int) {
                         viewModel.deleteRequest(user)
                         Toast.makeText(context, "Request deleted", Toast.LENGTH_LONG).show()
+                        DeleteFromRecycler(position)
+                    }
+
+                    private fun DeleteFromRecycler(position: Int) {
                         sendersList?.removeAt(position)
                         adapter.setDataSource(sendersList)
                         adapter.notifyItemRemoved(position)
+                        //if no requests left (after user accept or delete)show the empty layout
+                        if (sendersList?.size == 0) {
+                            binding.noIncomingRequestsLayout.visibility = View.VISIBLE
+                        }
                     }
 
                 })

@@ -12,25 +12,6 @@ import com.google.android.material.button.MaterialButton
 import com.google.firebase.firestore.DocumentSnapshot
 
 
-/*
-@BindingAdapter("setImage")
-fun setImage(imageView: ImageView, imgString: String?) {
-    imgString?.let {
-        val imageUri = imgString.toUri()
-        Glide.with(imageView.context)
-            .load(imageUri)
-            .apply(
-                RequestOptions()
-                    .placeholder(R.drawable.loading_animation)
-                    .error(R.drawable.ic_broken_image)
-            )
-            .into(imageView)
-    }
-}
-*/
-
-
-
 @BindingAdapter("setImage")
 fun setImage(imageView: ImageView, item: User) {
     item.let {
@@ -41,6 +22,24 @@ fun setImage(imageView: ImageView, item: User) {
                 RequestOptions()
                     .placeholder(R.drawable.loading_animation)
                     .error(R.drawable.anonymous_profile)
+            )
+            .into(imageView)
+    }
+
+}
+
+
+@BindingAdapter("setRoundImage")
+fun setRoundImage(imageView: ImageView, item: User) {
+    item.let {
+        val imageUri = it.profile_picture_url
+        Glide.with(imageView.context)
+            .load(imageUri)
+            .apply(
+                RequestOptions()
+                    .placeholder(R.drawable.loading_animation)
+                    .error(R.drawable.anonymous_profile)
+                    .circleCrop()
             )
             .into(imageView)
     }

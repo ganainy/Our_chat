@@ -21,6 +21,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.issue_layout.view.*
 
+
 class LoginFragment : Fragment() {
 
     private lateinit var binding: LoginFragmentBinding
@@ -38,6 +39,7 @@ class LoginFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        activity?.title = "Login"
         binding = DataBindingUtil.inflate(inflater, R.layout.login_fragment, container, false)
 
         //check if user has previously logged in
@@ -139,7 +141,6 @@ class LoginFragment : Fragment() {
 
 
     }
-
 
 
     /**

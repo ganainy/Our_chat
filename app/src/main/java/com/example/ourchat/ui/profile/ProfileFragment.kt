@@ -43,6 +43,7 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        activity?.title = "My profile"
         binding = DataBindingUtil.inflate(inflater, R.layout.profile_fragment, container, false)
         return binding.root
     }
@@ -68,19 +69,13 @@ class ProfileFragment : Fragment() {
 
 
         //load friends of logged in user and show in recycler
-        viewModel.loadFriends().observe(this, Observer {
+        sharedViewModel.loadFriends().observe(this, Observer {
             if (it != null) {
                 //user has friends
-                binding.noFriendsLayout.visibility = View.GONE
-                binding.friendsLayout.visibility = View.VISIBLE
-                adapter.setDataSource(it)
-                binding.friendsRecycler.adapter = adapter
-                binding.friendsCountTextView.text = it.size.toString()
+                showFriends(it)
             } else {
                 //user has no friends
-                binding.friendsLayout.visibility = View.GONE
-                binding.noFriendsLayout.visibility = View.VISIBLE
-                binding.addFriendsButton.setOnClickListener { findNavController().navigate(R.id.action_profileFragment_to_findUserFragment) }
+                showEmptyLayout()
             }
 
         })
@@ -198,6 +193,20 @@ class ProfileFragment : Fragment() {
 
 
 
+    }
+
+    private fun showEmptyLayout() {
+        binding.friendsLayout.visibility = View.GONE
+        binding.noFriendsLayout.visibility = View.VISIBLE
+        binding.addFriendsButton.setOnClickListener { findNavController().navigate(R.id.action_profileFragment_to_findUserFragment) }
+    }
+
+    private fun showFriends(it: List<User>) {
+        binding.noFriendsLayout.visibility = View.GONE
+        binding.friendsLayout.visibility = View.VISIBLE
+        adapter.setDataSource(it)
+        binding.friendsRecycler.adapter = adapter
+        binding.friendsCountTextView.text = it.size.toString()
     }
 
     private fun setProfileImageLoadUi(it: LoadState?) {

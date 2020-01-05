@@ -58,15 +58,17 @@ class FacebookLoginViewModel : ViewModel() {
             firebaseUser.value?.photoUrl?.toString()
         )
 
-        usersRef.document(firebaseUser.value?.uid!!).set(user).addOnSuccessListener {
-            userStored.value = true
-            loadState.value = LoadState.SUCCESS
-        }.addOnFailureListener {
-            userStored.value = false
-            ErrorMessage.errorMessage = it.message
-            loadState.value = LoadState.FAILURE
-            throw it
+        firebaseUser.value?.uid?.let {
+            usersRef.document(it).set(user).addOnSuccessListener {
+                userStored.value = true
+                loadState.value = LoadState.SUCCESS
+            }.addOnFailureListener {
+                userStored.value = false
+                ErrorMessage.errorMessage = it.message
+                loadState.value = LoadState.FAILURE
+                throw it
 
+            }
         }
 
 

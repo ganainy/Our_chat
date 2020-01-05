@@ -1,26 +1,27 @@
 package com.example.ourchat.ui.home
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.TextView
+import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
-import com.example.ourchat.Utils.FragmentDestination
 import com.example.ourchat.databinding.HomeFragmentBinding
-import com.example.ourchat.ui.main_activity.MainActivity
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.facebook.login.LoginManager
 import com.google.firebase.auth.FirebaseAuth
+import java.lang.String
 
 
 class HomeFragment : Fragment() {
 
     lateinit var binding: HomeFragmentBinding
+    private lateinit var countBadgeTextView: TextView
+
 
     companion object {
         fun newInstance() = HomeFragment()
@@ -34,6 +35,8 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        activity?.title = "Home"
+        setHasOptionsMenu(true)
         binding = DataBindingUtil.inflate(inflater, R.layout.home_fragment, container, false)
         return binding.root
     }
@@ -44,40 +47,19 @@ class HomeFragment : Fragment() {
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
 
+        //show badge over menu item with incoming friends count
         viewModel.getIncomingRequestsCount().observe(this, Observer {
-            println("HomeFragment.onActivityCreated:$it")
-            sharedViewModel.incomingRequestCount.value = it
-        })
-
-
-        //
-        sharedViewModel.fragmentDestination.observe(this, Observer {
-            if (it != null) {
-                when (it) {
-                    //  FragmentDestination.SETTINGS-> findNavController().navigate(R.id.ac)
-                    FragmentDestination.ADD_FRIEND -> {
-                        findNavController().navigate(R.id.action_homeFragment_to_findUserFragment)
-
-                    }
-                    FragmentDestination.PROFILE -> {
-                        findNavController().navigate(R.id.action_homeFragment_to_profileFragment)
-                    }
-                    FragmentDestination.LOGOUT -> {
-                        logout()
-                    }
-                    FragmentDestination.INCOMING_REQUEST -> {
-                        findNavController().navigate(R.id.action_homeFragment_to_incomingRequestsFragment)
-                    }
-                }
-                sharedViewModel.doneNavigation()
+            if (::countBadgeTextView.isInitialized) {
+                setupBadge(it)
             }
         })
 
 
-        //handle fab click
-        binding.fab.setOnClickListener {
-            //todo
+        //handle startChatFab click
+        binding.startChatFab.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_contactsFragment)
         }
+
 
 
     }
@@ -89,20 +71,85 @@ class HomeFragment : Fragment() {
     }
 
 
-    override fun onResume() {
-        super.onResume()
-        val mainActivity = activity as MainActivity
-        mainActivity.showToolbar()
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+
+        inflater.inflate(R.menu.main_menu, menu)
+        val menuItem = menu.findItem(R.id.action_incoming_requests)
+        val actionView = menuItem?.actionView
+        countBadgeTextView = actionView?.findViewById<View>(R.id.count_badge) as TextView
+
+
+        actionView.setOnClickListener { onOptionsItemSelected(menuItem) }
+
+        //do filtering when i type in search or click search
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as SearchView
+        //todo search messages
+
+        /*    searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+                override fun onQueryTextSubmit(queryString: kotlin.String?): Boolean {
+                    adapter.filter.filter(queryString)
+                    return false
+                }
+
+                override fun onQueryTextChange(queryString: kotlin.String?): Boolean {
+                    adapter.filter.filter(queryString)
+                    if (queryString != null) {
+                        adapter.onChange(queryString)
+                    }
+
+                    return false
+                }
+            })*/
 
     }
 
-    override fun onPause() {
-        super.onPause()
-        val mainActivity = activity as MainActivity
-        mainActivity.hideToolbar()
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.action_settings -> {
+            //findNavController().navigate(R.id.home)
+            true
+        }
+        R.id.action_add_friend -> {
+            findNavController().navigate(R.id.action_homeFragment_to_findUserFragment)
+            true
+        }
+        R.id.action_edit_profile -> {
+            findNavController().navigate(R.id.action_homeFragment_to_profileFragment)
+            true
+        }
+        R.id.action_logout -> {
+            logout()
+            true
+        }
+        R.id.action_incoming_requests -> {
+            findNavController().navigate(R.id.action_homeFragment_to_incomingRequestsFragment)
+            println("MainActivity.onOptionsItemSelected:${item.title}")
+
+            true
+        }
+
+        else -> {
+            // If we got here, the user's action was not recognized.
+            // Invoke the superclass to handle it.
+            super.onOptionsItemSelected(item)
+        }
 
     }
 
+
+    private fun setupBadge(count: Int?) {
+        if (::countBadgeTextView.isInitialized) {
+            if (null == count || count == 0) {
+                countBadgeTextView.visibility = View.GONE
+            } else {
+                countBadgeTextView.visibility = View.VISIBLE
+                countBadgeTextView.text = String.valueOf(
+                    count.let { Math.min(it, 99) }
+                )
+            }
+        }
+    }
 
 }
 
