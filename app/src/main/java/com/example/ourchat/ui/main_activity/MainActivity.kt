@@ -41,6 +41,9 @@ lateinit var mCallbackManager:CallbackManager
         val binding: ActivityMainBinding =
             DataBindingUtil.setContentView(this, R.layout.activity_main)
 
+
+
+
         sharedViewModel = ViewModelProviders.of(this).get(SharedViewModel::class.java)
 
         setSupportActionBar(binding.toolbar)
@@ -51,7 +54,6 @@ lateinit var mCallbackManager:CallbackManager
         //hide toolbar on signup,login fragments
         val navController = Navigation.findNavController(this, R.id.nav_host_fragment)
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            println("MainActivity.onCreate:")
             if (destination.label == "SignupFragment" || destination.label == "LoginFragment") {
                 binding.toolbar.visibility = View.GONE
             } else {
@@ -104,6 +106,7 @@ lateinit var mCallbackManager:CallbackManager
 
 
     }
+
 
 
     fun dispatchTakePictureIntent() {

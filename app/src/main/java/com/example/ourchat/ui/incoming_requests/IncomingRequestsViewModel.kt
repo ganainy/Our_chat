@@ -2,10 +2,10 @@ package com.example.ourchat.ui.incoming_requests
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.ourchat.Utils.ConstantsUtil
 import com.example.ourchat.data.model.User
 import com.example.ourchat.ui.different_user_profile.RECEIVED_REQUEST_ARRAY
 import com.example.ourchat.ui.different_user_profile.SENT_REQUEST_ARRAY
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -17,7 +17,7 @@ class IncomingRequestsViewModel : ViewModel() {
     val senders = MutableLiveData<MutableList<User>?>()
 
     fun checkIncomingFriendRequests() {
-        usersRef.document(FirebaseAuth.getInstance().uid.toString()).get().addOnSuccessListener {
+        usersRef.document(ConstantsUtil.AUTH_UID).get().addOnSuccessListener {
             val user = it?.toObject(User::class.java)
             val receivedRequestListSize = user?.receivedRequests?.size ?: -1
             if (receivedRequestListSize > 0) {
@@ -61,13 +61,12 @@ class IncomingRequestsViewModel : ViewModel() {
         val uid = user.uid
         //add id in sentRequest array for logged in user
         val db = FirebaseFirestore.getInstance()
-        val loggedInUserId = FirebaseAuth.getInstance().uid.toString()
         if (uid != null) {
-            db.collection("users").document(loggedInUserId)
+            db.collection("users").document(ConstantsUtil.AUTH_UID)
                 .update(FRIENDS, FieldValue.arrayUnion(uid)).addOnSuccessListener {
                     //add loggedInUserId in receivedRequest array for other user
                     db.collection("users").document(uid)
-                        .update(FRIENDS, FieldValue.arrayUnion(loggedInUserId))
+                        .update(FRIENDS, FieldValue.arrayUnion(ConstantsUtil.AUTH_UID))
                         .addOnSuccessListener {
                         }.addOnFailureListener {
                         }
@@ -83,13 +82,12 @@ class IncomingRequestsViewModel : ViewModel() {
         val uid = user.uid
         //remove id from sentRequest array for logged in user
         val db = FirebaseFirestore.getInstance()
-        val loggedInUserId = FirebaseAuth.getInstance().uid.toString()
         if (uid != null) {
-            db.collection("users").document(loggedInUserId)
+            db.collection("users").document(ConstantsUtil.AUTH_UID)
                 .update(RECEIVED_REQUEST_ARRAY, FieldValue.arrayRemove(uid)).addOnSuccessListener {
                     //remove loggedInUserId from receivedRequest array for other user
                     db.collection("users").document(uid)
-                        .update(SENT_REQUEST_ARRAY, FieldValue.arrayRemove(loggedInUserId))
+                        .update(SENT_REQUEST_ARRAY, FieldValue.arrayRemove(ConstantsUtil.AUTH_UID))
                         .addOnSuccessListener {
                         }.addOnFailureListener {
                         }

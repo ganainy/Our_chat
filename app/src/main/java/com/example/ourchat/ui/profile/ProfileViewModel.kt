@@ -8,8 +8,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.request.RequestOptions
 import com.example.ourchat.R
+import com.example.ourchat.Utils.ConstantsUtil
 import com.example.ourchat.Utils.LoadState
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.EventListener
@@ -20,9 +20,7 @@ class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
 
     private var usersCollectionRef: CollectionReference =
         FirebaseFirestore.getInstance().collection("users")
-    private var userDocRef: DocumentReference? =
-        FirebaseAuth.getInstance().uid?.let { usersCollectionRef.document(it) }
-
+    private var userDocRef: DocumentReference? = usersCollectionRef.document(ConstantsUtil.AUTH_UID)
     var bioLoadState = MutableLiveData<LoadState>()
     var profileImageLoadState = MutableLiveData<LoadState>()
     var loadedImage = MutableLiveData<RequestBuilder<Drawable>>()

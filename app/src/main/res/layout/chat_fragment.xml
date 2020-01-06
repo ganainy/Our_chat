@@ -24,7 +24,7 @@
 
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/lottieAnimationView3"
+            android:id="@+id/sendFab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -43,11 +43,11 @@
             android:paddingStart="8dp"
             android:textSize="16sp"
             app:errorEnabled="true"
-            app:layout_constraintBottom_toBottomOf="@+id/lottieAnimationView3"
-            app:layout_constraintEnd_toStartOf="@+id/lottieAnimationView3"
+            app:layout_constraintBottom_toBottomOf="@+id/sendFab"
+            app:layout_constraintEnd_toStartOf="@+id/sendFab"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/lottieAnimationView3" />
+            app:layout_constraintTop_toTopOf="@+id/sendFab" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

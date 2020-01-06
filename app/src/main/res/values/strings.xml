@@ -51,5 +51,6 @@
     <string name="no_chat_history_yet_click_chat_button_to_start_chatting">No chat history yet, Click chat button to start chatting</string>
     <string name="no_one_to_chat_with_yet_add_more_friend_to_get_going">No one to chat with yet, Add friends to get going!</string>
     <string name="type_a_message">Type a message</string>
+    <string name="empty_message">Can\'t send empty message</string>
 
 </resources>

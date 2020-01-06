@@ -2,11 +2,11 @@ package com.example.ourchat.ui.findUser
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.ourchat.Utils.ConstantsUtil
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.data.model.User
 import com.example.ourchat.ui.incoming_requests.FRIENDS
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -28,7 +28,7 @@ class FindUserViewModel : ViewModel() {
                 //add any user that isn't logged in user to result
                 val result = mutableListOf<User?>()
                 for (document in querySnapshot.documents) {
-                    if (!document.get("uid").toString().equals(FirebaseAuth.getInstance().uid)) {
+                    if (!document.get("uid").toString().equals(ConstantsUtil.AUTH_UID)) {
                         val user = document.toObject(User::class.java)
                         result.add(user)
                     }
@@ -37,7 +37,7 @@ class FindUserViewModel : ViewModel() {
 
 
                 // remove friends of logged in user from result list
-                docRef.whereArrayContains(FRIENDS, FirebaseAuth.getInstance().uid.toString())
+                docRef.whereArrayContains(FRIENDS, ConstantsUtil.AUTH_UID)
                     .addSnapshotListener(
                         EventListener { querySnapshot, firebaseFirestoreException ->
                             if (firebaseFirestoreException == null) {

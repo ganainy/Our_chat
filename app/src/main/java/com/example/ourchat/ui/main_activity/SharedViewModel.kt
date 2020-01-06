@@ -5,9 +5,9 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.ourchat.Utils.ConstantsUtil
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.data.model.User
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.EventListener
@@ -23,8 +23,7 @@ class SharedViewModel : ViewModel() {
     private lateinit var mStorageRef: StorageReference
     private var usersCollectionRef: CollectionReference =
         FirebaseFirestore.getInstance().collection("users")
-    private var userDocRef: DocumentReference? =
-        FirebaseAuth.getInstance().uid?.let { usersCollectionRef.document(it) }
+    private lateinit var userDocRef: DocumentReference
     var friendsList = MutableLiveData<List<com.example.ourchat.data.model.User>>()
 
 
@@ -92,8 +91,8 @@ class SharedViewModel : ViewModel() {
     //save field of storage uri of image in the user document
     private fun saveImageUriInFirebase(downloadUri: Uri?) {
         val db = FirebaseFirestore.getInstance()
-        FirebaseAuth.getInstance().uid?.let {
-            db.collection("users").document(it)
+
+        db.collection("users").document(ConstantsUtil.AUTH_UID)
                 .update("profile_picture_url", downloadUri.toString())
                 .addOnSuccessListener {
                     uploadState.value = LoadState.SUCCESS
@@ -102,7 +101,7 @@ class SharedViewModel : ViewModel() {
                 .addOnFailureListener {
                     uploadState.value = LoadState.FAILURE
                 }
-        }
+
 
 
     }
@@ -110,8 +109,9 @@ class SharedViewModel : ViewModel() {
 
     fun loadFriends(): LiveData<List<User>> {
 
+        userDocRef = usersCollectionRef.document(ConstantsUtil.AUTH_UID)
 
-        userDocRef?.addSnapshotListener(EventListener { snapShopt, firebaseFirestoreException ->
+        userDocRef.addSnapshotListener(EventListener { snapShopt, firebaseFirestoreException ->
             if (firebaseFirestoreException == null) {
                 val user = snapShopt?.toObject(User::class.java)
                 val friendsIds = user?.friends

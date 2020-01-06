@@ -7,7 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.example.ourchat.R
-import com.google.firebase.auth.FirebaseAuth
+import com.example.ourchat.Utils.ConstantsUtil
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -35,12 +35,11 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
 
         //add id in sentRequest array for logged in user
         val db = FirebaseFirestore.getInstance()
-        val loggedInUserId = FirebaseAuth.getInstance().uid.toString()
         if (uid != null) {
-            db.collection("users").document(loggedInUserId)
+            db.collection("users").document(ConstantsUtil.AUTH_UID)
                 .update(SENT_REQUEST_ARRAY, FieldValue.arrayUnion(uid)).addOnSuccessListener {
                     //add loggedInUserId in receivedRequest array for other user
-                    updateReceivedRequestsForReceiver(db, uid, loggedInUserId)
+                    updateReceivedRequestsForReceiver(db, uid, ConstantsUtil.AUTH_UID)
                 }.addOnFailureListener {
                     throw it
                 }
@@ -69,9 +68,8 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
     //get document if logged in user and check if other user id is in the sentRequest list
     fun checkIfFriends(uid: String?) {
         val db = FirebaseFirestore.getInstance()
-        val loggedInUserId = FirebaseAuth.getInstance().uid.toString()
         if (uid != null) {
-            db.collection("users").document(loggedInUserId)
+            db.collection("users").document(ConstantsUtil.AUTH_UID)
                 .addSnapshotListener(EventListener { it, firebaseFirestoreException ->
 
                     println("DifferentUserProfileFragmentViewModel.checkIfFriends:")
@@ -102,13 +100,15 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
 
         //remove id from sentRequest array for logged in user
         val db = FirebaseFirestore.getInstance()
-        val loggedInUserId = FirebaseAuth.getInstance().uid.toString()
         if (uid != null) {
-            db.collection("users").document(loggedInUserId)
+            db.collection("users").document(ConstantsUtil.AUTH_UID)
                 .update(SENT_REQUEST_ARRAY, FieldValue.arrayRemove(uid)).addOnSuccessListener {
                     //remove loggedInUserId from receivedRequest array for other user
                     db.collection("users").document(uid)
-                        .update(RECEIVED_REQUEST_ARRAY, FieldValue.arrayRemove(loggedInUserId))
+                        .update(
+                            RECEIVED_REQUEST_ARRAY,
+                            FieldValue.arrayRemove(ConstantsUtil.AUTH_UID)
+                        )
                         .addOnSuccessListener {
                         }.addOnFailureListener {
                         }

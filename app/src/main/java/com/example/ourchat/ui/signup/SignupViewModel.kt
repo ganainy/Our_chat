@@ -25,6 +25,7 @@ class SignupViewModel : ViewModel() {
                 val uid: String? = auth.currentUser?.uid
                 user.value = User(uid, username, email)
 
+
             }.addOnFailureListener {
                 user.value = null
                 println("SignupViewModel.registerToFirebase:${it.message}")

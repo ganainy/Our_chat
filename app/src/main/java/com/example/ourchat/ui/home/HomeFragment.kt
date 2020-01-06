@@ -10,6 +10,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.ConstantsUtil
 import com.example.ourchat.databinding.HomeFragmentBinding
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.facebook.login.LoginManager
@@ -18,6 +19,7 @@ import java.lang.String
 
 
 class HomeFragment : Fragment() {
+
 
     lateinit var binding: HomeFragmentBinding
     private lateinit var countBadgeTextView: TextView
@@ -46,6 +48,9 @@ class HomeFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
+        //save auth uid in constants class to use it through the app
+        ConstantsUtil.AUTH_UID = FirebaseAuth.getInstance().uid.toString()
+
 
         //show badge over menu item with incoming friends count
         viewModel.getIncomingRequestsCount().observe(this, Observer {
@@ -60,9 +65,11 @@ class HomeFragment : Fragment() {
             findNavController().navigate(R.id.action_homeFragment_to_contactsFragment)
         }
 
+        checkAuthState()
 
 
     }
+
 
     private fun logout() {
         FirebaseAuth.getInstance().signOut()
@@ -154,5 +161,13 @@ class HomeFragment : Fragment() {
 }
 
 
+fun checkAuthState() {
+    FirebaseAuth.AuthStateListener {
 
+        println("MainActivity.checkAuthState:  ${it.uid}")
+    }
 
+    FirebaseAuth.IdTokenListener {
+        println("MainActivity.checkAuthState2:  ${it.uid}")
+    }
+}
