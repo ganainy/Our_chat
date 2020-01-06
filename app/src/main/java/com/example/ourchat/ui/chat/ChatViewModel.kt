@@ -15,7 +15,7 @@ class ChatViewModel(val senderId: String, val receiverId: String) : ViewModel() 
     private val messageCollectionReference = FirebaseFirestore.getInstance().collection("messages")
 
     init {
-        // loadMessages()
+        //todo loadMessages()
     }
 
     private val messages = MutableLiveData<List<Message>>()
