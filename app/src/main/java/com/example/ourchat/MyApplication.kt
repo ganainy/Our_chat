@@ -22,10 +22,7 @@ open class MyApplication : Application() {
         registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
 
             override fun onActivityPaused(activity: Activity) {
-                if (::networkCallback.isInitialized) {
-                    connectivityManager.unregisterNetworkCallback(networkCallback)
 
-                }
             }
 
             override fun onActivityResumed(activity: Activity) {
@@ -42,6 +39,10 @@ open class MyApplication : Application() {
             }
 
             override fun onActivityStopped(activity: Activity) {
+                if (::networkCallback.isInitialized) {
+                    connectivityManager.unregisterNetworkCallback(networkCallback)
+
+                }
             }
 
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
@@ -60,7 +61,8 @@ open class MyApplication : Application() {
             override fun onLost(network: Network) {
                 super.onLost(network)
                 EventBus.getDefault()
-                    .post(ConnectionChangeEvent("sInternet connection lost, Changes will be saved once connection is restored"))
+                    .post(ConnectionChangeEvent("Internet connection lost, Changes will be saved once connection is restored"))
+                println("MyApplication.onLost:")
 
             }
 
@@ -69,6 +71,7 @@ open class MyApplication : Application() {
                 if (appJustStarted) {
                     appJustStarted = false
                 } else {
+                    println("MyApplication.onAvailable:")
                     EventBus.getDefault().post(ConnectionChangeEvent("Network is restored."))
                 }
 

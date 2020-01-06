@@ -46,6 +46,11 @@ fun setRoundImage(imageView: ImageView, item: User) {
 
 }
 
+@BindingAdapter("formatDate")
+fun formatDate(textView: TextView, date: Long) {
+    textView.text = "todo date$date"
+}
+
 
 
 

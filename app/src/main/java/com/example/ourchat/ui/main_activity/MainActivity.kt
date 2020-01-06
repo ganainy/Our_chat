@@ -112,6 +112,7 @@ lateinit var mCallbackManager:CallbackManager
     // Show snackbar when ever the connection state changes
     @Subscribe(threadMode = ThreadMode.MAIN)
     open fun onMessageEvent(event: ConnectionChangeEvent): Unit {
+        println("MainActivity.onMessageEvent:${event.message}")
         Snackbar.make(binding.coordinator, event.message, Snackbar.LENGTH_LONG).show()
     }
 

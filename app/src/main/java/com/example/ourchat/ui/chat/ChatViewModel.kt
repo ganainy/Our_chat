@@ -25,6 +25,7 @@ class ChatViewModel(val senderId: String, val receiverId: String) : ViewModel() 
 
         messageCollectionReference.addSnapshotListener(EventListener { querySnapShot, firebaseFirestoreException ->
             if (firebaseFirestoreException == null) {
+                messagesList.clear()//clear message list so won't get duplicated with each new message
                 querySnapShot?.documents?.forEach {
                     if (it.id == "${senderId}_${receiverId}" || it.id == "${receiverId}_${senderId}") {
                         //this is the chat document we should read messages array

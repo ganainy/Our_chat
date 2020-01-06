@@ -1,86 +1,139 @@
 /*
+ * Copyright 2018, The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.example.ourchat.ui.chat
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.ourchat.data.model.User
-import com.example.ourchat.databinding.ContactItemBinding
+import com.example.ourchat.Utils.ConstantsUtil
 
+import com.example.ourchat.data.model.Message
+import com.example.ourchat.databinding.IncomingMessageItemBinding
+import com.example.ourchat.databinding.SentMessageItemBinding
 
-class ChatAdapter(private val itemClickCallback: ItemClickCallback) :
-    RecyclerView.Adapter<ChatAdapter.UserHolder>() {
+class ChatAdapter(private val context: Context?, private val clickListener: MessageClickListener) :
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private lateinit var messageList: List<Message>
 
+    companion object {
+        private const val TYPE_SENT_MESSAGE = 0
+        private const val TYPE_RECEIVED_MESSAGE = 1
+    }
 
-    private var mUsers = listOf<User>()
+    fun setDataSource(mMessageList: List<Message>) {
+        messageList = mMessageList
 
+    }
 
-    fun setDataSource(users: List<User>?) {
-        if (users != null) {
-            mUsers = users
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when (viewType) {
+            TYPE_SENT_MESSAGE -> {
+                SentMessageViewHolder.from(parent)
+            }
+            TYPE_RECEIVED_MESSAGE -> {
+                ReceivedMessageViewHolder.from(parent)
+            }
+            else -> throw IllegalArgumentException("Invalid view type")
+        }
+    }
+
+    override fun getItemCount() = messageList.size
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (holder) {
+            is SentMessageViewHolder -> {
+                holder.bind(clickListener, messageList[position])
+            }
+            is ReceivedMessageViewHolder -> {
+                holder.bind(clickListener, messageList[position])
+            }
+            else -> throw IllegalArgumentException("Invalid ViewHolder type")
+        }
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return when (messageList[position].from) {
+            ConstantsUtil.AUTH_UID -> {
+                TYPE_SENT_MESSAGE
+            }
+            else -> {
+                TYPE_RECEIVED_MESSAGE
+            }
         }
     }
 
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserHolder {
-
-        return UserHolder.from(
-            parent
-        )
-
-    }
-
-    override fun getItemCount(): Int {
-        return mUsers.size
-    }
-
-    override fun onBindViewHolder(holder: UserHolder, position: Int) {
-        val item = mUsers[position]
-
-        holder.bind(item, itemClickCallback)
-    }
-
-
-    class UserHolder private constructor(val binding: ContactItemBinding) :
+    //----------------SentMessageViewHolder------------
+    class SentMessageViewHolder private constructor(val binding: SentMessageItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(
-            item: User,
-            itemClickCallback: ItemClickCallback
-        ) {
-
-            binding.user = item
+        fun bind(clickListener: MessageClickListener, item: Message) {
+            binding.message = item
+            binding.clickListener = clickListener
+            binding.position = adapterPosition
             binding.executePendingBindings()
-
-            //callback to parent fragment when button clicked
-            binding.parentLayout.setOnClickListener {
-                itemClickCallback.onItemClicked(item)
-            }
-
         }
 
         companion object {
-            fun from(parent: ViewGroup): UserHolder {
+            fun from(parent: ViewGroup): SentMessageViewHolder {
                 val layoutInflater = LayoutInflater.from(parent.context)
-                val binding = ContactItemBinding.inflate(layoutInflater, parent, false)
+                val binding = SentMessageItemBinding.inflate(layoutInflater, parent, false)
 
-                return UserHolder(
-                    binding
-                )
+                return SentMessageViewHolder(binding)
             }
         }
 
 
     }
 
+    //----------------ReceivedMessageViewHolder------------
+    class ReceivedMessageViewHolder private constructor(val binding: IncomingMessageItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
-    interface ItemClickCallback {
-        fun onItemClicked(user: User)
+        fun bind(clickListener: MessageClickListener, item: Message) {
+            binding.message = item
+            binding.clickListener = clickListener
+            binding.position = adapterPosition
+            binding.executePendingBindings()
+        }
 
+        companion object {
+            fun from(parent: ViewGroup): ReceivedMessageViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = IncomingMessageItemBinding.inflate(layoutInflater, parent, false)
+
+                return ReceivedMessageViewHolder(binding)
+            }
+        }
     }
 
 
 }
 
+interface MessageClickListener {
+    fun onMessageClick(position: Int)
+}
 
-*/
+
+
+
+
+
+
+
+

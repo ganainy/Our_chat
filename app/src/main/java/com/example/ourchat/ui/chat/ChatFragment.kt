@@ -18,9 +18,18 @@ import com.example.ourchat.ui.contacts.UID
 import com.example.ourchat.ui.contacts.USERNAME
 
 
+
 class ChatFragment : Fragment() {
 
     lateinit var binding: ChatFragmentBinding
+    val adapter: ChatAdapter by lazy {
+        ChatAdapter(context, object : MessageClickListener {
+            override fun onMessageClick(position: Int) {
+                println("ChatFragment.onMessageClick:$position")
+            }
+
+        })
+    }
 
     companion object {
         fun newInstance() = ChatFragment()
@@ -71,6 +80,11 @@ class ChatFragment : Fragment() {
 
         //pass messages list for recycler to show
         viewModel.messagesMutableLiveData.observe(this, Observer {
+
+            adapter.setDataSource(it)
+            binding.recycler.adapter = adapter
+            //scroll to last items in recycler (recent messages)
+            binding.recycler.scrollToPosition(it.size - 1)
 
         })
 
