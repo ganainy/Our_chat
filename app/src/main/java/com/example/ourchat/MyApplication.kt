@@ -7,7 +7,8 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Bundle
-import android.widget.Toast
+import com.example.ourchat.Utils.ConnectionChangeEvent
+import org.greenrobot.eventbus.EventBus
 
 
 open class MyApplication : Application() {
@@ -58,23 +59,17 @@ open class MyApplication : Application() {
         networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onLost(network: Network) {
                 super.onLost(network)
-                println("MyApplication.onLost:")
-                Toast.makeText(
-                    applicationContext,
-                    "Internet connection lost, Changes will be saved once connection is restored",
-                    Toast.LENGTH_LONG
-                ).show()
+                EventBus.getDefault()
+                    .post(ConnectionChangeEvent("sInternet connection lost, Changes will be saved once connection is restored"))
 
             }
 
             override fun onAvailable(network: Network) {
                 super.onAvailable(network)
-                println("MyApplication.onAvailable:")
                 if (appJustStarted) {
                     appJustStarted = false
                 } else {
-                    Toast.makeText(applicationContext, "Network is restored.", Toast.LENGTH_SHORT)
-                        .show()
+                    EventBus.getDefault().post(ConnectionChangeEvent("Network is restored."))
                 }
 
             }

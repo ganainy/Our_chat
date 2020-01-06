@@ -8,6 +8,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.example.ourchat.R
 import com.example.ourchat.Utils.ConstantsUtil
@@ -15,6 +16,7 @@ import com.example.ourchat.databinding.ChatFragmentBinding
 import com.example.ourchat.ui.contacts.PROFILE_PICTURE
 import com.example.ourchat.ui.contacts.UID
 import com.example.ourchat.ui.contacts.USERNAME
+
 
 class ChatFragment : Fragment() {
 
@@ -67,11 +69,15 @@ class ChatFragment : Fragment() {
         }
 
 
+        //pass messages list for recycler to show
+        viewModel.messagesMutableLiveData.observe(this, Observer {
 
+        })
 
     }
 
 
     //todo override menu and add block option
+
 
 }

@@ -1,9 +1,6 @@
 package com.example.ourchat.data.model
 
 
-data class Message(
-    val date: Int? = null,
-    val from: String? = null,
-    val text: String? = null
-
-)
+data class Message(val from: String?, val date: Long?, val text: String?) {
+    constructor() : this(null, null, null)
+}

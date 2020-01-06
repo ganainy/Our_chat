@@ -20,12 +20,17 @@ import androidx.navigation.Navigation
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.ConnectionChangeEvent
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.databinding.ActivityMainBinding
 import com.example.ourchat.ui.signup.SignupFragment
 import com.facebook.CallbackManager
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.issue_layout.view.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 
 class MainActivity : AppCompatActivity(), SignupFragment.ReturnCallBackManager {
@@ -35,14 +40,11 @@ class MainActivity : AppCompatActivity(), SignupFragment.ReturnCallBackManager {
     private val PICK_IMAGE_REQUEST = 2
 lateinit var mCallbackManager:CallbackManager
     private lateinit var sharedViewModel: SharedViewModel
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding: ActivityMainBinding =
-            DataBindingUtil.setContentView(this, R.layout.activity_main)
-
-
-
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         sharedViewModel = ViewModelProviders.of(this).get(SharedViewModel::class.java)
 
@@ -104,9 +106,24 @@ lateinit var mCallbackManager:CallbackManager
         })
 
 
-
     }
 
+
+    // Show snackbar when ever the connection state changes
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    open fun onMessageEvent(event: ConnectionChangeEvent): Unit {
+        Snackbar.make(binding.coordinator, event.message, Snackbar.LENGTH_LONG).show()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        EventBus.getDefault().register(this)
+    }
+
+    override fun onStop() {
+        EventBus.getDefault().unregister(this)
+        super.onStop()
+    }
 
 
     fun dispatchTakePictureIntent() {
@@ -149,11 +166,7 @@ lateinit var mCallbackManager:CallbackManager
     }
 
 
-
-
 }
-
-
 
 
 //todo fix this method

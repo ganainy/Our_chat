@@ -7,44 +7,51 @@
 
     </data>
 
-    <FrameLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinator"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".ui.main.MainActivity">
+        android:layout_height="match_parent">
 
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:elevation="4dp"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:subtitleTextColor="@color/white"
-            app:theme="@style/ThemeOverlay.AppCompat.Light" />
-
-        <fragment
-            android:layout_marginTop="?attr/actionBarSize"
-            android:id="@+id/nav_host_fragment"
-            android:name="androidx.navigation.fragment.NavHostFragment"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:defaultNavHost="true"
-            app:navGraph="@navigation/nav_graph" />
-
-        <!--for showing loading-->
-        <include
-            android:id="@+id/loadingLayout"
-            layout="@layout/loading"
-            android:visibility="gone" />
+            android:background="@color/secondaryLightColor"
+            tools:context=".ui.main_activity.MainActivity">
 
 
-        <!--for showing if there any issue-->
-        <include
-            android:id="@+id/issueLayout"
-            layout="@layout/issue_layout"
-            android:visibility="gone" />
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                android:elevation="4dp"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                app:subtitleTextColor="@color/white"
+                app:theme="@style/ThemeOverlay.AppCompat.Light" />
+
+            <fragment
+                android:layout_marginTop="?attr/actionBarSize"
+                android:id="@+id/nav_host_fragment"
+                android:name="androidx.navigation.fragment.NavHostFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:defaultNavHost="true"
+                app:navGraph="@navigation/nav_graph" />
+
+            <!--for showing loading-->
+            <include
+                android:id="@+id/loadingLayout"
+                layout="@layout/loading"
+                android:visibility="gone" />
 
 
-    </FrameLayout>
+            <!--for showing if there any issue-->
+            <include
+                android:id="@+id/issueLayout"
+                layout="@layout/issue_layout"
+                android:visibility="gone" />
+
+
+        </FrameLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

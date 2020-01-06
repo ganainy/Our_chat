@@ -85,5 +85,8 @@ dependencies {
     //facebook login
     implementation 'com.facebook.android:facebook-android-sdk:[5,6)'
 
+    //event bus
+    implementation 'org.greenrobot:eventbus:3.1.1'
+
 
 }

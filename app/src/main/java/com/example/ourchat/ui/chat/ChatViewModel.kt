@@ -2,37 +2,51 @@ package com.example.ourchat.ui.chat
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.ourchat.Utils.FirestoreUtil
 import com.example.ourchat.data.model.Message
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import java.util.*
 
 
 class ChatViewModel(val senderId: String, val receiverId: String) : ViewModel() {
 
-    private val messageCollectionReference = FirebaseFirestore.getInstance().collection("messages")
+    private val messageCollectionReference = FirestoreUtil.firestoreInstance.collection("messages")
+    private val messagesList: MutableList<Message> by lazy { mutableListOf<Message>() }
 
     init {
-        //todo loadMessages()
+        loadMessages()
     }
 
-    private val messages = MutableLiveData<List<Message>>()
+    val messagesMutableLiveData = MutableLiveData<List<Message>>()
 
-    private fun loadMessages(): MutableLiveData<List<Message>> {
+    private fun loadMessages() {
 
-        //todo
         messageCollectionReference.addSnapshotListener(EventListener { querySnapShot, firebaseFirestoreException ->
             if (firebaseFirestoreException == null) {
+                querySnapShot?.documents?.forEach {
+                    if (it.id == "${senderId}_${receiverId}" || it.id == "${receiverId}_${senderId}") {
+                        //this is the chat document we should read messages array
+                        val messagesFromFirestore =
+                            it.get("messages") as List<HashMap<String, Any>>?
+                                ?: throw Exception("My cast can't be done")
+                        messagesFromFirestore.forEach { message ->
+                            val message = Message(
+                                message["from"].toString(),
+                                message["date"] as Long,
+                                message["text"].toString()
+                            )
+                            messagesList.add(message)
+                        }
+                        messagesMutableLiveData.value = messagesList
+                    }
 
+                }
             }
         })
 
 
-
-
-        return messages
     }
 
 
