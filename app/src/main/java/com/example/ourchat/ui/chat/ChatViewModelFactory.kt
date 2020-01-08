@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
 class ChatViewModelFactory(
-    private val senderId: String,
+    private val senderId: String?,
     private val receiverId: String
 ) : ViewModelProvider.Factory {
     @Suppress("unchecked_cast")

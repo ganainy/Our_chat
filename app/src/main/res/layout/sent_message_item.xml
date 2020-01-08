@@ -20,23 +20,20 @@
             type="Integer" />
     </data>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
+        android:layout_marginStart="100dp"
         android:layout_height="wrap_content"
         android:onClick="@{() -> clickListener.onMessageClick(position)}">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/sent_bubble">
+            android:background="@drawable/sent_bubble"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
 
             <TextView
@@ -44,10 +41,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
+                android:gravity="start"
                 android:lineSpacingExtra="2dp"
-                android:paddingLeft="20dp"
+                android:paddingLeft="8dp"
                 android:paddingTop="4dp"
-                android:paddingRight="10dp"
+                android:paddingRight="8dp"
                 android:paddingBottom="10dp"
                 android:text="@{message.text}"
                 android:textColor="@color/primaryTextColor"
@@ -56,28 +54,38 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:text="Hi, How are you?" />
+                tools:text="hasfasihasfasihasfasi" />
 
             <TextView
                 android:id="@+id/dateTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:gravity="end"
                 app:formatDate="@{message.date}"
                 app:layout_constraintBottom_toBottomOf="@+id/stateImageView"
                 app:layout_constraintEnd_toStartOf="@+id/stateImageView"
                 app:layout_constraintTop_toTopOf="@+id/stateImageView"
                 tools:text="14:16" />
 
+            <TextView
+                android:layout_width="16dp"
+                android:layout_height="0dp"
+                app:layout_constraintEnd_toStartOf="@+id/dateTextView"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/dateTextView" />
+
             <ImageView
                 android:id="@+id/stateImageView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
+                android:layout_marginBottom="4dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:srcCompat="@drawable/ic_sent_grey_24dp" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

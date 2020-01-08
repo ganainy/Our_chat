@@ -10,7 +10,7 @@ import com.google.firebase.firestore.SetOptions
 import java.util.*
 
 
-class ChatViewModel(val senderId: String, val receiverId: String) : ViewModel() {
+class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel() {
 
     private val messageCollectionReference = FirestoreUtil.firestoreInstance.collection("messages")
     private val messagesList: MutableList<Message> by lazy { mutableListOf<Message>() }
@@ -92,6 +92,13 @@ class ChatViewModel(val senderId: String, val receiverId: String) : ViewModel() 
                                         //this node exists send your message
                                         messageCollectionReference.document("${senderId}_${receiverId}")
                                             .update("messages", FieldValue.arrayUnion(messageMap))
+
+                                        //add ids of chat members
+                                        messageCollectionReference.document("${senderId}_${receiverId}")
+                                            .update(
+                                                "chat_members",
+                                                FieldValue.arrayUnion(senderId, receiverId)
+                                            )
 
                                     }
                             }

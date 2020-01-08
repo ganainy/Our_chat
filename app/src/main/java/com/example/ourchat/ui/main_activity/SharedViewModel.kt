@@ -1,4 +1,4 @@
-package com.example.ourchat.ui.main
+package com.example.ourchat.ui.main_activity
 
 import android.graphics.Bitmap
 import android.net.Uri
@@ -92,7 +92,8 @@ class SharedViewModel : ViewModel() {
     private fun saveImageUriInFirebase(downloadUri: Uri?) {
         val db = FirebaseFirestore.getInstance()
 
-        db.collection("users").document(ConstantsUtil.AUTH_UID)
+        ConstantsUtil.AUTH_UID?.let {
+            db.collection("users").document(it)
                 .update("profile_picture_url", downloadUri.toString())
                 .addOnSuccessListener {
                     uploadState.value = LoadState.SUCCESS
@@ -101,6 +102,7 @@ class SharedViewModel : ViewModel() {
                 .addOnFailureListener {
                     uploadState.value = LoadState.FAILURE
                 }
+        }
 
 
 
@@ -109,7 +111,9 @@ class SharedViewModel : ViewModel() {
 
     fun loadFriends(): LiveData<List<User>> {
 
-        userDocRef = usersCollectionRef.document(ConstantsUtil.AUTH_UID)
+        if (ConstantsUtil.AUTH_UID == null) return friendsList
+
+        userDocRef = usersCollectionRef.document(ConstantsUtil.AUTH_UID!!)
 
         userDocRef.addSnapshotListener(EventListener { snapShopt, firebaseFirestoreException ->
             if (firebaseFirestoreException == null) {

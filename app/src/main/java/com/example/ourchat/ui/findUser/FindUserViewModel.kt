@@ -20,6 +20,9 @@ class FindUserViewModel : ViewModel() {
     lateinit var db: FirebaseFirestore
 
     fun loadUsers() {
+
+        if (ConstantsUtil.AUTH_UID == null) return
+
         usersLoadState.value = LoadState.LOADING
         db = FirebaseFirestore.getInstance()
         val docRef = db.collection("users")
@@ -37,7 +40,7 @@ class FindUserViewModel : ViewModel() {
 
 
                 // remove friends of logged in user from result list
-                docRef.whereArrayContains(FRIENDS, ConstantsUtil.AUTH_UID)
+                docRef.whereArrayContains(FRIENDS, ConstantsUtil.AUTH_UID!!)
                     .addSnapshotListener(
                         EventListener { querySnapshot, firebaseFirestoreException ->
                             if (firebaseFirestoreException == null) {

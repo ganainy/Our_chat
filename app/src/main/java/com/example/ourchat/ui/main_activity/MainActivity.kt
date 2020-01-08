@@ -21,12 +21,15 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.ourchat.R
 import com.example.ourchat.Utils.ConnectionChangeEvent
+import com.example.ourchat.Utils.ConstantsUtil
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.databinding.ActivityMainBinding
+import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.example.ourchat.ui.signup.SignupFragment
 import com.facebook.CallbackManager
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.issue_layout.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -37,6 +40,7 @@ class MainActivity : AppCompatActivity(), SignupFragment.ReturnCallBackManager {
 
 
     val REQUEST_IMAGE_CAPTURE = 1
+    var isActivityRecreated = false
     private val PICK_IMAGE_REQUEST = 2
 lateinit var mCallbackManager:CallbackManager
     private lateinit var sharedViewModel: SharedViewModel
@@ -44,6 +48,13 @@ lateinit var mCallbackManager:CallbackManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        //on process death ConstantsUtil.AUTH_UID will become null so we have to restore its value
+        if (savedInstanceState != null) {
+            ConstantsUtil.AUTH_UID = savedInstanceState.getString("auth_id", null)
+            isActivityRecreated = true
+        }
+
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         sharedViewModel = ViewModelProviders.of(this).get(SharedViewModel::class.java)
@@ -112,8 +123,10 @@ lateinit var mCallbackManager:CallbackManager
     // Show snackbar when ever the connection state changes
     @Subscribe(threadMode = ThreadMode.MAIN)
     open fun onMessageEvent(event: ConnectionChangeEvent): Unit {
-        println("MainActivity.onMessageEvent:${event.message}")
-        Snackbar.make(binding.coordinator, event.message, Snackbar.LENGTH_LONG).show()
+        if (!isActivityRecreated) {//to not show toast on configuration changes
+            println("MainActivity.onMessageEvent:${event.message}")
+            Snackbar.make(binding.coordinator, event.message, Snackbar.LENGTH_LONG).show()
+        }
     }
 
     override fun onStart() {
@@ -166,8 +179,14 @@ lateinit var mCallbackManager:CallbackManager
         mCallbackManager=callbackManager
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("auth_id", FirebaseAuth.getInstance().uid.toString())
+        super.onSaveInstanceState(outState)
 
+    }
 }
+
+
 
 
 //todo fix this method

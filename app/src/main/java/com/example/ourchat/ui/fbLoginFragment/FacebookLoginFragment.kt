@@ -15,7 +15,7 @@ import com.example.ourchat.R
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.databinding.FacebookLoginFragmentBinding
-import com.example.ourchat.ui.main.SharedViewModel
+import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.example.ourchat.ui.signup.SignupFragment
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback

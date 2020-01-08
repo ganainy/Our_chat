@@ -20,7 +20,11 @@ class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
 
     private var usersCollectionRef: CollectionReference =
         FirebaseFirestore.getInstance().collection("users")
-    private var userDocRef: DocumentReference? = usersCollectionRef.document(ConstantsUtil.AUTH_UID)
+    private var userDocRef: DocumentReference? = ConstantsUtil.AUTH_UID?.let {
+        usersCollectionRef.document(
+            it
+        )
+    }
     var bioLoadState = MutableLiveData<LoadState>()
     var profileImageLoadState = MutableLiveData<LoadState>()
     var loadedImage = MutableLiveData<RequestBuilder<Drawable>>()

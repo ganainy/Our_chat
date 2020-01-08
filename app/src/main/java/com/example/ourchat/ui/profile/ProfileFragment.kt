@@ -18,8 +18,8 @@ import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ProfileFragmentBinding
 import com.example.ourchat.ui.main.MainActivity
-import com.example.ourchat.ui.main.SharedViewModel
 import com.example.ourchat.ui.main.hideKeyboard
+import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.android.synthetic.main.bottom_sheet_profile_picture.view.*
 import java.io.ByteArrayOutputStream

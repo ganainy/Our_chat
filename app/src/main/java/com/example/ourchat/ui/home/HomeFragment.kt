@@ -23,6 +23,12 @@ class HomeFragment : Fragment() {
 
     lateinit var binding: HomeFragmentBinding
     private lateinit var countBadgeTextView: TextView
+    private val adapter: ChatPreviewAdapter by lazy {
+        ChatPreviewAdapter(ClickListener {
+            println("HomeFragment.:${it.ownerUser?.uid}")
+            println("HomeFragment.:${it.ownerUser?.username}")
+        })
+    }
 
 
     companion object {
@@ -65,7 +71,22 @@ class HomeFragment : Fragment() {
             findNavController().navigate(R.id.action_homeFragment_to_contactsFragment)
         }
 
-        checkAuthState()
+
+        viewModel.getChats()?.observe(this, Observer {
+            if (it == null || it.size == 0) {
+
+            } else {
+                //todo make methods in binding adapter for last message user , download user image in shared view model like
+                //in profile fragment to use when last message is from logged in user
+
+                // binding.recycler.adapter=adapter
+                //adapter.submitList(it)
+            }
+
+        })
+
+
+
 
 
     }
@@ -160,14 +181,3 @@ class HomeFragment : Fragment() {
 
 }
 
-
-fun checkAuthState() {
-    FirebaseAuth.AuthStateListener {
-
-        println("MainActivity.checkAuthState:  ${it.uid}")
-    }
-
-    FirebaseAuth.IdTokenListener {
-        println("MainActivity.checkAuthState2:  ${it.uid}")
-    }
-}
