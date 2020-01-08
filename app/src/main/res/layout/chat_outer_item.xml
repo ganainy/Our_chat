@@ -17,21 +17,21 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/circularbordersolid"
+        android:background="@color/white"
         android:onClick="@{() -> clickListener.onClick(lastMessageOwner)}">
 
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
+            android:layout_width="65dp"
+            android:layout_height="65dp"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:setRoundImage="@{lastMessageOwner.ownerUser}"
+            app:setRoundImageFromLastMessageOwner="@{lastMessageOwner}"
             app:srcCompat="@drawable/anonymous_profile" />
 
         <TextView
@@ -39,9 +39,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="@{lastMessageOwner.ownerUser.username}"
+            app:setNameOfLastMessageOwner="@{lastMessageOwner}"
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
             app:layout_constraintEnd_toStartOf="@+id/dateTextView"
             app:layout_constraintStart_toEndOf="@+id/imageView"

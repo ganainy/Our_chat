@@ -51,12 +51,17 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
 
-                        <ImageView
+                        <com.mikhaellopez.circularimageview.CircularImageView
                             android:id="@+id/profile_image"
-                            android:layout_width="150dp"
-                            android:layout_height="90dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:scaleType="centerCrop"
-                            android:src="@drawable/anonymous_profile" />
+                            android:layout_gravity="center"
+                            android:src="@drawable/anonymous_profile"
+                            app:civ_border_color="#EDDFF8"
+                            app:civ_border_width="2dp"
+
+                            />
 
                         <ProgressBar
                             android:id="@+id/uploadProgressBar"
@@ -113,7 +118,7 @@
                         android:padding="8dp"
                         android:src="@drawable/ic_camera_alt_black_24dp"
                         app:layout_constraintEnd_toEndOf="@+id/cardView2"
-                        app:layout_constraintStart_toEndOf="@+id/cardView2"
+                        app:layout_constraintStart_toStartOf="@+id/cardView2"
                         app:layout_constraintTop_toTopOf="@+id/cardView2" />
 
 
@@ -233,6 +238,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                            android:orientation="horizontal"
                             tools:listitem="@layout/friend_item" />
                     </LinearLayout>
 

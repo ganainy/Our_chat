@@ -8,27 +8,16 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.ourchat.R
 import com.example.ourchat.Utils.LoadState
+import com.example.ourchat.data.model.LastMessageOwner
 import com.example.ourchat.data.model.User
+import com.example.ourchat.ui.home.MY_PREFS
+import com.example.ourchat.ui.home.PROFILE_PIC_URL
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.firestore.DocumentSnapshot
 import java.util.*
 
 
-@BindingAdapter("setImage")
-fun setImage(imageView: ImageView, item: User) {
-    item.let {
-        val imageUri = it.profile_picture_url
-        Glide.with(imageView.context)
-            .load(imageUri)
-            .apply(
-                RequestOptions()
-                    .placeholder(R.drawable.loading_animation)
-                    .error(R.drawable.anonymous_profile)
-            )
-            .into(imageView)
-    }
 
-}
 
 
 @BindingAdapter("setRoundImage")
@@ -95,32 +84,47 @@ fun MaterialButton.setTheLoadingState(state: LoadState) {
 
 }
 
-/*
-@BindingAdapter("setVisibility")
-fun TextView.setVisibility(favouriteListSize: Int): Unit {
-    visibility = if (favouriteListSize == 0) {
-        View.VISIBLE
+
+@BindingAdapter("setNameOfLastMessageOwner")
+fun setNameOfLastMessageOwner(textView: TextView, lastMessageOwner: LastMessageOwner) {
+    if (lastMessageOwner.ownerUser == null) {
+        textView.text = textView.context.getString(R.string.you)
     } else {
-        View.GONE
+        textView.text = lastMessageOwner.ownerUser!!.username
     }
+
 }
 
 
-@BindingAdapter("setVisibility")
-fun ConstraintLayout.setVisibility(state: HomeViewModel.State) {
-    visibility = when (state) {
-        HomeViewModel.State.LOADING -> {
-            View.GONE
-        }
-        HomeViewModel.State.FAILED -> {
-            View.GONE
-        }
-        HomeViewModel.State.SUCCESS -> {
-            View.VISIBLE
-        }
+@BindingAdapter("setRoundImageFromLastMessageOwner")
+fun setRoundImageFromLastMessageOwner(imageView: ImageView, lastMessageOwner: LastMessageOwner) {
+    if (lastMessageOwner.ownerUser == null) {
+        //this means last message is from logged in user
+        val sp = imageView.context.getSharedPreferences(MY_PREFS, Context.MODE_PRIVATE)
+        val profile_pic_url = sp.getString(PROFILE_PIC_URL, null)
+        Glide.with(imageView.context)
+            .load(profile_pic_url)
+            .apply(
+                RequestOptions()
+                    .placeholder(R.drawable.loading_animation)
+                    .error(R.drawable.anonymous_profile)
+                    .circleCrop()
+            )
+            .into(imageView)
+    } else {
+        Glide.with(imageView.context)
+            .load(lastMessageOwner.ownerUser!!.profile_picture_url)
+            .apply(
+                RequestOptions()
+                    .placeholder(R.drawable.loading_animation)
+                    .error(R.drawable.anonymous_profile)
+                    .circleCrop()
+            )
+            .into(imageView)
     }
+
 }
-*/
+
 
 
 fun currentDate(): Date {

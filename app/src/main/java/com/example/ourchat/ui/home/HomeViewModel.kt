@@ -26,6 +26,7 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
                 if (firebaseFirestoreException == null) {
 
+                    lastMessageOwnerList.clear()
 
                     querySnapshot?.documents?.forEach { documentSnapshot ->
                         if (documentSnapshot.id.contains(ConstantsUtil.AUTH_UID!!, true)) {
@@ -65,6 +66,8 @@ class HomeViewModel : ViewModel() {
                             }
 
 
+                        } else {
+                            lastMessageOwnerListMutableLiveData.value = null
                         }
                     }
                 }

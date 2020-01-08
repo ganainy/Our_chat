@@ -24,56 +24,65 @@
             <!--add view to show if user have incoming [number] requests and on show click show this recycler
             add header to both recyclers-->
 
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintBottom_toBottomOf="parent"
+
                 tools:listitem="@layout/chat_outer_item" />
 
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/start_chat_fab"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:src="@drawable/ic_chat_purple_24dp"
-                android:backgroundTintMode="@color/white"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/recycler" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_height="match_parent"
             android:id="@+id/no_chat_layout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="vertical"
             android:visibility="gone">
 
-
             <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/lottieAnimationView3"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="400dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 app:lottie_autoPlay="true"
                 app:lottie_loop="false"
                 app:lottie_rawRes="@raw/empty_box" />
+
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_margin="16dp"
                 android:gravity="center"
                 android:text="@string/no_chat_history_yet_click_chat_button_to_start_chatting"
                 android:textSize="20sp"
-                android:textStyle="bold" />
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/lottieAnimationView3" />
 
 
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/start_chat_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:backgroundTintMode="@color/white"
+            android:src="@drawable/ic_chat_purple_24dp" />
 
     </FrameLayout>
 </layout>

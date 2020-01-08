@@ -23,7 +23,7 @@ class SharedViewModel : ViewModel() {
     private lateinit var mStorageRef: StorageReference
     private var usersCollectionRef: CollectionReference =
         FirebaseFirestore.getInstance().collection("users")
-    private lateinit var userDocRef: DocumentReference
+    private val userDocRef: DocumentReference by lazy { usersCollectionRef.document(ConstantsUtil.AUTH_UID!!) }
     var friendsList = MutableLiveData<List<com.example.ourchat.data.model.User>>()
 
 
@@ -113,7 +113,7 @@ class SharedViewModel : ViewModel() {
 
         if (ConstantsUtil.AUTH_UID == null) return friendsList
 
-        userDocRef = usersCollectionRef.document(ConstantsUtil.AUTH_UID!!)
+
 
         userDocRef.addSnapshotListener(EventListener { snapShopt, firebaseFirestoreException ->
             if (firebaseFirestoreException == null) {
@@ -150,4 +150,22 @@ class SharedViewModel : ViewModel() {
 
     val imageBitmap = MutableLiveData<Bitmap>()
     val galleryImageUri = MutableLiveData<Uri>()
+
+
+    var profileImageUrlMutableLiveData = MutableLiveData<String>()
+
+
+    fun downloadProfileImage(): LiveData<String> {
+
+        userDocRef.get().addOnSuccessListener { document ->
+            var profileImageUrl = document.get("profile_picture_url").toString()
+            profileImageUrlMutableLiveData.value = profileImageUrl
+
+
+        }
+            .addOnFailureListener { exception ->
+            }
+
+        return profileImageUrlMutableLiveData
+    }
 }

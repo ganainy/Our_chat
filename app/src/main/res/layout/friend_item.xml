@@ -33,7 +33,7 @@
                 android:layout_height="90dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/anonymous_profile"
-                app:setImage="@{user}" />
+                app:setRoundImage="@{user}" />
 
         </androidx.cardview.widget.CardView>
 

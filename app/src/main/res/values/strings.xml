@@ -78,5 +78,7 @@
     <string name="date_util_prefix_almost">almost</string>
 
     <string name="date_util_suffix">ago</string>
+    <string name="you">You</string>
+    <string name="recent_chats">Recent chats :</string>
 
 </resources>

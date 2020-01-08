@@ -1,5 +1,6 @@
 package com.example.ourchat.ui.profile
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
@@ -13,10 +14,14 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.example.ourchat.R
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ProfileFragmentBinding
+import com.example.ourchat.ui.home.MY_PREFS
+import com.example.ourchat.ui.home.PROFILE_PIC_URL
 import com.example.ourchat.ui.main.MainActivity
 import com.example.ourchat.ui.main.hideKeyboard
 import com.example.ourchat.ui.main_activity.SharedViewModel
@@ -57,7 +62,26 @@ class ProfileFragment : Fragment() {
 
         //download user bio and image on fragment start
         viewModel.downloadBio()
-        viewModel.downloadProfileImage()
+
+        //only download profile image url only if it's not in shared preferences
+        val sp = activity!!.getSharedPreferences(MY_PREFS, Context.MODE_PRIVATE)
+        val profile_pic_url = sp.getString(PROFILE_PIC_URL, null)
+
+        if (profile_pic_url == null) {
+            sharedViewModel.downloadProfileImage().observe(this, Observer {
+                Glide.with(this).load(it).apply(
+                    RequestOptions()
+                        .placeholder(R.drawable.loading_animation)
+                        .error(R.drawable.anonymous_profile)
+                ).into(binding.profileImage)
+            })
+        } else {
+            Glide.with(this).load(profile_pic_url).apply(
+                RequestOptions()
+                    .placeholder(R.drawable.loading_animation)
+                    .error(R.drawable.anonymous_profile)
+            ).into(binding.profileImage)
+        }
 
 
 
@@ -178,19 +202,6 @@ class ProfileFragment : Fragment() {
         viewModel.bio.observe(this, Observer {
             binding.bioTextView.text = it
         })
-
-
-        //show downloaded image in profile imageview
-        viewModel.loadedImage.observe(this, Observer {
-            it.into(binding.profileImage)
-        })
-
-
-        //show loading state while profile image loading
-        viewModel.profileImageLoadState.observe(this, Observer {
-            setProfileImageLoadUi(it)
-        })
-
 
 
     }

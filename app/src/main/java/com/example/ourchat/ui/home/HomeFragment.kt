@@ -1,5 +1,6 @@
 package com.example.ourchat.ui.home
 
+import android.content.Context.MODE_PRIVATE
 import android.os.Bundle
 import android.view.*
 import android.widget.TextView
@@ -17,6 +18,9 @@ import com.facebook.login.LoginManager
 import com.google.firebase.auth.FirebaseAuth
 import java.lang.String
 
+
+const val MY_PREFS = "my_prefs"
+const val PROFILE_PIC_URL = "profile_pic_url"
 
 class HomeFragment : Fragment() {
 
@@ -74,19 +78,24 @@ class HomeFragment : Fragment() {
 
         viewModel.getChats()?.observe(this, Observer {
             if (it == null || it.size == 0) {
-
+                //show no chat layout
+                binding.noChatLayout.visibility = View.VISIBLE
             } else {
-                //todo make methods in binding adapter for last message user , download user image in shared view model like
-                //in profile fragment to use when last message is from logged in user
+                binding.noChatLayout.visibility = View.GONE
 
-                // binding.recycler.adapter=adapter
-                //adapter.submitList(it)
+                binding.recycler.adapter = adapter
+                adapter.submitList(it)
             }
 
         })
 
 
 
+
+        sharedViewModel.downloadProfileImage().observe(this, Observer {
+            val sp = activity!!.getSharedPreferences(MY_PREFS, MODE_PRIVATE)
+            sp.edit().putString(PROFILE_PIC_URL, it).apply()
+        })
 
 
     }
