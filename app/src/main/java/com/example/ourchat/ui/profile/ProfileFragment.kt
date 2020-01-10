@@ -1,6 +1,7 @@
 package com.example.ourchat.ui.profile
 
-import android.content.Context
+import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
@@ -17,14 +18,14 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.ourchat.R
+import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ProfileFragmentBinding
-import com.example.ourchat.ui.home.MY_PREFS
-import com.example.ourchat.ui.home.PROFILE_PIC_URL
 import com.example.ourchat.ui.main.MainActivity
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.gson.Gson
 import kotlinx.android.synthetic.main.bottom_sheet_profile_picture.view.*
 import java.io.ByteArrayOutputStream
 
@@ -62,31 +63,28 @@ class ProfileFragment : Fragment() {
         //setup bottomsheet
         mBottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet)
 
-        //download user bio and image on fragment start
-        viewModel.downloadBio()
 
-        //only download profile image url only if it's not in shared preferences
-        val sp = activity!!.getSharedPreferences(MY_PREFS, Context.MODE_PRIVATE)
-        val profile_pic_url = sp.getString(PROFILE_PIC_URL, null)
-
-        if (profile_pic_url == null) {
-            sharedViewModel.downloadProfileImage().observe(this, Observer {
-                Glide.with(this).load(it).apply(
-                    RequestOptions()
-                        .placeholder(R.drawable.loading_animation)
-                        .error(R.drawable.anonymous_profile)
-                ).into(binding.profileImage)
-            })
-        } else {
-            Glide.with(this).load(profile_pic_url).apply(
+        //get user from shared preferences
+        val mPrefs: SharedPreferences = activity!!.getPreferences(MODE_PRIVATE)
+        val gson = Gson()
+        val json: String? = mPrefs.getString(LOGGED_USER, null)
+        val loggedUser: User = gson.fromJson(json, User::class.java)
+        //show user name & email & bio
+        binding.bioTextView.text = loggedUser.bio
+        binding.email.text = loggedUser.email
+        binding.name.text = loggedUser.username
+        //download profile photo
+        Glide.with(this).load(loggedUser.profile_picture_url)
+            .apply(
                 RequestOptions()
                     .placeholder(R.drawable.loading_animation)
                     .error(R.drawable.anonymous_profile)
-            ).into(binding.profileImage)
-        }
+                    .circleCrop()
+            )
+            .into(binding.profileImage)
 
 
-
+        //create adapter and handle recycle item click callback
         adapter = FriendsAdapter(object : FriendsAdapter.ItemClickCallback {
             override fun onItemClicked(user: User) {
                 //todo open profile of clicked user
@@ -95,7 +93,7 @@ class ProfileFragment : Fragment() {
 
 
         //load friends of logged in user and show in recycler
-        sharedViewModel.loadFriends().observe(this, Observer { friendsList ->
+        sharedViewModel.loadFriends(loggedUser).observe(this, Observer { friendsList ->
             //hide loading
             binding.loadingFriendsImageView.visibility = View.GONE
             if (friendsList != null) {
@@ -187,12 +185,6 @@ class ProfileFragment : Fragment() {
             }
         }
 
-
-
-        //show downloaded bio in textview
-        viewModel.bio.observe(this, Observer {
-            binding.bioTextView.text = it
-        })
 
 
 

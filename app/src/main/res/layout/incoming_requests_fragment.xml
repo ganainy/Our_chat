@@ -25,5 +25,13 @@
             android:id="@+id/no_incoming_requests_layout"
             layout="@layout/no_incoming_requests"
             android:visibility="gone" />
+
+
+        <ImageView
+            android:id="@+id/loadingRequestsImageView"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:src="@drawable/loading_animation" />
     </FrameLayout>
 </layout>

@@ -1,5 +1,7 @@
 package com.example.ourchat.ui.contacts
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.widget.SearchView
@@ -10,9 +12,11 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ContactsFragmentBinding
 import com.example.ourchat.ui.main_activity.SharedViewModel
+import com.google.gson.Gson
 
 const val USERNAME = "username"
 const val PROFILE_PICTURE = "profile_picture_url"
@@ -45,7 +49,11 @@ class ContactsFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(ContactsViewModel::class.java)
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
-
+        //get user from shared preferences
+        val mPrefs: SharedPreferences = activity!!.getPreferences(Context.MODE_PRIVATE)
+        val gson = Gson()
+        val json: String? = mPrefs.getString(LOGGED_USER, null)
+        val loggedUser: User = gson.fromJson(json, User::class.java)
 
         adapter = ContactsAdapter(object : ContactsAdapter.ItemClickCallback {
             override fun onItemClicked(user: User) {
@@ -60,7 +68,7 @@ class ContactsFragment : Fragment() {
             }
         })
 
-        sharedViewModel.loadFriends().observe(this, Observer {
+        sharedViewModel.loadFriends(loggedUser).observe(this, Observer {
             if (it != null) {
                 //user has friends
                 showFriends(it)

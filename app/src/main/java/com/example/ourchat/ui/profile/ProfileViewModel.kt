@@ -4,29 +4,23 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.example.ourchat.Utils.AuthUtil
-
+import com.example.ourchat.Utils.FirestoreUtil
 import com.example.ourchat.Utils.LoadState
-import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.EventListener
-import com.google.firebase.firestore.FirebaseFirestore
 
 
 class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
 
-    private var usersCollectionRef: CollectionReference =
-        FirebaseFirestore.getInstance().collection("users")
+
     private var userDocRef: DocumentReference? = AuthUtil.authUid.let {
-        usersCollectionRef.document(it)
+        FirestoreUtil.firestoreInstance.collection("users").document(it)
     }
 
     var bioLoadState = MutableLiveData<LoadState>()
-    var bio = MutableLiveData<String>()
 
 
     fun updateBio(bio: String) {
 
-        bioLoadState.value = LoadState.LOADING
 
         userDocRef?.update("bio", bio)
             ?.addOnSuccessListener {
@@ -39,6 +33,7 @@ class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
 
     }
 
+/*
 
     fun downloadBio() {
         bioLoadState.value = LoadState.LOADING
@@ -53,6 +48,7 @@ class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
         })
 
     }
+*/
 
 
 

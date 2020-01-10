@@ -1,15 +1,12 @@
 package com.example.ourchat.ui.main
 
 
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.*
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
@@ -47,7 +44,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
+        //register to event bus to receive callbacks
         EventBus.getDefault().register(this)
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
@@ -175,24 +172,4 @@ class MainActivity : AppCompatActivity() {
 }
 
 
-//todo fix this method
-fun hideKeyboard(activity: Activity) {
-    /*   val imm: InputMethodManager =
-           activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-       //Find the currently focused view, so we can grab the correct window token from it.
-       var view: View? = activity.currentFocus
-       //If no view currently has focus, create a new one, just so we can grab a window token from it
-       if (view == null) {
-           view = View(activity)
-       }
-       imm.hideSoftInputFromWindow(view.getWindowToken(), 0)*/
-    //close soft keyboard
-    var view: View? = activity.currentFocus
-    val imm =
-        activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
-    imm?.hideSoftInputFromWindow(
-        view?.windowToken,
-        InputMethodManager.HIDE_IMPLICIT_ONLY
-    )
-}
 

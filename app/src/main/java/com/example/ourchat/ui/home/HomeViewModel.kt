@@ -4,22 +4,21 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.ourchat.Utils.AuthUtil
-
 import com.example.ourchat.Utils.FirestoreUtil
 import com.example.ourchat.data.model.LastMessageOwner
 import com.example.ourchat.data.model.User
-import com.google.firebase.firestore.EventListener
-import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
 
 
 class HomeViewModel : ViewModel() {
 
 
-    val lastMessageOwnerList: MutableList<LastMessageOwner> by lazy { mutableListOf<LastMessageOwner>() }
-    val lastMessageOwnerListMutableLiveData = MutableLiveData<MutableList<LastMessageOwner>>()
+    private val lastMessageOwnerList: MutableList<LastMessageOwner> by lazy { mutableListOf<LastMessageOwner>() }
+    private val lastMessageOwnerListMutableLiveData =
+        MutableLiveData<MutableList<LastMessageOwner>>()
+    private val loggedUserMutableLiveData = MutableLiveData<User>()
 
-
+    //todo with first message store chat id in all participants  so we here get chats of those ids
     fun getChats(): LiveData<MutableList<LastMessageOwner>>? {
 
         FirestoreUtil.firestoreInstance.collection("messages")
@@ -49,8 +48,8 @@ class HomeViewModel : ViewModel() {
                                 //leave ownerUser null
                                 lastMessageOwner.ownerUser = null
                                 lastMessageOwnerList.add(lastMessageOwner)
-                                lastMessageOwnerListMutableLiveData.value =
-                                    lastMessageOwnerList
+                                /* lastMessageOwnerListMutableLiveData.value =
+                                     lastMessageOwnerList*/
                             } else {
                                 //get user who wrote last message
                                 FirestoreUtil.firestoreInstance.collection("users")
@@ -58,38 +57,35 @@ class HomeViewModel : ViewModel() {
                                         val mLastMessageOwner = it.toObject(User::class.java)
                                         lastMessageOwner.ownerUser = mLastMessageOwner
                                         lastMessageOwnerList.add(lastMessageOwner)
-                                        lastMessageOwnerListMutableLiveData.value =
-                                            lastMessageOwnerList
+                                        /*      lastMessageOwnerListMutableLiveData.value =
+                                                  lastMessageOwnerList*/
                                     }.addOnFailureListener {
 
                                     }
                             }
 
 
-                        } else {
-                            lastMessageOwnerListMutableLiveData.value = null
                         }
+
+                        lastMessageOwnerListMutableLiveData.value = lastMessageOwnerList
                     }
                 }
             }
         return lastMessageOwnerListMutableLiveData
     }
 
-    private val incomingRequestSize = MutableLiveData<Int>()
 
-    fun getIncomingRequestsCount(): MutableLiveData<Int> {
-        AuthUtil.authUid.let {
-            FirebaseFirestore.getInstance().collection("users")
-                .document(it).addSnapshotListener(
-                    EventListener { documentSnapshot, firebaseFirestoreException ->
-                        if (firebaseFirestoreException == null) {
-                            val user = documentSnapshot?.toObject(User::class.java)
-                            val receivedRequestsArraySize = user?.receivedRequests?.size
-                            incomingRequestSize.value = receivedRequestsArraySize
-                        }
-                    })
+    fun getUserData(): LiveData<User> {
+        if (loggedUserMutableLiveData.value != null) return loggedUserMutableLiveData
+
+        FirestoreUtil.firestoreInstance.collection("users").document(AuthUtil.authUid)
+            .addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+                if (firebaseFirestoreException == null) {
+                    val loggedUser = documentSnapshot?.toObject(User::class.java)
+                    loggedUserMutableLiveData.value = loggedUser
+                }
         }
-        return incomingRequestSize
+        return loggedUserMutableLiveData
     }
 
 

@@ -1,6 +1,7 @@
 package com.example.ourchat.ui.home
 
 import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.*
 import android.widget.TextView
@@ -15,6 +16,7 @@ import com.example.ourchat.databinding.HomeFragmentBinding
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.facebook.login.LoginManager
 import com.google.firebase.auth.FirebaseAuth
+import com.google.gson.Gson
 import java.lang.String
 
 
@@ -58,11 +60,35 @@ class HomeFragment : Fragment() {
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
 
-        //show badge over menu item with incoming friends count
-        viewModel.getIncomingRequestsCount().observe(this, Observer {
-            if (::countBadgeTextView.isInitialized) {
-                setupBadge(it)
+        //get user data
+        viewModel.getUserData().observe(this, Observer { loggedUser ->
+            //save logged user data in shared pref to use in other fragments
+            val mPrefs: SharedPreferences = activity!!.getPreferences(MODE_PRIVATE)
+            val prefsEditor: SharedPreferences.Editor = mPrefs.edit()
+            val gson = Gson()
+            val json = gson.toJson(loggedUser)
+            prefsEditor.putString("loggedUser", json)
+            prefsEditor.apply()
+
+            //show notification badge if there is incoming requests
+            setupBadge(loggedUser.receivedRequests?.size)
+            println("HomeFragment.onActivityCreated:${loggedUser.receivedRequests?.size}")
+        })
+
+
+        //get user chat history
+        viewModel.getChats()?.observe(this, Observer { lastMessageOwnerList ->
+            //Hide loading image
+            binding.loadingChatImageView.visibility = View.GONE
+            if (lastMessageOwnerList.isNullOrEmpty()) {
+                //show no chat layout
+                binding.noChatLayout.visibility = View.VISIBLE
+            } else {
+                binding.noChatLayout.visibility = View.GONE
+                binding.recycler.adapter = adapter
+                adapter.submitList(lastMessageOwnerList)
             }
+
         })
 
 
@@ -70,28 +96,6 @@ class HomeFragment : Fragment() {
         binding.startChatFab.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_contactsFragment)
         }
-
-
-        viewModel.getChats()?.observe(this, Observer {
-            if (it == null || it.size == 0) {
-                //show no chat layout
-                binding.noChatLayout.visibility = View.VISIBLE
-            } else {
-                binding.noChatLayout.visibility = View.GONE
-
-                binding.recycler.adapter = adapter
-                adapter.submitList(it)
-            }
-
-        })
-
-
-
-
-        sharedViewModel.downloadProfileImage().observe(this, Observer {
-            val sp = activity!!.getSharedPreferences(MY_PREFS, MODE_PRIVATE)
-            sp.edit().putString(PROFILE_PIC_URL, it).apply()
-        })
 
 
     }
@@ -182,6 +186,12 @@ class HomeFragment : Fragment() {
                 )
             }
         }
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        println("HomeFragment.onDestroy:")
     }
 
 }

@@ -9,7 +9,6 @@ import com.example.ourchat.Utils.*
 import com.example.ourchat.data.model.User
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.StorageReference
 
@@ -20,9 +19,6 @@ class SharedViewModel : ViewModel() {
     val uploadImageLoadStateMutableLiveData = MutableLiveData<LoadState>()
     private var friendsListMutableLiveData =
         MutableLiveData<List<com.example.ourchat.data.model.User>>()
-    private var profileImageUrlMutableLiveData = MutableLiveData<String>()
-    private val errorToastMutableLiveData = MutableLiveData<String>()
-
     private lateinit var mStorageRef: StorageReference
     private var usersCollectionRef: CollectionReference =
         FirestoreUtil.firestoreInstance.collection("users")
@@ -100,32 +96,24 @@ class SharedViewModel : ViewModel() {
     }
 
 
-    fun loadFriends(): LiveData<List<User>> {
+    fun loadFriends(loggedUser: User): LiveData<List<User>> {
 
-
-        userDocRef.addSnapshotListener(EventListener { snapShopt, firebaseFirestoreException ->
-            if (firebaseFirestoreException == null) {
-                val user = snapShopt?.toObject(User::class.java)
-                val friendsIds = user?.friends
+        val friendsIds = loggedUser.friends
                 if (friendsIds != null && friendsIds.isNotEmpty()) {
                     val mFriendList = mutableListOf<User>()
                     for (friendId in friendsIds) {
-                        usersCollectionRef.document(friendId).get().addOnSuccessListener {
+                        usersCollectionRef.document(friendId).get()
+                            .addOnSuccessListener { friendUser ->
                             val friend =
-                                it.toObject(User::class.java)
+                                friendUser.toObject(User::class.java)
                             friend?.let { user -> mFriendList.add(user) }
                             friendsListMutableLiveData.value = mFriendList
                         }
                     }
-
                 } else {
                     friendsListMutableLiveData.value = null
                 }
-            } else {
-                friendsListMutableLiveData.value = null
 
-            }
-        })
         return friendsListMutableLiveData
     }
 
@@ -142,15 +130,5 @@ class SharedViewModel : ViewModel() {
 
 
 
-    fun downloadProfileImage(): LiveData<String> {
-        userDocRef.get().addOnSuccessListener { document ->
-            var profileImageUrl = document.get("profile_picture_url").toString()
-            profileImageUrlMutableLiveData.value = profileImageUrl
-        }
-            .addOnFailureListener { exception ->
-                loadStateMutableLiveData.value = LoadState.FAILURE
-            }
 
-        return profileImageUrlMutableLiveData
-    }
 }

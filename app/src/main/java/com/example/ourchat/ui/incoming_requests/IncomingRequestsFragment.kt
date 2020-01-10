@@ -1,5 +1,7 @@
 package com.example.ourchat.ui.incoming_requests
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +12,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.example.ourchat.R
+import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.IncomingRequestsFragmentBinding
+import com.google.gson.Gson
 
 class IncomingRequestsFragment : Fragment() {
 
@@ -42,31 +46,67 @@ class IncomingRequestsFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(IncomingRequestsViewModel::class.java)
 
 
-        //check if there is any incoming friend requests
-        viewModel.checkIncomingFriendRequests()
+        //get user from shared preferences
+        val mPrefs: SharedPreferences = activity!!.getPreferences(Context.MODE_PRIVATE)
+        val gson = Gson()
+        val json: String? = mPrefs.getString(LOGGED_USER, null)
+        val loggedUser: User = gson.fromJson(json, User::class.java)
+
+        //get friend requests if receivedRequest isn't empty
+        val receivedRequest = loggedUser.receivedRequests
+        if (!receivedRequest.isNullOrEmpty()) {
+            viewModel.downloadRequests(receivedRequest).observe(this, Observer { requestersList ->
+                //hide loading
+                binding.loadingRequestsImageView.visibility = View.GONE
+
+                if (requestersList == null) {
+                    //error while getting received requests
+                    binding.noIncomingRequestsLayout.visibility = View.VISIBLE
+                    Toast.makeText(
+                        context,
+                        "Error while loading incoming friend requests",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    //got requests successfully
+                    binding.noIncomingRequestsLayout.visibility = View.GONE
+                    adapter.setDataSource(requestersList)
+                    sendersList = requestersList
+                    binding.receivedRequestsRecycler.adapter = adapter
+                }
+            })
+        } else {
+            //no received requests
+            binding.noIncomingRequestsLayout.visibility = View.VISIBLE
+            binding.loadingRequestsImageView.visibility = View.GONE
+
+        }
+
 
         //handle click on item of friend request recycler
         adapter =
             IncomingRequestsAdapter(
                 object : IncomingRequestsAdapter.ButtonCallback {
-                    override fun onConfirmClicked(user: User, position: Int) {
-                        viewModel.addToFriends(user)
+                    override fun onConfirmClicked(requestSender: User, position: Int) {
+                        viewModel.addToFriends(requestSender.uid, loggedUser)
+
                         Toast.makeText(
                             context,
-                            "${user.username} added to your friends",
+                            "${requestSender.username} added to your friends",
                             Toast.LENGTH_LONG
-                        )
-                            .show()
-                        DeleteFromRecycler(position)
+                        ).show()
+                        deleteFromRecycler(position)
                     }
 
-                    override fun onDeleteClicked(user: User, position: Int) {
-                        viewModel.deleteRequest(user)
+                    override fun onDeleteClicked(requestSender: User, position: Int) {
+                        viewModel.deleteRequest(requestSender.uid, loggedUser)
                         Toast.makeText(context, "Request deleted", Toast.LENGTH_LONG).show()
-                        DeleteFromRecycler(position)
+                        deleteFromRecycler(position)
                     }
 
-                    private fun DeleteFromRecycler(position: Int) {
+
+                    //Delete accepted/declind request from recycler
+                    private fun deleteFromRecycler(position: Int) {
                         sendersList?.removeAt(position)
                         adapter.setDataSource(sendersList)
                         adapter.notifyItemRemoved(position)
@@ -78,17 +118,7 @@ class IncomingRequestsFragment : Fragment() {
 
                 })
 
-        viewModel.senders.observe(this, Observer {
-            println("HomeFrgment.onActivityCreagment.onActivityCreated:${it?.size}")
-            if (it == null) {
-                binding.noIncomingRequestsLayout.visibility = View.VISIBLE
-            } else {
-                binding.noIncomingRequestsLayout.visibility = View.GONE
-                adapter.setDataSource(it)
-                sendersList = it
-                binding.receivedRequestsRecycler.adapter = adapter
-            }
-        })
+
     }
 
 

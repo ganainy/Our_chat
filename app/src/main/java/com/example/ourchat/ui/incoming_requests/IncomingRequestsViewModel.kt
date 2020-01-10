@@ -1,80 +1,65 @@
 package com.example.ourchat.ui.incoming_requests
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.ourchat.Utils.AuthUtil
-
+import com.example.ourchat.Utils.FirestoreUtil
 import com.example.ourchat.data.model.User
 import com.example.ourchat.ui.different_user_profile.RECEIVED_REQUEST_ARRAY
 import com.example.ourchat.ui.different_user_profile.SENT_REQUEST_ARRAY
 import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
 
 const val FRIENDS = "friends"
 
 
 class IncomingRequestsViewModel : ViewModel() {
-    val usersRef = FirebaseFirestore.getInstance().collection("users")
-    val senders = MutableLiveData<MutableList<User>?>()
 
-    fun checkIncomingFriendRequests() {
-        AuthUtil.authUid.let {
-            usersRef.document(it).get().addOnSuccessListener {
-                val user = it?.toObject(User::class.java)
-                val receivedRequestListSize = user?.receivedRequests?.size ?: -1
-                if (receivedRequestListSize > 0) {
-                    downloadSenders(user?.receivedRequests)
-                } else {
-                    senders.value = null
-                }
-            }.addOnFailureListener {
-                senders.value = null
-                //error
-            }
-        }
-
-    }
+    private val usersRef = FirestoreUtil.firestoreInstance.collection("users")
+    private val friendRequestersMutableLiveData = MutableLiveData<MutableList<User>?>()
 
 
     //get info of the users that sent friend requests
-    private fun downloadSenders(receivedRequests: List<String>?) {
+    fun downloadRequests(receivedRequests: List<String>): LiveData<MutableList<User>?> {
 
-        val users = mutableListOf<User>()
+        val friendRequesters = mutableListOf<User>()
 
-        if (receivedRequests != null) {
-            for (receivedRequest in receivedRequests) {
-                usersRef.document(receivedRequest).get().addOnSuccessListener {
-                    val user = it?.toObject(User::class.java)
-                    user?.let { it1 -> users.add(it1) }
-                    senders.value = users
+        for (receivedRequest in receivedRequests) {
+            usersRef.document(receivedRequest).get().addOnSuccessListener {
+                val user = it?.toObject(User::class.java)
+                user?.let { it1 -> friendRequesters.add(it1) }
+                friendRequestersMutableLiveData.value = friendRequesters
 
-                }.addOnFailureListener {
-
-                }
+            }.addOnFailureListener {
+                friendRequestersMutableLiveData.value = null
             }
         }
-
-
+        return friendRequestersMutableLiveData
     }
 
-    fun addToFriends(user: User) {
-        deleteRequest(user)
 
+    fun addToFriends(
+        requesterId: String?,
+        loggedUser: User
+    ) {
 
-        val uid = user.uid
+        deleteRequest(requesterId, loggedUser)
+
         //add id in sentRequest array for logged in user
-        val db = FirebaseFirestore.getInstance()
-        if (uid != null) {
-            AuthUtil.authUid.let {
-                db.collection("users").document(it)
-                    .update(FRIENDS, FieldValue.arrayUnion(uid)).addOnSuccessListener {
+        if (requesterId != null) {
+            AuthUtil.authUid.let { requesterId ->
+                FirestoreUtil.firestoreInstance.collection("users").document(requesterId)
+                    .update(FRIENDS, FieldValue.arrayUnion(requesterId)).addOnSuccessListener {
                         //add loggedInUserId in receivedRequest array for other user
-                        db.collection("users").document(uid)
+                        FirestoreUtil.firestoreInstance.collection("users").document(requesterId)
                             .update(FRIENDS, FieldValue.arrayUnion(AuthUtil.authUid))
                             .addOnSuccessListener {
+
                             }.addOnFailureListener {
+
                             }
                     }.addOnFailureListener {
+
                     }
             }
         }
@@ -83,27 +68,35 @@ class IncomingRequestsViewModel : ViewModel() {
     }
 
 
-    fun deleteRequest(user: User) {
-        val uid = user.uid
+    fun deleteRequest(
+        requesterId: String?,
+        loggedUser: User
+    ) {
+
         //remove id from sentRequest array for logged in user
-        val db = FirebaseFirestore.getInstance()
-        if (uid != null) {
-            AuthUtil.authUid.let {
-                db.collection("users").document(it)
-                    .update(RECEIVED_REQUEST_ARRAY, FieldValue.arrayRemove(uid))
+        if (requesterId != null) {
+            loggedUser.uid?.let { loggedUserId ->
+                FirestoreUtil.firestoreInstance.collection("users").document(loggedUserId)
+                    .update(RECEIVED_REQUEST_ARRAY, FieldValue.arrayRemove(requesterId))
                     .addOnSuccessListener {
                         //remove loggedInUserId from receivedRequest array for other user
-                        db.collection("users").document(uid)
+                        FirestoreUtil.firestoreInstance.collection("users").document(requesterId)
                             .update(
                                 SENT_REQUEST_ARRAY,
                                 FieldValue.arrayRemove(AuthUtil.authUid)
                             )
                             .addOnSuccessListener {
+
                             }.addOnFailureListener {
+
                             }
                     }.addOnFailureListener {
+
                     }
             }
         }
     }
+
+
 }
+

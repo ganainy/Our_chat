@@ -85,5 +85,12 @@
             android:backgroundTintMode="@color/white"
             android:src="@drawable/ic_chat_purple_24dp" />
 
+        <ImageView
+            android:id="@+id/loadingChatImageView"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:src="@drawable/loading_animation" />
+
     </FrameLayout>
 </layout>
