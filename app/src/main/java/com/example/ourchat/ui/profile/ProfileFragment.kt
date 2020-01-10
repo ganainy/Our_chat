@@ -20,6 +20,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.example.ourchat.R
 import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.Utils.LoadState
+import com.example.ourchat.Utils.eventbus_events.KeyboardEvent
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ProfileFragmentBinding
 import com.example.ourchat.ui.main.MainActivity
@@ -27,6 +28,7 @@ import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.bottom_sheet_profile_picture.view.*
+import org.greenrobot.eventbus.EventBus
 import java.io.ByteArrayOutputStream
 
 
@@ -174,10 +176,11 @@ class ProfileFragment : Fragment() {
             } else if (binding.editTextview.text.equals(getString(R.string.submit))) {
                 //hide edit text and upload changes to user document
                 binding.editTextview.text = getString(R.string.edit)
-                binding.editTextview.setTextColor(Color.CYAN)
+                binding.editTextview.setTextColor(Color.parseColor("#b39ddb"))
                 binding.bioTextView.visibility = View.VISIBLE
+                binding.bioTextView.text = binding.newBioEditText.text
                 binding.newBioEditText.visibility = View.GONE
-
+                EventBus.getDefault().post(KeyboardEvent())
                 //upload bio to user document
                 viewModel.updateBio(binding.newBioEditText.text.toString())
 

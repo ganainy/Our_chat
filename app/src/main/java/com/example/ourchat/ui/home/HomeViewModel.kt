@@ -14,7 +14,7 @@ class HomeViewModel : ViewModel() {
 
 
     private val chatParticipantList: MutableList<ChatParticipant> by lazy { mutableListOf<ChatParticipant>() }
-    private val lastMessageOwnerListMutableLiveData =
+    private val chatParticipantsListMutableLiveData =
         MutableLiveData<MutableList<ChatParticipant>>()
     private val loggedUserMutableLiveData = MutableLiveData<User>()
 
@@ -75,7 +75,7 @@ class HomeViewModel : ViewModel() {
 
     fun getChats(loggedUser: User): LiveData<MutableList<ChatParticipant>>? {
 
-        if (lastMessageOwnerListMutableLiveData.value != null) return lastMessageOwnerListMutableLiveData
+        if (chatParticipantsListMutableLiveData.value != null) return chatParticipantsListMutableLiveData
 
         val loggedUserId = loggedUser.uid.toString()
 
@@ -118,7 +118,7 @@ class HomeViewModel : ViewModel() {
                                                     val particpant = it.toObject(User::class.java)
                                                     chatParticipant.particpant = particpant
                                                     chatParticipantList.add(chatParticipant)
-                                                    lastMessageOwnerListMutableLiveData.value =
+                                                    chatParticipantsListMutableLiveData.value =
                                                         chatParticipantList
 
                                                 }.addOnFailureListener {
@@ -129,10 +129,13 @@ class HomeViewModel : ViewModel() {
                             }
 
                         }
+                    } else {
+                        //user has no chats
+                        chatParticipantsListMutableLiveData.value = null
                     }
                 }
             }
-        return lastMessageOwnerListMutableLiveData
+        return chatParticipantsListMutableLiveData
     }
 
     fun getUserData(): LiveData<User> {

@@ -41,4 +41,8 @@ class LoginViewModel : ViewModel() {
         return loadingState
     }
 
+    fun doneNavigating() {
+        loadingState.value = null
+    }
+
 }

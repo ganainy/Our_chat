@@ -27,7 +27,7 @@
                 android:elevation="4dp"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
                 app:subtitleTextColor="@color/white"
-                app:theme="@style/ThemeOverlay.AppCompat.Light" />
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
             <fragment
                 android:layout_marginTop="?attr/actionBarSize"

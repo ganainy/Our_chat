@@ -17,9 +17,11 @@ import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
+import com.example.ourchat.Utils.eventbus_events.KeyboardEvent
 import com.example.ourchat.databinding.LoginFragmentBinding
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.android.synthetic.main.issue_layout.view.*
+import org.greenrobot.eventbus.EventBus
 
 
 class LoginFragment : Fragment() {
@@ -84,6 +86,7 @@ class LoginFragment : Fragment() {
 
         //handle login click
         binding.loginButton.setOnClickListener {
+            EventBus.getDefault().post(KeyboardEvent())
             if (binding.email.error != null || binding.password.error != null || binding.email.editText!!.text.isEmpty() || binding.password.editText!!.text.isEmpty()) {
                 //name or password doesn't match format
                 Toast.makeText(context, "Check email and password then retry.", Toast.LENGTH_LONG)
@@ -102,6 +105,7 @@ class LoginFragment : Fragment() {
                             this@LoginFragment.findNavController()
                                 .navigate(R.id.action_loginFragment_to_homeFragment)
                             Toast.makeText(context, "Login successful", Toast.LENGTH_LONG).show()
+                            viewModel.doneNavigating()
                         }
                         LoadState.LOADING -> {
                             binding.loadingLayout.visibility = View.VISIBLE

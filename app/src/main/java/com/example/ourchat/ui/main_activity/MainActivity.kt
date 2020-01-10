@@ -1,12 +1,13 @@
 package com.example.ourchat.ui.main
 
 
+import android.content.Context
 import android.content.Intent
-import android.graphics.*
-import android.os.Build
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
@@ -21,6 +22,7 @@ import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.Utils.eventbus_events.CallbackManagerEvent
 import com.example.ourchat.Utils.eventbus_events.ConnectionChangeEvent
+import com.example.ourchat.Utils.eventbus_events.KeyboardEvent
 import com.example.ourchat.databinding.ActivityMainBinding
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.facebook.CallbackManager
@@ -71,16 +73,6 @@ class MainActivity : AppCompatActivity() {
         val appBarConfiguration = AppBarConfiguration(setOf(R.id.homeFragment, R.id.loginFragment))
         findViewById<Toolbar>(R.id.toolbar)
             .setupWithNavController(navController, appBarConfiguration)
-
-
-        //change overflow icon to white
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            binding.toolbar.overflowIcon?.colorFilter =
-                BlendModeColorFilter(Color.WHITE, BlendMode.SRC_ATOP)
-        } else {
-            @Suppress("DEPRECATION")
-            binding.toolbar.overflowIcon?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
-        }
 
 
         //handle any change in loading state in whole app
@@ -167,6 +159,22 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         EventBus.getDefault().unregister(this)
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onMessageEvent(event: KeyboardEvent) {
+        println("MainActivity.onMessageEvent:")
+        hideKeyboard()
+    }
+
+
+    fun hideKeyboard() {
+
+
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        imm?.hideSoftInputFromWindow(binding.toolbar.windowToken, 0)
+
     }
 
 }
