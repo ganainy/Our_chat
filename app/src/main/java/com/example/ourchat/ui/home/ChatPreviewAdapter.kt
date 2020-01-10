@@ -1,23 +1,32 @@
 package com.example.ourchat.ui.home
 
+import android.graphics.Color
+import android.graphics.Typeface
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Filter
+import android.widget.Filterable
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ourchat.data.model.ChatParticipant
 import com.example.ourchat.databinding.ChatOuterItemBinding
+import java.util.*
 
 var mQuery = ""
 
 
 class ChatPreviewAdapter(private val clickListener: ClickListener) :
     ListAdapter<ChatParticipant, ChatPreviewAdapter.ViewHolder>(DiffCallbackUsers())
-/*, Filterable,OnQueryTextChange*/ {
+    , Filterable, OnQueryTextChange {
 
 
-    var chatList = mutableListOf<ChatParticipant?>()
-    var filteredChatList = mutableListOf<ChatParticipant?>()
+    var chatList = mutableListOf<ChatParticipant>()
+    var filteredChatList = mutableListOf<ChatParticipant>()
 
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -39,11 +48,12 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
             binding.chatParticipant = chatParticipant
             binding.clickListener = clickListener
             //if query text isn't empty set the selected text with sky blue+bold
-            /* if (mQuery.isEmpty()) {
-                 binding.usernameTextView.text = userName
+            val username = chatParticipant.particpant?.username
+            if (mQuery.isEmpty()) {
+                binding.nameTextView.text = username
              } else {
-                 var index = userName.indexOf(mQuery, 0, true)
-                 val sb = SpannableStringBuilder(userName)
+                var index = username?.indexOf(mQuery, 0, true)!!
+                val sb = SpannableStringBuilder(username)
                  while (index >= 0) {
                      val fcs = ForegroundColorSpan(Color.rgb(135, 206, 235))
                      sb.setSpan(
@@ -58,13 +68,13 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
                          index + mQuery.length,
                          Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                      )
-                     index = userName.indexOf(mQuery, index + 1)
+                     index = username.indexOf(mQuery, index + 1)
                  }
-                 binding.usernameTextView.text = sb
+                binding.nameTextView.text = sb
              }
-             binding.clickListener = clickListener
-             binding.user = item
-             binding.executePendingBindings()*/
+
+            binding.executePendingBindings()
+
         }
 
         companion object {
@@ -78,7 +88,7 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
     }
 
 
-    /*   override fun getFilter(): Filter {
+    override fun getFilter(): Filter {
            return object : Filter() {
                override fun performFiltering(charSequence: CharSequence): FilterResults {
                    val charString = charSequence.toString()
@@ -88,12 +98,12 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
 
 
                    } else {
-                       for (user in chatList) {
-                           if (user?.username?.toLowerCase(Locale.ENGLISH)?.contains(
+                       for (chatParticipant in chatList) {
+                           if (chatParticipant.particpant?.username?.toLowerCase(Locale.ENGLISH)?.contains(
                                    charString.toLowerCase(Locale.ENGLISH)
                                )!!
                            ) {
-                               filteredChatList.add(user)
+                               filteredChatList.add(chatParticipant)
                            }
                        }
                    }
@@ -104,7 +114,7 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
 
                override fun publishResults(charSequence: CharSequence, filterResults: FilterResults) {
 
-                   submitList(filterResults.values as MutableList<LastMessageOwner?>)
+                   submitList(filterResults.values as MutableList<ChatParticipant?>)
                    notifyDataSetChanged()//todo find other way to force call on bind after filtering
 
                }
@@ -114,7 +124,6 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
        override fun onChange(query: String) {
            mQuery = query
        }
-   */
 
 
 }

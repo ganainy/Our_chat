@@ -75,6 +75,8 @@ class HomeViewModel : ViewModel() {
 
     fun getChats(loggedUser: User): LiveData<MutableList<ChatParticipant>>? {
 
+        if (lastMessageOwnerListMutableLiveData.value != null) return lastMessageOwnerListMutableLiveData
+
         val loggedUserId = loggedUser.uid.toString()
 
         FirestoreUtil.firestoreInstance.collection("messages").whereArrayContains(

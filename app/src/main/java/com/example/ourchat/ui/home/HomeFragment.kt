@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.*
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -13,6 +14,9 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
 import com.example.ourchat.databinding.HomeFragmentBinding
+import com.example.ourchat.ui.contacts.PROFILE_PICTURE
+import com.example.ourchat.ui.contacts.UID
+import com.example.ourchat.ui.contacts.USERNAME
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.facebook.login.LoginManager
 import com.google.firebase.auth.FirebaseAuth
@@ -27,9 +31,15 @@ class HomeFragment : Fragment() {
     lateinit var binding: HomeFragmentBinding
     private lateinit var countBadgeTextView: TextView
     private val adapter: ChatPreviewAdapter by lazy {
-        ChatPreviewAdapter(ClickListener {
-            println("HomeFragment.:${it.particpant?.uid}")
-            println("HomeFragment.:${it.particpant?.username}")
+        ChatPreviewAdapter(ClickListener { chatParticipant ->
+            //navigate to chat with selected user on chat outer item click
+            findNavController().navigate(
+                R.id.action_homeFragment_to_chatFragment, bundleOf(
+                    USERNAME to chatParticipant.particpant!!.username,
+                    PROFILE_PICTURE to chatParticipant.particpant!!.profile_picture_url,
+                    UID to chatParticipant.particpant!!.uid
+                )
+            )
         })
     }
 
@@ -47,6 +57,7 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         activity?.title = "Home"
+
         setHasOptionsMenu(true)
         binding = DataBindingUtil.inflate(inflater, R.layout.home_fragment, container, false)
         return binding.root
@@ -73,16 +84,17 @@ class HomeFragment : Fragment() {
 
 
             //get user chat history
-            viewModel.getChats(loggedUser!!)?.observe(this, Observer { lastMessageOwnerList ->
+            viewModel.getChats(loggedUser!!)?.observe(this, Observer { chatParticipantsList ->
                 //Hide loading image
                 binding.loadingChatImageView.visibility = View.GONE
-                if (lastMessageOwnerList.isNullOrEmpty()) {
+                if (chatParticipantsList.isNullOrEmpty()) {
                     //show no chat layout
                     binding.noChatLayout.visibility = View.VISIBLE
                 } else {
                     binding.noChatLayout.visibility = View.GONE
                     binding.recycler.adapter = adapter
-                    adapter.submitList(lastMessageOwnerList)
+                    adapter.submitList(chatParticipantsList)
+                    adapter.chatList = chatParticipantsList
                 }
 
             })
@@ -124,7 +136,7 @@ class HomeFragment : Fragment() {
         val searchView = searchItem?.actionView as SearchView
         //todo search messages
 
-        /*    searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(queryString: kotlin.String?): Boolean {
                     adapter.filter.filter(queryString)
                     return false
@@ -138,7 +150,7 @@ class HomeFragment : Fragment() {
 
                     return false
                 }
-            })*/
+        })
 
     }
 
@@ -188,11 +200,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-
-    override fun onDestroy() {
-        super.onDestroy()
-        println("HomeFragment.onDestroy:")
-    }
 
 }
 
