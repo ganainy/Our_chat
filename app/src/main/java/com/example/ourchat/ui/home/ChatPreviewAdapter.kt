@@ -5,19 +5,19 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.ourchat.data.model.LastMessageOwner
+import com.example.ourchat.data.model.ChatParticipant
 import com.example.ourchat.databinding.ChatOuterItemBinding
 
 var mQuery = ""
 
 
 class ChatPreviewAdapter(private val clickListener: ClickListener) :
-    ListAdapter<LastMessageOwner, ChatPreviewAdapter.ViewHolder>(DiffCallbackUsers())
+    ListAdapter<ChatParticipant, ChatPreviewAdapter.ViewHolder>(DiffCallbackUsers())
 /*, Filterable,OnQueryTextChange*/ {
 
 
-    var chatList = mutableListOf<LastMessageOwner?>()
-    var filteredChatList = mutableListOf<LastMessageOwner?>()
+    var chatList = mutableListOf<ChatParticipant?>()
+    var filteredChatList = mutableListOf<ChatParticipant?>()
 
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -33,10 +33,10 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
     class ViewHolder private constructor(val binding: ChatOuterItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(clickListener: ClickListener, lastMessageOwner: LastMessageOwner) {
+        fun bind(clickListener: ClickListener, chatParticipant: ChatParticipant) {
             println("ViewHolder.bind:")
 
-            binding.lastMessageOwner = lastMessageOwner
+            binding.chatParticipant = chatParticipant
             binding.clickListener = clickListener
             //if query text isn't empty set the selected text with sky blue+bold
             /* if (mQuery.isEmpty()) {
@@ -125,19 +125,19 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
  * Used by ListAdapter to calculate the minumum number of changes between and old list and a new
  * list that's been passed to `submitList`.
  */
-class DiffCallbackUsers : DiffUtil.ItemCallback<LastMessageOwner>() {
-    override fun areItemsTheSame(oldItem: LastMessageOwner, newItem: LastMessageOwner): Boolean {
-        return oldItem.date == newItem.date
+class DiffCallbackUsers : DiffUtil.ItemCallback<ChatParticipant>() {
+    override fun areItemsTheSame(oldItem: ChatParticipant, newItem: ChatParticipant): Boolean {
+        return oldItem.lastMessageDate == newItem.lastMessageDate
     }
 
-    override fun areContentsTheSame(oldItem: LastMessageOwner, newItem: LastMessageOwner): Boolean {
+    override fun areContentsTheSame(oldItem: ChatParticipant, newItem: ChatParticipant): Boolean {
         return oldItem == newItem
     }
 }
 
-class ClickListener(val clickListener: (lastMessageOwner: LastMessageOwner) -> Unit) {
-    fun onClick(lastMessageOwner: LastMessageOwner) {
-        return clickListener(lastMessageOwner)
+class ClickListener(val clickListener: (chatParticipant: ChatParticipant) -> Unit) {
+    fun onClick(chatParticipant: ChatParticipant) {
+        return clickListener(chatParticipant)
     }
 }
 

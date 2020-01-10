@@ -1,5 +1,6 @@
 package com.example.ourchat.ui.chat
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.ourchat.Utils.FirestoreUtil
@@ -15,13 +16,10 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
     private val messageCollectionReference = FirestoreUtil.firestoreInstance.collection("messages")
     private val messagesList: MutableList<Message> by lazy { mutableListOf<Message>() }
 
-    init {
-        loadMessages()
-    }
 
-    val messagesMutableLiveData = MutableLiveData<List<Message>>()
+    private val messagesMutableLiveData = MutableLiveData<List<Message>>()
 
-    private fun loadMessages() {
+    fun loadMessages(): LiveData<List<Message>> {
 
         messageCollectionReference.addSnapshotListener(EventListener { querySnapShot, firebaseFirestoreException ->
             if (firebaseFirestoreException == null) {
@@ -47,7 +45,7 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
             }
         })
 
-
+        return messagesMutableLiveData
     }
 
 

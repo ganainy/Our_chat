@@ -8,10 +8,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.ourchat.R
 import com.example.ourchat.Utils.LoadState
-import com.example.ourchat.data.model.LastMessageOwner
+import com.example.ourchat.data.model.ChatParticipant
 import com.example.ourchat.data.model.User
-import com.example.ourchat.ui.home.MY_PREFS
-import com.example.ourchat.ui.home.PROFILE_PIC_URL
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.firestore.DocumentSnapshot
 import java.util.*
@@ -85,43 +83,34 @@ fun MaterialButton.setTheLoadingState(state: LoadState) {
 }
 
 
-@BindingAdapter("setNameOfLastMessageOwner")
-fun setNameOfLastMessageOwner(textView: TextView, lastMessageOwner: LastMessageOwner) {
-    if (lastMessageOwner.ownerUser == null) {
-        textView.text = textView.context.getString(R.string.you)
+@BindingAdapter("setLastMessageText")
+fun setLastMessageText(textView: TextView, chatParticipant: ChatParticipant) {
+    //format last message to show like you:hello OR amr:Hi depending on sender
+    if (chatParticipant.isLoggedUser!!) {
+        textView.text = textView.context.getString(R.string.you, chatParticipant.lastMessage)
     } else {
-        textView.text = lastMessageOwner.ownerUser!!.username
+        textView.text = textView.context.getString(
+            R.string.other,
+            chatParticipant.particpant!!.username!!.split("\\s".toRegex())[0],
+            chatParticipant.lastMessage
+        )
     }
 
 }
 
 
-@BindingAdapter("setRoundImageFromLastMessageOwner")
-fun setRoundImageFromLastMessageOwner(imageView: ImageView, lastMessageOwner: LastMessageOwner) {
-    if (lastMessageOwner.ownerUser == null) {
-        //this means last message is from logged in user
-        val sp = imageView.context.getSharedPreferences(MY_PREFS, Context.MODE_PRIVATE)
-        val profile_pic_url = sp.getString(PROFILE_PIC_URL, null)
-        Glide.with(imageView.context)
-            .load(profile_pic_url)
-            .apply(
-                RequestOptions()
-                    .placeholder(R.drawable.loading_animation)
-                    .error(R.drawable.anonymous_profile)
-                    .circleCrop()
-            )
-            .into(imageView)
-    } else {
-        Glide.with(imageView.context)
-            .load(lastMessageOwner.ownerUser!!.profile_picture_url)
-            .apply(
-                RequestOptions()
-                    .placeholder(R.drawable.loading_animation)
-                    .error(R.drawable.anonymous_profile)
-                    .circleCrop()
-            )
-            .into(imageView)
-    }
+@BindingAdapter("setRoundImageFromChatParticipant")
+fun setRoundImageFromChatParticipant(imageView: ImageView, chatParticipant: ChatParticipant) {
+
+    Glide.with(imageView.context)
+        .load(chatParticipant.particpant!!.profile_picture_url)
+        .apply(
+            RequestOptions()
+                .placeholder(R.drawable.loading_animation)
+                .error(R.drawable.anonymous_profile)
+                .circleCrop()
+        )
+        .into(imageView)
 
 }
 

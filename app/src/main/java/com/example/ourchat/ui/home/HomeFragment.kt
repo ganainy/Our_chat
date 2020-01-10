@@ -20,8 +20,6 @@ import com.google.gson.Gson
 import java.lang.String
 
 
-const val MY_PREFS = "my_prefs"
-const val PROFILE_PIC_URL = "profile_pic_url"
 
 class HomeFragment : Fragment() {
 
@@ -30,8 +28,8 @@ class HomeFragment : Fragment() {
     private lateinit var countBadgeTextView: TextView
     private val adapter: ChatPreviewAdapter by lazy {
         ChatPreviewAdapter(ClickListener {
-            println("HomeFragment.:${it.ownerUser?.uid}")
-            println("HomeFragment.:${it.ownerUser?.username}")
+            println("HomeFragment.:${it.particpant?.uid}")
+            println("HomeFragment.:${it.particpant?.username}")
         })
     }
 
@@ -72,24 +70,26 @@ class HomeFragment : Fragment() {
 
             //show notification badge if there is incoming requests
             setupBadge(loggedUser.receivedRequests?.size)
-            println("HomeFragment.onActivityCreated:${loggedUser.receivedRequests?.size}")
+
+
+            //get user chat history
+            viewModel.getChats(loggedUser!!)?.observe(this, Observer { lastMessageOwnerList ->
+                //Hide loading image
+                binding.loadingChatImageView.visibility = View.GONE
+                if (lastMessageOwnerList.isNullOrEmpty()) {
+                    //show no chat layout
+                    binding.noChatLayout.visibility = View.VISIBLE
+                } else {
+                    binding.noChatLayout.visibility = View.GONE
+                    binding.recycler.adapter = adapter
+                    adapter.submitList(lastMessageOwnerList)
+                }
+
+            })
+
         })
 
 
-        //get user chat history
-        viewModel.getChats()?.observe(this, Observer { lastMessageOwnerList ->
-            //Hide loading image
-            binding.loadingChatImageView.visibility = View.GONE
-            if (lastMessageOwnerList.isNullOrEmpty()) {
-                //show no chat layout
-                binding.noChatLayout.visibility = View.VISIBLE
-            } else {
-                binding.noChatLayout.visibility = View.GONE
-                binding.recycler.adapter = adapter
-                adapter.submitList(lastMessageOwnerList)
-            }
-
-        })
 
 
         //handle startChatFab click

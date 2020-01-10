@@ -1,5 +1,7 @@
 package com.example.ourchat.ui.chat
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,13 +13,13 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.example.ourchat.R
-import com.example.ourchat.Utils.AuthUtil
-
+import com.example.ourchat.Utils.LOGGED_USER
+import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ChatFragmentBinding
 import com.example.ourchat.ui.contacts.PROFILE_PICTURE
 import com.example.ourchat.ui.contacts.UID
 import com.example.ourchat.ui.contacts.USERNAME
-
+import com.google.gson.Gson
 
 
 class ChatFragment : Fragment() {
@@ -52,15 +54,23 @@ class ChatFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+
+        //get logged user from shared preferences
+        val mPrefs: SharedPreferences = activity!!.getPreferences(Context.MODE_PRIVATE)
+        val gson = Gson()
+        val json: String? = mPrefs.getString(LOGGED_USER, null)
+        val loggedUser: User = gson.fromJson(json, User::class.java)
+
         //get receiver data from contacts fragment
-        val uid = arguments?.getString(UID)
-        val profile_picture_url = arguments?.getString(PROFILE_PICTURE)
-        val username = arguments?.getString(USERNAME) ?: "user"
-        activity?.title = "Chatting with $username"
+        val receiverId = arguments?.getString(UID)
+        val receiverProfilePictureUrl = arguments?.getString(PROFILE_PICTURE)
+        val receiverUsername = arguments?.getString(USERNAME) ?: "user"
+
+        activity?.title = "Chatting with $receiverUsername"
 
         //user viewmodel factory to pass ids on creation of view model
-        if (uid != null) {
-            viewModeldFactory = ChatViewModelFactory(AuthUtil.authUid, uid)
+        if (receiverId != null) {
+            viewModeldFactory = ChatViewModelFactory(loggedUser.uid, receiverId)
             viewModel =
                 ViewModelProviders.of(this, viewModeldFactory).get(ChatViewModel::class.java)
         }
@@ -69,6 +79,7 @@ class ChatFragment : Fragment() {
         activity!!.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
 
 
+        //handle send button
         binding.sendFab.setOnClickListener {
             if (binding.messageEditText.text.isEmpty()) {
                 Toast.makeText(context, getString(R.string.empty_message), Toast.LENGTH_LONG).show()
@@ -80,12 +91,12 @@ class ChatFragment : Fragment() {
 
 
         //pass messages list for recycler to show
-        viewModel.messagesMutableLiveData.observe(this, Observer {
+        viewModel.loadMessages().observe(this, Observer { messagesList ->
 
-            adapter.setDataSource(it)
+            adapter.setDataSource(messagesList)
             binding.recycler.adapter = adapter
             //scroll to last items in recycler (recent messages)
-            binding.recycler.scrollToPosition(it.size - 1)
+            binding.recycler.scrollToPosition(messagesList.size - 1)
 
         })
 

@@ -60,6 +60,8 @@
     <string name="date_util_prefix_almost">almost</string>
 
     <string name="date_util_suffix">ago</string>
-    <string name="you">You</string>
+
+    <string name="you">You: %1$s</string>
+    <string name="other">%1$s: %2$s</string>
 
 </resources>

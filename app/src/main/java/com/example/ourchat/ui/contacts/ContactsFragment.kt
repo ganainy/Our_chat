@@ -55,9 +55,10 @@ class ContactsFragment : Fragment() {
         val json: String? = mPrefs.getString(LOGGED_USER, null)
         val loggedUser: User = gson.fromJson(json, User::class.java)
 
+        //on contact click move to chat fragment
         adapter = ContactsAdapter(object : ContactsAdapter.ItemClickCallback {
             override fun onItemClicked(user: User) {
-                println("ContactsFragment.onItemClicked:${user.username}")
+
                 findNavController().navigate(
                     R.id.action_contactsFragment_to_chatFragment, bundleOf(
                         USERNAME to user.username,
