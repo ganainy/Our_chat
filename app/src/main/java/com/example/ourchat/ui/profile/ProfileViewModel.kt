@@ -3,7 +3,8 @@ package com.example.ourchat.ui.profile
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import com.example.ourchat.Utils.ConstantsUtil
+import com.example.ourchat.Utils.AuthUtil
+
 import com.example.ourchat.Utils.LoadState
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
@@ -15,10 +16,8 @@ class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
 
     private var usersCollectionRef: CollectionReference =
         FirebaseFirestore.getInstance().collection("users")
-    private var userDocRef: DocumentReference? = ConstantsUtil.AUTH_UID?.let {
-        usersCollectionRef.document(
-            it
-        )
+    private var userDocRef: DocumentReference? = AuthUtil.authUid.let {
+        usersCollectionRef.document(it)
     }
 
     var bioLoadState = MutableLiveData<LoadState>()

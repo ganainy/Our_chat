@@ -1,7 +1,5 @@
 package com.example.ourchat.ui.signup
 
-import android.app.Activity
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,11 +11,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.databinding.SignupFragmentBinding
-import com.facebook.CallbackManager
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.issue_layout.view.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -34,27 +31,16 @@ class SignupFragment : Fragment() {
     private lateinit var viewModel: SignupViewModel
 
 
-    private lateinit var auth: FirebaseAuth
-
-    private lateinit var mCallback: ReturnCallBackManager
-    private lateinit var mActivity: Activity
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        activity?.title = "Sign up"
         binding = DataBindingUtil.inflate(inflater, R.layout.signup_fragment, container, false)
-
-
         return binding.root
     }
 
 
-    interface ReturnCallBackManager {
-        fun bringBackCallbackManager(callbackManager: CallbackManager)
-    }
 
 
 
@@ -64,18 +50,7 @@ class SignupFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(SignupViewModel::class.java)
 
 
-        // Initialize Firebase Auth
-        auth = FirebaseAuth.getInstance()
-
-        //cancel error layout on image click
-        binding.issueLayout.cancelImage.setOnClickListener {
-            binding.issueLayout.visibility = View.GONE
-        }
-
-
-
-
-
+        //regex pattern to check email format
         val emailRegex = "^[A-Za-z0-9+_.-]+@(.+)\$"
         val pattern: Pattern = Pattern.compile(emailRegex)
 
@@ -112,38 +87,32 @@ class SignupFragment : Fragment() {
                 return@setOnClickListener
             }
 
-
+            //email and pass are matching requirements now we can register to firebase auth
 
             viewModel.registerEmail(
-                auth,
+                AuthUtil.firebaseAuthInstance,
                 binding.email.editText!!.text.toString(),
                 binding.password.editText!!.text.toString(),
                 binding.userName.editText!!.text.toString()
-            )
-
+            ).observe(this, Observer { authUser ->
+                //authentication success and we should save user in firestore
+                viewModel.storeUserInFirestore(authUser)
+                    .observe(this, Observer {
+                        // user is stored in firebase
+                        this@SignupFragment.findNavController()
+                            .navigate(R.id.action_signupFragment_to_homeFragment)
+                        Toast.makeText(context, "Sign up successful", Toast.LENGTH_LONG).show()
+                    })
+            })
 
         }
 
-        //if returned user isn't null it means authentication success and we should save user in firebase
-        viewModel.user.observe(this, Observer {
-            if (it != null) {
-                viewModel.storeUserInFirebase(it)
-            }
-        })
 
-        //if true user is stored in firebase
-        viewModel.userStored.observe(this, Observer {
-            if (it) {
-                findNavController().navigate(R.id.action_signupFragment_to_homeFragment)
-                Toast.makeText(context, "Sign up successful", Toast.LENGTH_LONG).show()
-            }
-        })
-
-
-
+        //hide issue layout on x icon click
         binding.issueLayout.cancelImage.setOnClickListener {
             binding.issueLayout.visibility = View.GONE
         }
+
         //show proper loading/error ui
         viewModel.loadingState.observe(this, Observer {
             when (it) {
@@ -166,12 +135,6 @@ class SignupFragment : Fragment() {
     }
 
 
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        mActivity = context as Activity
-        mCallback = mActivity as ReturnCallBackManager
-    }
 
 
 

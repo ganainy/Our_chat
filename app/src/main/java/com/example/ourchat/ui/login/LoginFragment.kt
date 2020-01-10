@@ -14,11 +14,11 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.databinding.LoginFragmentBinding
 import com.google.android.material.textfield.TextInputEditText
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.issue_layout.view.*
 
 
@@ -26,7 +26,6 @@ class LoginFragment : Fragment() {
 
     private lateinit var binding: LoginFragmentBinding
 
-    private lateinit var auth: FirebaseAuth
 
 
     companion object {
@@ -39,11 +38,10 @@ class LoginFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        activity?.title = "Login"
         binding = DataBindingUtil.inflate(inflater, R.layout.login_fragment, container, false)
 
         //check if user has previously logged in
-        if (FirebaseAuth.getInstance().currentUser != null) {
+        if (AuthUtil.firebaseAuthInstance.currentUser != null) {
             findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
         }
 
@@ -52,9 +50,8 @@ class LoginFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
         viewModel = ViewModelProviders.of(this).get(LoginViewModel::class.java)
-        // Initialize Firebase Auth
-        auth = FirebaseAuth.getInstance()
 
 
         // Navigate to signup fragment
@@ -62,20 +59,18 @@ class LoginFragment : Fragment() {
             it.findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
         }
 
-        //Report text change to viewmodel
-        binding.emailEditText.afterTextChanged {
-            viewModel.emailChanged(it)
+        //Report text change to viewmodel and Observe if email format is correct
+        binding.emailEditText.afterTextChanged { email ->
+            viewModel.isEmailFormatCorrect(email).observe(this, Observer { isEmailFormatCorrect ->
+                if (!isEmailFormatCorrect) {//email format is not correct
+                    binding.email.error = getString(R.string.wrong_email_format)
+                } else {
+                    binding.email.isErrorEnabled = false
+                }
+
+            })
         }
 
-        //Observe if email format is correct
-        viewModel.emailMatch.observe(this, Observer {
-            if (!it) {//email format is not correct
-                binding.email.error = getString(R.string.wrong_email_format)
-            } else {
-                binding.email.isErrorEnabled = false
-            }
-
-        })
 
         //password length must be at least 6 characters
         binding.passwordEditText.afterTextChanged {
@@ -95,50 +90,39 @@ class LoginFragment : Fragment() {
                     .show()
             } else {
 
-                //All fields are correct we can register
+                //All fields are correct we can login
                 viewModel.login(
-                    auth,
+                    AuthUtil.firebaseAuthInstance,
                     binding.email.editText!!.text.toString(),
                     binding.password.editText!!.text.toString()
-                )
+                ).observe(this, Observer { loadState ->
+
+                    when (loadState) {
+                        LoadState.SUCCESS -> {   //triggered when login with email and password is successful
+                            this@LoginFragment.findNavController()
+                                .navigate(R.id.action_loginFragment_to_homeFragment)
+                            Toast.makeText(context, "Login successful", Toast.LENGTH_LONG).show()
+                        }
+                        LoadState.LOADING -> {
+                            binding.loadingLayout.visibility = View.VISIBLE
+                            binding.issueLayout.visibility = View.GONE
+                        }
+                        LoadState.FAILURE -> {
+                            binding.loadingLayout.visibility = View.GONE
+                            binding.issueLayout.visibility = View.VISIBLE
+                            binding.issueLayout.textViewIssue.text = ErrorMessage.errorMessage
+                        }
+                    }
+                })
 
             }
         }
 
-        //triggered when login with email and password is successful
-        viewModel.loginSuccess.observe(this, Observer {
-            if (it) {
-                findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
-                Toast.makeText(context, "Login successful", Toast.LENGTH_LONG).show()
-            }
-        })
 
-
-
+        //hide issue layout on x icon click
         binding.issueLayout.cancelImage.setOnClickListener {
             binding.issueLayout.visibility = View.GONE
         }
-        //show loading ui
-        viewModel.loadingState.observe(this, Observer {
-            when (it) {
-                LoadState.LOADING -> {
-                    binding.loadingLayout.visibility = View.VISIBLE
-                    binding.issueLayout.visibility = View.GONE
-                }
-                LoadState.SUCCESS -> {
-                    binding.loadingLayout.visibility = View.GONE
-                    binding.issueLayout.visibility = View.GONE
-                }
-                LoadState.FAILURE -> {
-                    binding.loadingLayout.visibility = View.GONE
-                    binding.issueLayout.visibility = View.VISIBLE
-                    binding.issueLayout.textViewIssue.text = ErrorMessage.errorMessage
-                }
-
-            }
-        })
-
-
 
 
     }

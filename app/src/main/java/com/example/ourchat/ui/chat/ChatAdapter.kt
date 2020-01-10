@@ -20,7 +20,8 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.ourchat.Utils.ConstantsUtil
+import com.example.ourchat.Utils.AuthUtil
+
 
 import com.example.ourchat.data.model.Message
 import com.example.ourchat.databinding.IncomingMessageItemBinding
@@ -68,7 +69,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
 
     override fun getItemViewType(position: Int): Int {
         return when (messageList[position].from) {
-            ConstantsUtil.AUTH_UID -> {
+            AuthUtil.authUid -> {
                 TYPE_SENT_MESSAGE
             }
             else -> {

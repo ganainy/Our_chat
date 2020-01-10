@@ -20,40 +20,35 @@ import androidx.navigation.Navigation
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.ourchat.R
-import com.example.ourchat.Utils.ConnectionChangeEvent
-import com.example.ourchat.Utils.ConstantsUtil
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
+import com.example.ourchat.Utils.eventbus_events.CallbackManagerEvent
+import com.example.ourchat.Utils.eventbus_events.ConnectionChangeEvent
 import com.example.ourchat.databinding.ActivityMainBinding
 import com.example.ourchat.ui.main_activity.SharedViewModel
-import com.example.ourchat.ui.signup.SignupFragment
 import com.facebook.CallbackManager
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.issue_layout.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
 
-class MainActivity : AppCompatActivity(), SignupFragment.ReturnCallBackManager {
+class MainActivity : AppCompatActivity() {
 
 
     val REQUEST_IMAGE_CAPTURE = 1
     var isActivityRecreated = false
     private val PICK_IMAGE_REQUEST = 2
-lateinit var mCallbackManager:CallbackManager
+    lateinit var callbackManager: CallbackManager
     private lateinit var sharedViewModel: SharedViewModel
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //on process death ConstantsUtil.AUTH_UID will become null so we have to restore its value
-        if (savedInstanceState != null) {
-            ConstantsUtil.AUTH_UID = savedInstanceState.getString("auth_id", null)
-            isActivityRecreated = true
-        }
+
+        EventBus.getDefault().register(this)
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
@@ -96,7 +91,7 @@ lateinit var mCallbackManager:CallbackManager
             binding.issueLayout.visibility = View.GONE
         }
 
-        sharedViewModel.loadState.observe(this, Observer {
+        sharedViewModel.loadStateMutableLiveData.observe(this, Observer {
 
             when (it) {
                 LoadState.LOADING -> {
@@ -120,23 +115,19 @@ lateinit var mCallbackManager:CallbackManager
     }
 
 
-    // Show snackbar when ever the connection state changes
+    // Show snackbar whenever the connection state changes
     @Subscribe(threadMode = ThreadMode.MAIN)
-    open fun onMessageEvent(event: ConnectionChangeEvent): Unit {
+    open fun onConnectionChangeEvent(event: ConnectionChangeEvent): Unit {
         if (!isActivityRecreated) {//to not show toast on configuration changes
-            println("MainActivity.onMessageEvent:${event.message}")
             Snackbar.make(binding.coordinator, event.message, Snackbar.LENGTH_LONG).show()
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        EventBus.getDefault().register(this)
-    }
 
-    override fun onStop() {
-        EventBus.getDefault().unregister(this)
-        super.onStop()
+    //facebook fragment will pass callbackManager to activity to continue FB login
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onMessageEvent(event: CallbackManagerEvent) {
+        callbackManager = event.callbackManager
     }
 
 
@@ -172,21 +163,16 @@ lateinit var mCallbackManager:CallbackManager
         }
 
         // Pass the activity result back to the Facebook SDK
-        mCallbackManager.onActivityResult(requestCode, resultCode, data)
+        callbackManager.onActivityResult(requestCode, resultCode, data)
     }
 
-    override fun bringBackCallbackManager(callbackManager: CallbackManager) {
-        mCallbackManager=callbackManager
+
+    override fun onDestroy() {
+        super.onDestroy()
+        EventBus.getDefault().unregister(this)
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString("auth_id", FirebaseAuth.getInstance().uid.toString())
-        super.onSaveInstanceState(outState)
-
-    }
 }
-
-
 
 
 //todo fix this method
@@ -209,3 +195,4 @@ fun hideKeyboard(activity: Activity) {
         InputMethodManager.HIDE_IMPLICIT_ONLY
     )
 }
+

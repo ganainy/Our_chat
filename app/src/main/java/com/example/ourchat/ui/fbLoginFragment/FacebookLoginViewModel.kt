@@ -1,5 +1,6 @@
 package com.example.ourchat.ui.fbLoginFragment
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.ourchat.Utils.ErrorMessage
@@ -13,14 +14,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class FacebookLoginViewModel : ViewModel() {
 
-
-    val userStored = MutableLiveData<Boolean>()
-    val userExists = MutableLiveData<Boolean>()
     val loadState = MutableLiveData<LoadState>()
-    val firebaseUser = MutableLiveData<FirebaseUser>()
+    private val isStoredSuccessfully = MutableLiveData<Boolean>()
+    private val userExists = MutableLiveData<Boolean>()
+    private val firebaseUser = MutableLiveData<FirebaseUser>()
 
 
-    fun handleFacebookAccessToken(auth: FirebaseAuth, token: AccessToken) {
+    fun handleFacebookAccessToken(auth: FirebaseAuth, token: AccessToken): LiveData<FirebaseUser> {
 
 
         loadState.value = LoadState.LOADING
@@ -37,17 +37,26 @@ class FacebookLoginViewModel : ViewModel() {
             }
             .addOnFailureListener {
                 // If sign in fails, display a message to the user.
-                println("signInWithCredential:failure$ task.exception")
-                firebaseUser.value = null
                 ErrorMessage.errorMessage = it.message
                 loadState.value = LoadState.FAILURE
             }
 
-
+        return firebaseUser
     }
 
 
-    fun storeFacebookUserInFirebase() {
+    fun isUserAlreadyStoredInFirestore(uid: String): LiveData<Boolean> {
+        val usersRef = FirebaseFirestore.getInstance().collection("users")
+        usersRef.document(uid).get().addOnSuccessListener {
+            userExists.value = it.exists()
+        }.addOnFailureListener {
+            ErrorMessage.errorMessage = it.message
+            loadState.value = LoadState.FAILURE
+        }
+        return userExists
+    }
+
+    fun storeFacebookUserInFirebase(): LiveData<Boolean> {
         val usersRef = FirebaseFirestore.getInstance().collection("users")
 
 
@@ -60,28 +69,18 @@ class FacebookLoginViewModel : ViewModel() {
 
         firebaseUser.value?.uid?.let {
             usersRef.document(it).set(user).addOnSuccessListener {
-                userStored.value = true
+                isStoredSuccessfully.value = true
                 loadState.value = LoadState.SUCCESS
             }.addOnFailureListener {
-                userStored.value = false
+                isStoredSuccessfully.value = false
                 ErrorMessage.errorMessage = it.message
                 loadState.value = LoadState.FAILURE
-                throw it
 
             }
         }
 
-
+        return isStoredSuccessfully
     }
 
-    fun isUserAlreadyStored(uid: String) {
-        val usersRef = FirebaseFirestore.getInstance().collection("users")
-        usersRef.document(uid).get().addOnSuccessListener {
-            userExists.value = it.exists()
-        }.addOnFailureListener {
-            ErrorMessage.errorMessage = it.message
-            loadState.value = LoadState.FAILURE
-        }
-    }
 
 }

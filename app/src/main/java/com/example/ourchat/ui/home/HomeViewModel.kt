@@ -3,7 +3,8 @@ package com.example.ourchat.ui.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.ourchat.Utils.ConstantsUtil
+import com.example.ourchat.Utils.AuthUtil
+
 import com.example.ourchat.Utils.FirestoreUtil
 import com.example.ourchat.data.model.LastMessageOwner
 import com.example.ourchat.data.model.User
@@ -20,7 +21,6 @@ class HomeViewModel : ViewModel() {
 
 
     fun getChats(): LiveData<MutableList<LastMessageOwner>>? {
-        if (ConstantsUtil.AUTH_UID == null) return null
 
         FirestoreUtil.firestoreInstance.collection("messages")
             .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
@@ -29,7 +29,7 @@ class HomeViewModel : ViewModel() {
                     lastMessageOwnerList.clear()
 
                     querySnapshot?.documents?.forEach { documentSnapshot ->
-                        if (documentSnapshot.id.contains(ConstantsUtil.AUTH_UID!!, true)) {
+                        if (documentSnapshot.id.contains(AuthUtil.authUid, true)) {
 
                             val lastMessageOwner = LastMessageOwner()
 
@@ -44,7 +44,7 @@ class HomeViewModel : ViewModel() {
                             val lastMessageOwnerId = lastMessage.get("from") as String
 
 
-                            if (lastMessageOwnerId == ConstantsUtil.AUTH_UID) {
+                            if (lastMessageOwnerId == AuthUtil.authUid) {
                                 //last message was typed by logged in user
                                 //leave ownerUser null
                                 lastMessageOwner.ownerUser = null
@@ -78,7 +78,7 @@ class HomeViewModel : ViewModel() {
     private val incomingRequestSize = MutableLiveData<Int>()
 
     fun getIncomingRequestsCount(): MutableLiveData<Int> {
-        ConstantsUtil.AUTH_UID?.let {
+        AuthUtil.authUid.let {
             FirebaseFirestore.getInstance().collection("users")
                 .document(it).addSnapshotListener(
                     EventListener { documentSnapshot, firebaseFirestoreException ->

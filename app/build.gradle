@@ -10,6 +10,13 @@ apply plugin: 'com.google.gms.google-services'
 
 android {
 
+    buildTypes {
+        debug {
+            ext.enableCrashlytics = false
+            crunchPngs false
+        }
+    }
+
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

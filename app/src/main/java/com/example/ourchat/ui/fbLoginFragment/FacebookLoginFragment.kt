@@ -1,7 +1,5 @@
 package com.example.ourchat.ui.fbLoginFragment
 
-import android.app.Activity
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,24 +10,26 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
+
+import com.example.ourchat.Utils.eventbus_events.CallbackManagerEvent
 import com.example.ourchat.databinding.FacebookLoginFragmentBinding
 import com.example.ourchat.ui.main_activity.SharedViewModel
-import com.example.ourchat.ui.signup.SignupFragment
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
-import com.google.firebase.auth.FirebaseAuth
+import org.greenrobot.eventbus.EventBus
 
 
 class FacebookLoginFragment : Fragment() {
 
 
     private lateinit var callbackManager: CallbackManager
-    private lateinit var mCallback: SignupFragment.ReturnCallBackManager
-    private lateinit var auth: FirebaseAuth
+
+
     private lateinit var binding: FacebookLoginFragmentBinding
 
 
@@ -46,6 +46,7 @@ class FacebookLoginFragment : Fragment() {
     ): View? {
         binding =
             DataBindingUtil.inflate(inflater, R.layout.facebook_login_fragment, container, false)
+
         return binding.root
     }
 
@@ -55,75 +56,83 @@ class FacebookLoginFragment : Fragment() {
         sharedViewModel = ViewModelProviders.of(this.activity!!).get(SharedViewModel::class.java)
 
 
-        auth = FirebaseAuth.getInstance()
-        // Initialize Facebook Login button
+        // Initialize Facebook callbackManager used in Login button
         callbackManager = CallbackManager.Factory.create()
-        mCallback.bringBackCallbackManager(callbackManager)
+        //pass callback manager to activity to continue FB login
+        EventBus.getDefault().post(CallbackManagerEvent(callbackManager))
 
-        binding.FBloginButton.setReadPermissions("email", "public_profile")
+
+
+        binding.FBloginButton.setPermissions("email", "public_profile")
         binding.FBloginButton.registerCallback(callbackManager, object :
             FacebookCallback<LoginResult> {
             override fun onSuccess(loginResult: LoginResult) {
-                println("facebook:onSuccess:$loginResult")
-                viewModel.handleFacebookAccessToken(auth, loginResult.accessToken)
+                viewModel.handleFacebookAccessToken(
+                    AuthUtil.firebaseAuthInstance,
+                    loginResult.accessToken
+                )
+                    .observe(this@FacebookLoginFragment,
+                        Observer { firebaseUser ->
+                            //login with facebook successful
+                            viewModel.isUserAlreadyStoredInFirestore(firebaseUser.uid).observe(
+                                this@FacebookLoginFragment,
+                                Observer { isUserStoredInFirestore ->
+                                    //if user doesn't exist in firestore store him
+                                    if (!isUserStoredInFirestore) {
+                                        viewModel.storeFacebookUserInFirebase()
+                                            .observe(this@FacebookLoginFragment,
+                                                Observer { isStoredSuccessfully ->
+                                                    //if true facebook user been stored in firebase successfully
+                                                    if (isStoredSuccessfully) {
+                                                        navigateToHome()
+                                                    }
+                                                })
+                                    } else {
+                                        //fb user already stored in firestore just navigate to home
+                                        sharedViewModel.loadStateMutableLiveData.value =
+                                            LoadState.SUCCESS
+                                        navigateToHome()
+                                    }
+                                })
+                        })
 
             }
 
             override fun onCancel() {
                 ErrorMessage.errorMessage = "Logging in with facebook cancelled"
-                sharedViewModel.loadState.value = LoadState.FAILURE
+                sharedViewModel.loadStateMutableLiveData.value = LoadState.FAILURE
 
             }
 
             override fun onError(error: FacebookException) {
                 ErrorMessage.errorMessage = error.message
-                sharedViewModel.loadState.value = LoadState.FAILURE
+                sharedViewModel.loadStateMutableLiveData.value = LoadState.FAILURE
             }
         })
 
 
-        //if firebase user isn't null it means login with facebook successful
-        viewModel.firebaseUser.observe(this, Observer {
-            if (it != null) {
-                viewModel.isUserAlreadyStored(it.uid)
-            }
-        })
-
-
-        //if user doesn't exist in database store him
-        viewModel.userExists.observe(this, Observer {
-            if (!it) {
-                viewModel.storeFacebookUserInFirebase()
-            } else {
-                viewModel.userStored.value = true
-                viewModel.loadState.value = LoadState.SUCCESS
-            }
-        })
-
-
-        //if true facebook user is stored in firebase
-        viewModel.userStored.observe(this, Observer {
-            if (it) {
-                try {
-                    findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
-                } catch (e: Exception) {
-                    findNavController().navigate(R.id.action_signupFragment_to_homeFragment)
-                }
-            }
-        })
-
-
-        //pass loading state to shared fragment to show proper layout
+        //pass loading state to shared viewmodel to show proper layout
         viewModel.loadState.observe(this, Observer {
             sharedViewModel.showLoadState(it)
         })
 
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        var mActivity = context as Activity
-        mCallback = mActivity as SignupFragment.ReturnCallBackManager
+    private fun navigateToHome() {
+
+        try {
+            if (parentFragment?.javaClass.toString() == "class com.example.ourchat.ui.login.LoginFragment") {
+
+                this@FacebookLoginFragment.findNavController()
+                    .navigate(R.id.action_loginFragment_to_homeFragment)
+            } else if (parentFragment?.javaClass.toString() == "class com.example.ourchat.ui.signup.SignupFragment") {
+                this@FacebookLoginFragment.findNavController()
+                    .navigate(R.id.action_signupFragment_to_homeFragment)
+            }
+
+        } catch (e: Exception) {
+            println("FacebookLoginFragment.navigateToHome:${e.message}")
+        }
     }
 
 

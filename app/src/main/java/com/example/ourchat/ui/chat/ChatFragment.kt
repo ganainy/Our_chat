@@ -11,7 +11,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.example.ourchat.R
-import com.example.ourchat.Utils.ConstantsUtil
+import com.example.ourchat.Utils.AuthUtil
+
 import com.example.ourchat.databinding.ChatFragmentBinding
 import com.example.ourchat.ui.contacts.PROFILE_PICTURE
 import com.example.ourchat.ui.contacts.UID
@@ -59,7 +60,7 @@ class ChatFragment : Fragment() {
 
         //user viewmodel factory to pass ids on creation of view model
         if (uid != null) {
-            viewModeldFactory = ChatViewModelFactory(ConstantsUtil.AUTH_UID, uid)
+            viewModeldFactory = ChatViewModelFactory(AuthUtil.authUid, uid)
             viewModel =
                 ViewModelProviders.of(this, viewModeldFactory).get(ChatViewModel::class.java)
         }

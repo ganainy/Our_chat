@@ -7,7 +7,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Bundle
-import com.example.ourchat.Utils.ConnectionChangeEvent
+import com.example.ourchat.Utils.eventbus_events.ConnectionChangeEvent
 import org.greenrobot.eventbus.EventBus
 
 
@@ -61,7 +61,11 @@ open class MyApplication : Application() {
             override fun onLost(network: Network) {
                 super.onLost(network)
                 EventBus.getDefault()
-                    .post(ConnectionChangeEvent("Internet connection lost, Changes will be saved once connection is restored"))
+                    .post(
+                        ConnectionChangeEvent(
+                            "Internet connection lost, Changes will be saved once connection is restored"
+                        )
+                    )
                 println("MyApplication.onLost:")
 
             }
@@ -72,7 +76,11 @@ open class MyApplication : Application() {
                     appJustStarted = false
                 } else {
                     println("MyApplication.onAvailable:")
-                    EventBus.getDefault().post(ConnectionChangeEvent("Network is restored."))
+                    EventBus.getDefault().post(
+                        ConnectionChangeEvent(
+                            "Network is restored."
+                        )
+                    )
                 }
 
             }

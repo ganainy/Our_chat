@@ -5,43 +5,43 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.ourchat.Utils.ConstantsUtil
-import com.example.ourchat.Utils.LoadState
+import com.example.ourchat.Utils.*
 import com.example.ourchat.data.model.User
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 
 
 class SharedViewModel : ViewModel() {
 
-    val uploadState = MutableLiveData<LoadState>()
-    val loadState = MutableLiveData<LoadState>()
+    val loadStateMutableLiveData = MutableLiveData<LoadState>()
+    val uploadImageLoadStateMutableLiveData = MutableLiveData<LoadState>()
+    private var friendsListMutableLiveData =
+        MutableLiveData<List<com.example.ourchat.data.model.User>>()
+    private var profileImageUrlMutableLiveData = MutableLiveData<String>()
+    private val errorToastMutableLiveData = MutableLiveData<String>()
+
     private lateinit var mStorageRef: StorageReference
     private var usersCollectionRef: CollectionReference =
-        FirebaseFirestore.getInstance().collection("users")
-    private val userDocRef: DocumentReference by lazy { usersCollectionRef.document(ConstantsUtil.AUTH_UID!!) }
-    var friendsList = MutableLiveData<List<com.example.ourchat.data.model.User>>()
+        FirestoreUtil.firestoreInstance.collection("users")
+    private val userDocRef: DocumentReference by lazy { usersCollectionRef.document(AuthUtil.authUid) }
 
 
 
     fun uploadImageAsBytearray(bytes: ByteArray) {
 
         //show upload ui
-        uploadState.value = LoadState.LOADING
+        loadStateMutableLiveData.value = LoadState.LOADING
 
-        mStorageRef = FirebaseStorage.getInstance().reference
+        mStorageRef = StorageUtil.storageInstance.reference
         val ref = mStorageRef.child("profile_pictures/" + System.currentTimeMillis())
         var uploadTask = bytes.let { ref.putBytes(it) }
 
-        val urlTask = uploadTask.continueWithTask { task ->
+        uploadTask.continueWithTask { task ->
             if (!task.isSuccessful) {
-                task.exception?.let {
-                    throw it
-                }
+                uploadImageLoadStateMutableLiveData.value = LoadState.FAILURE
             }
             ref.downloadUrl
         }.addOnCompleteListener { task ->
@@ -49,29 +49,43 @@ class SharedViewModel : ViewModel() {
                 val downloadUri = task.result
                 saveImageUriInFirebase(downloadUri)
             } else {
-                println("SharedViewModel.uploadImageByUri:${task.exception}")
-                uploadState.value = LoadState.FAILURE
+                uploadImageLoadStateMutableLiveData.value = LoadState.FAILURE
             }
         }
 
 
     }
 
+    //save download uri of image in the user document
+    private fun saveImageUriInFirebase(downloadUri: Uri?) {
+        val db = FirebaseFirestore.getInstance()
+
+        AuthUtil.authUid.let {
+            db.collection("users").document(it)
+                .update(PROFILE_PICTURE_URL, downloadUri.toString())
+                .addOnSuccessListener {
+                    uploadImageLoadStateMutableLiveData.value = LoadState.SUCCESS
+
+                }
+                .addOnFailureListener {
+                    uploadImageLoadStateMutableLiveData.value = LoadState.FAILURE
+                }
+        }
+
+    }
+
 
     fun uploadImageByUri(data: Uri?) {
-
         //show upload ui
-        uploadState.value = LoadState.LOADING
+        uploadImageLoadStateMutableLiveData.value = LoadState.LOADING
 
-        mStorageRef = FirebaseStorage.getInstance().reference
+        mStorageRef = StorageUtil.storageInstance.reference
         val ref = mStorageRef.child("profile_pictures/" + data?.path)
         var uploadTask = data?.let { ref.putFile(it) }
 
-        val urlTask = uploadTask?.continueWithTask { task ->
+        uploadTask?.continueWithTask { task ->
             if (!task.isSuccessful) {
-                task.exception?.let {
-                    throw it
-                }
+                uploadImageLoadStateMutableLiveData.value = LoadState.FAILURE
             }
             ref.downloadUrl
         }?.addOnCompleteListener { task ->
@@ -79,40 +93,14 @@ class SharedViewModel : ViewModel() {
                 val downloadUri = task.result
                 saveImageUriInFirebase(downloadUri)
             } else {
-                println("SharedViewModel.uploadImageByUri:${task.exception}")
-                uploadState.value = LoadState.FAILURE
+                uploadImageLoadStateMutableLiveData.value = LoadState.FAILURE
             }
         }
-
-
-    }
-
-
-    //save field of storage uri of image in the user document
-    private fun saveImageUriInFirebase(downloadUri: Uri?) {
-        val db = FirebaseFirestore.getInstance()
-
-        ConstantsUtil.AUTH_UID?.let {
-            db.collection("users").document(it)
-                .update("profile_picture_url", downloadUri.toString())
-                .addOnSuccessListener {
-                    uploadState.value = LoadState.SUCCESS
-
-                }
-                .addOnFailureListener {
-                    uploadState.value = LoadState.FAILURE
-                }
-        }
-
-
 
     }
 
 
     fun loadFriends(): LiveData<List<User>> {
-
-        if (ConstantsUtil.AUTH_UID == null) return friendsList
-
 
 
         userDocRef.addSnapshotListener(EventListener { snapShopt, firebaseFirestoreException ->
@@ -126,44 +114,41 @@ class SharedViewModel : ViewModel() {
                             val friend =
                                 it.toObject(User::class.java)
                             friend?.let { user -> mFriendList.add(user) }
-                            friendsList.value = mFriendList
+                            friendsListMutableLiveData.value = mFriendList
                         }
                     }
 
                 } else {
-                    friendsList.value = null
+                    friendsListMutableLiveData.value = null
                 }
             } else {
-                friendsList.value = null
+                friendsListMutableLiveData.value = null
+
             }
         })
-        return friendsList
+        return friendsListMutableLiveData
     }
 
 
-
-
+    //used by facebook login fragment to show loading layout from main activity
     fun showLoadState(mLoadState: LoadState) {
-        loadState.value = mLoadState
-        println("SharedViewModel.showLoadState:${loadState.value.toString()}")
+        loadStateMutableLiveData.value = mLoadState
     }
 
+    //used to pass images from main activity(on activity result) to profile fragment to show new choosen picture
     val imageBitmap = MutableLiveData<Bitmap>()
     val galleryImageUri = MutableLiveData<Uri>()
 
 
-    var profileImageUrlMutableLiveData = MutableLiveData<String>()
 
 
     fun downloadProfileImage(): LiveData<String> {
-
         userDocRef.get().addOnSuccessListener { document ->
             var profileImageUrl = document.get("profile_picture_url").toString()
             profileImageUrlMutableLiveData.value = profileImageUrl
-
-
         }
             .addOnFailureListener { exception ->
+                loadStateMutableLiveData.value = LoadState.FAILURE
             }
 
         return profileImageUrlMutableLiveData

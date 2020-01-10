@@ -2,7 +2,8 @@ package com.example.ourchat.ui.incoming_requests
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.ourchat.Utils.ConstantsUtil
+import com.example.ourchat.Utils.AuthUtil
+
 import com.example.ourchat.data.model.User
 import com.example.ourchat.ui.different_user_profile.RECEIVED_REQUEST_ARRAY
 import com.example.ourchat.ui.different_user_profile.SENT_REQUEST_ARRAY
@@ -17,7 +18,7 @@ class IncomingRequestsViewModel : ViewModel() {
     val senders = MutableLiveData<MutableList<User>?>()
 
     fun checkIncomingFriendRequests() {
-        ConstantsUtil.AUTH_UID?.let {
+        AuthUtil.authUid.let {
             usersRef.document(it).get().addOnSuccessListener {
                 val user = it?.toObject(User::class.java)
                 val receivedRequestListSize = user?.receivedRequests?.size ?: -1
@@ -64,12 +65,12 @@ class IncomingRequestsViewModel : ViewModel() {
         //add id in sentRequest array for logged in user
         val db = FirebaseFirestore.getInstance()
         if (uid != null) {
-            ConstantsUtil.AUTH_UID?.let {
+            AuthUtil.authUid.let {
                 db.collection("users").document(it)
                     .update(FRIENDS, FieldValue.arrayUnion(uid)).addOnSuccessListener {
                         //add loggedInUserId in receivedRequest array for other user
                         db.collection("users").document(uid)
-                            .update(FRIENDS, FieldValue.arrayUnion(ConstantsUtil.AUTH_UID))
+                            .update(FRIENDS, FieldValue.arrayUnion(AuthUtil.authUid))
                             .addOnSuccessListener {
                             }.addOnFailureListener {
                             }
@@ -87,7 +88,7 @@ class IncomingRequestsViewModel : ViewModel() {
         //remove id from sentRequest array for logged in user
         val db = FirebaseFirestore.getInstance()
         if (uid != null) {
-            ConstantsUtil.AUTH_UID?.let {
+            AuthUtil.authUid.let {
                 db.collection("users").document(it)
                     .update(RECEIVED_REQUEST_ARRAY, FieldValue.arrayRemove(uid))
                     .addOnSuccessListener {
@@ -95,7 +96,7 @@ class IncomingRequestsViewModel : ViewModel() {
                         db.collection("users").document(uid)
                             .update(
                                 SENT_REQUEST_ARRAY,
-                                FieldValue.arrayRemove(ConstantsUtil.AUTH_UID)
+                                FieldValue.arrayRemove(AuthUtil.authUid)
                             )
                             .addOnSuccessListener {
                             }.addOnFailureListener {

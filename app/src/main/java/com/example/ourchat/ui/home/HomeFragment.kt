@@ -11,7 +11,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
-import com.example.ourchat.Utils.ConstantsUtil
 import com.example.ourchat.databinding.HomeFragmentBinding
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.facebook.login.LoginManager
@@ -57,9 +56,6 @@ class HomeFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
-
-        //save auth uid in constants class to use it through the app
-        ConstantsUtil.AUTH_UID = FirebaseAuth.getInstance().uid.toString()
 
 
         //show badge over menu item with incoming friends count

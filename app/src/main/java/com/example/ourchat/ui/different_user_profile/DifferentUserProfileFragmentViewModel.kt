@@ -7,7 +7,8 @@ import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.example.ourchat.R
-import com.example.ourchat.Utils.ConstantsUtil
+import com.example.ourchat.Utils.AuthUtil
+
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -36,11 +37,11 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
         //add id in sentRequest array for logged in user
         val db = FirebaseFirestore.getInstance()
         if (uid != null) {
-            ConstantsUtil.AUTH_UID?.let {
+            AuthUtil.authUid.let {
                 db.collection("users").document(it)
                     .update(SENT_REQUEST_ARRAY, FieldValue.arrayUnion(uid)).addOnSuccessListener {
                         //add loggedInUserId in receivedRequest array for other user
-                        updateReceivedRequestsForReceiver(db, uid, ConstantsUtil.AUTH_UID)
+                        updateReceivedRequestsForReceiver(db, uid, AuthUtil.authUid)
                     }.addOnFailureListener {
                         throw it
                     }
@@ -71,7 +72,7 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
     fun checkIfFriends(uid: String?) {
         val db = FirebaseFirestore.getInstance()
         if (uid != null) {
-            ConstantsUtil.AUTH_UID?.let {
+            AuthUtil.authUid.let {
                 db.collection("users").document(it)
                     .addSnapshotListener(EventListener { it, firebaseFirestoreException ->
 
@@ -105,14 +106,14 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
         //remove id from sentRequest array for logged in user
         val db = FirebaseFirestore.getInstance()
         if (uid != null) {
-            ConstantsUtil.AUTH_UID?.let {
+            AuthUtil.authUid.let {
                 db.collection("users").document(it)
                     .update(SENT_REQUEST_ARRAY, FieldValue.arrayRemove(uid)).addOnSuccessListener {
                         //remove loggedInUserId from receivedRequest array for other user
                         db.collection("users").document(uid)
                             .update(
                                 RECEIVED_REQUEST_ARRAY,
-                                FieldValue.arrayRemove(ConstantsUtil.AUTH_UID)
+                                FieldValue.arrayRemove(AuthUtil.authUid)
                             )
                             .addOnSuccessListener {
                             }.addOnFailureListener {

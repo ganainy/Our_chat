@@ -23,7 +23,6 @@ import com.example.ourchat.databinding.ProfileFragmentBinding
 import com.example.ourchat.ui.home.MY_PREFS
 import com.example.ourchat.ui.home.PROFILE_PIC_URL
 import com.example.ourchat.ui.main.MainActivity
-import com.example.ourchat.ui.main.hideKeyboard
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.android.synthetic.main.bottom_sheet_profile_picture.view.*
@@ -56,9 +55,12 @@ class ProfileFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+
         viewModel = ViewModelProviders.of(this).get(ProfileViewModel::class.java)
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
+        //setup bottomsheet
+        mBottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet)
 
         //download user bio and image on fragment start
         viewModel.downloadBio()
@@ -93,21 +95,26 @@ class ProfileFragment : Fragment() {
 
 
         //load friends of logged in user and show in recycler
-        sharedViewModel.loadFriends().observe(this, Observer {
-            if (it != null) {
-                //user has friends
-                showFriends(it)
+        sharedViewModel.loadFriends().observe(this, Observer { friendsList ->
+            //hide loading
+            binding.loadingFriendsImageView.visibility = View.GONE
+            if (friendsList != null) {
+                binding.friendsLayout.visibility = View.VISIBLE
+                binding.noFriendsLayout.visibility = View.GONE
+                showFriendsInRecycler(friendsList)
             } else {
-                //user has no friends
-                showEmptyLayout()
+                binding.friendsLayout.visibility = View.GONE
+                binding.noFriendsLayout.visibility = View.VISIBLE
+                binding.addFriendsButton.setOnClickListener {
+                    this@ProfileFragment.findNavController()
+                        .navigate(R.id.action_profileFragment_to_findUserFragment)
+                }
             }
 
         })
 
 
-        mBottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet)
-
-
+        //todo can be replaced with event bus to remove dependency on certain activity
         binding.bottomSheet.cameraButton.setOnClickListener {
             mainActivity = activity as MainActivity
             mainActivity.dispatchTakePictureIntent()
@@ -116,6 +123,8 @@ class ProfileFragment : Fragment() {
             mainActivity = activity as MainActivity
             mainActivity.selectFromGallery()
         }
+
+
         //show selection bottom sheet when those buttons clicked
         binding.profileImage.setOnClickListener { selectProfilePicture() }
         binding.cameraImageView.setOnClickListener { selectProfilePicture() }
@@ -147,7 +156,9 @@ class ProfileFragment : Fragment() {
 
 
         //Observe upload image state and show appropriate ui
-        sharedViewModel.uploadState.observe(this, androidx.lifecycle.Observer {
+        sharedViewModel.uploadImageLoadStateMutableLiveData.observe(
+            this,
+            androidx.lifecycle.Observer {
             setProfileImageLoadUi(it)
         })
 
@@ -172,30 +183,10 @@ class ProfileFragment : Fragment() {
                 //upload bio to user document
                 viewModel.updateBio(binding.newBioEditText.text.toString())
 
-                //hide keyboard
-                mainActivity = activity as MainActivity
-                hideKeyboard(mainActivity)
+                //todo hide keyboard
             }
         }
 
-
-        //Show loading until bio is loaded
-        viewModel.bioLoadState.observe(this, Observer {
-            when (it) {
-                LoadState.LOADING -> {
-                    binding.bioProgressBar.visibility = View.VISIBLE
-                }
-
-                LoadState.SUCCESS -> {
-                    //bio updated successfully
-                    binding.bioProgressBar.visibility = View.GONE
-                }
-
-                LoadState.FAILURE -> {
-                    binding.bioProgressBar.visibility = View.GONE
-                }
-            }
-        })
 
 
         //show downloaded bio in textview
@@ -204,17 +195,11 @@ class ProfileFragment : Fragment() {
         })
 
 
+
     }
 
-    private fun showEmptyLayout() {
-        binding.friendsLayout.visibility = View.GONE
-        binding.noFriendsLayout.visibility = View.VISIBLE
-        binding.addFriendsButton.setOnClickListener { findNavController().navigate(R.id.action_profileFragment_to_findUserFragment) }
-    }
 
-    private fun showFriends(it: List<User>) {
-        binding.noFriendsLayout.visibility = View.GONE
-        binding.friendsLayout.visibility = View.VISIBLE
+    private fun showFriendsInRecycler(it: List<User>) {
         adapter.setDataSource(it)
         binding.friendsRecycler.adapter = adapter
         binding.friendsCountTextView.text = it.size.toString()
