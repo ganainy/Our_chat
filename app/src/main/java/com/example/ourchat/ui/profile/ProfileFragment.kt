@@ -72,7 +72,7 @@ class ProfileFragment : Fragment() {
         val json: String? = mPrefs.getString(LOGGED_USER, null)
         val loggedUser: User = gson.fromJson(json, User::class.java)
         //show user name & email & bio
-        binding.bioTextView.text = loggedUser.bio
+        binding.bioTextView.text = loggedUser.bio ?: "No bio yet"
         binding.email.text = loggedUser.email
         binding.name.text = loggedUser.username
         //download profile photo
@@ -184,7 +184,8 @@ class ProfileFragment : Fragment() {
                 //upload bio to user document
                 viewModel.updateBio(binding.newBioEditText.text.toString())
 
-                //todo hide keyboard
+                //hide keyboard
+                EventBus.getDefault().post(KeyboardEvent())
             }
         }
 

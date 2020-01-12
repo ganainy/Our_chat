@@ -13,12 +13,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.example.ourchat.R
+import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ChatFragmentBinding
-import com.example.ourchat.ui.contacts.PROFILE_PICTURE
-import com.example.ourchat.ui.contacts.UID
-import com.example.ourchat.ui.contacts.USERNAME
 import com.google.gson.Gson
 
 
@@ -62,33 +60,33 @@ class ChatFragment : Fragment() {
         val loggedUser: User = gson.fromJson(json, User::class.java)
 
         //get receiver data from contacts fragment
-        val receiverId = arguments?.getString(UID)
-        val receiverProfilePictureUrl = arguments?.getString(PROFILE_PICTURE)
-        val receiverUsername = arguments?.getString(USERNAME) ?: "user"
+        val clickedUser = gson.fromJson(arguments?.getString(CLICKED_USER), User::class.java)
 
-        activity?.title = "Chatting with $receiverUsername"
+
+        activity?.title = "Chatting with ${clickedUser.username}"
 
         //user viewmodel factory to pass ids on creation of view model
-        if (receiverId != null) {
-            viewModeldFactory = ChatViewModelFactory(loggedUser.uid, receiverId)
+        if (clickedUser.uid != null) {
+            viewModeldFactory = ChatViewModelFactory(loggedUser.uid, clickedUser.uid)
             viewModel =
                 ViewModelProviders.of(this, viewModeldFactory).get(ChatViewModel::class.java)
         }
 
         //Move layouts up when soft keyboard is shown
-        activity!!.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+        activity!!.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
 
         //handle send button
         binding.sendFab.setOnClickListener {
-            if (binding.messageEditText.text.isEmpty()) {
-                Toast.makeText(context, getString(R.string.empty_message), Toast.LENGTH_LONG).show()
-                return@setOnClickListener
-            }
-            viewModel.sendMessage(binding.messageEditText.text.toString())
-            binding.messageEditText.setText("")
+            sendMessage()
         }
 
+
+        //send message on keyboard done click
+        binding.messageEditText.setOnEditorActionListener { _, actionId, _ ->
+            sendMessage()
+            true
+        }
 
         //pass messages list for recycler to show
         viewModel.loadMessages().observe(this, Observer { messagesList ->
@@ -100,6 +98,15 @@ class ChatFragment : Fragment() {
 
         })
 
+    }
+
+    private fun sendMessage() {
+        if (binding.messageEditText.text.isEmpty()) {
+            Toast.makeText(context, getString(R.string.empty_message), Toast.LENGTH_LONG).show()
+            return
+        }
+        viewModel.sendMessage(binding.messageEditText.text.toString())
+        binding.messageEditText.setText("")
     }
 
 

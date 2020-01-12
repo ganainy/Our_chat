@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ContactsFragmentBinding
@@ -57,13 +58,15 @@ class ContactsFragment : Fragment() {
 
         //on contact click move to chat fragment
         adapter = ContactsAdapter(object : ContactsAdapter.ItemClickCallback {
-            override fun onItemClicked(user: User) {
+            override fun onItemClicked(clickedUser: User) {
+
+                println("ContactsFragment.onItemClicked:${clickedUser.username}")
+                //turn clicked user to json
+                val clickedUser = gson.toJson(clickedUser)
 
                 findNavController().navigate(
                     R.id.action_contactsFragment_to_chatFragment, bundleOf(
-                        USERNAME to user.username,
-                        PROFILE_PICTURE to user.profile_picture_url,
-                        UID to user.uid
+                        CLICKED_USER to clickedUser
                     )
                 )
             }
@@ -85,7 +88,8 @@ class ContactsFragment : Fragment() {
 
     private fun showFriends(it: List<User>) {
         binding.noFriendsLayout.visibility = View.GONE
-        adapter.setDataSource(it)
+        adapter.submitList(it)
+        adapter.usersList = it
         binding.contactsRecycler.adapter = adapter
     }
 
@@ -105,8 +109,8 @@ class ContactsFragment : Fragment() {
         val searchItem = menu.findItem(R.id.action_search)
         val searchView = searchItem?.actionView as SearchView
 
-        //todo connect search view with recycler
-        /*   searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                override fun onQueryTextSubmit(queryString: String?): Boolean {
                    adapter.filter.filter(queryString)
                    return false
@@ -120,7 +124,7 @@ class ContactsFragment : Fragment() {
 
                    return false
                }
-           })*/
+        })
 
 
     }

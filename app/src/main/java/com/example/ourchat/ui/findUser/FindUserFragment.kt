@@ -10,8 +10,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.databinding.FindUserFragmentBinding
+import com.google.gson.Gson
 
 class FindUserFragment : Fragment() {
     private lateinit var adapter: UserAdapter
@@ -70,14 +72,13 @@ class FindUserFragment : Fragment() {
 
 
         //setup recycler
-        adapter = UserAdapter(UserClickListener {
+        adapter = UserAdapter(UserClickListener { clickedUser ->
 
+            val gson = Gson()
+            val clickedUser = gson.toJson(clickedUser)
 
             var bundle = bundleOf(
-                "uid" to it.uid,
-                "bio" to it.bio,
-                "profile_picture_url" to it.profile_picture_url,
-                "username" to it.username
+                CLICKED_USER to clickedUser
             )
 
             findNavController().navigate(

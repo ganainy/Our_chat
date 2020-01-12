@@ -1,24 +1,33 @@
 package com.example.ourchat.ui.contacts
 
+import android.graphics.Color
+import android.graphics.Typeface
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Filter
+import android.widget.Filterable
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ContactItemBinding
+import com.example.ourchat.ui.findUser.mQuery
+import java.util.*
 
 
 class ContactsAdapter(private val itemClickCallback: ItemClickCallback) :
-    RecyclerView.Adapter<ContactsAdapter.UserHolder>() {
+    ListAdapter<User, ContactsAdapter.UserHolder>(DiffCallbackContacts()), Filterable,
+    OnQueryTextChange {
 
 
-    private var mUsers = listOf<User>()
+    private var filteredUserList = mutableListOf<User>()
+    var usersList = listOf<User>()
 
 
-    fun setDataSource(users: List<User>?) {
-        if (users != null) {
-            mUsers = users
-        }
-    }
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserHolder {
@@ -29,12 +38,10 @@ class ContactsAdapter(private val itemClickCallback: ItemClickCallback) :
 
     }
 
-    override fun getItemCount(): Int {
-        return mUsers.size
-    }
+
 
     override fun onBindViewHolder(holder: UserHolder, position: Int) {
-        val item = mUsers[position]
+        val item = usersList[position]
 
         holder.bind(item, itemClickCallback)
     }
@@ -47,6 +54,31 @@ class ContactsAdapter(private val itemClickCallback: ItemClickCallback) :
             item: User,
             itemClickCallback: ItemClickCallback
         ) {
+
+            //if query text isn't empty set the selected text with sky blue+bold
+            if (mQuery.isEmpty()) {
+                binding.nameTextView.text = item.username
+            } else {
+                var index = item.username!!.indexOf(mQuery, 0, true)
+                val sb = SpannableStringBuilder(item.username)
+                while (index >= 0) {
+                    val fcs = ForegroundColorSpan(Color.rgb(135, 206, 235))
+                    sb.setSpan(
+                        fcs,
+                        index,
+                        index + mQuery.length,
+                        Spannable.SPAN_INCLUSIVE_INCLUSIVE
+                    )
+                    sb.setSpan(
+                        StyleSpan(Typeface.BOLD),
+                        index,
+                        index + mQuery.length,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    index = item.username.indexOf(mQuery, index + 1)
+                }
+                binding.nameTextView.text = sb
+            }
 
             binding.user = item
             binding.executePendingBindings()
@@ -79,6 +111,64 @@ class ContactsAdapter(private val itemClickCallback: ItemClickCallback) :
     }
 
 
+    override fun getFilter(): Filter {
+        return object : Filter() {
+            override fun performFiltering(charSequence: CharSequence): FilterResults {
+                val charString = charSequence.toString()
+                filteredUserList = mutableListOf()
+                if (charString.isEmpty()) {
+                    filteredUserList = usersList as MutableList<User>
+
+
+                } else {
+                    for (user in usersList) {
+                        if (user.username?.toLowerCase(Locale.ENGLISH)?.contains(
+                                charString.toLowerCase(Locale.ENGLISH)
+                            )!!
+                        ) {
+                            filteredUserList.add(user)
+                        }
+                    }
+                }
+                val filterResults = FilterResults()
+                filterResults.values = filteredUserList
+                return filterResults
+            }
+
+            override fun publishResults(charSequence: CharSequence, filterResults: FilterResults) {
+
+                submitList(filterResults.values as MutableList<User>)
+                notifyDataSetChanged()//todo find other way to force call on bind after filtering
+
+            }
+        }
+    }
+
+    override fun onChange(query: String) {
+        mQuery = query
+    }
+
+}
+
+/**
+ * Callback for calculating the diff between two non-null items in a list.
+ *
+ * Used by ListAdapter to calculate the minumum number of changes between and old list and a new
+ * list that's been passed to `submitList`.
+ */
+class DiffCallbackContacts : DiffUtil.ItemCallback<User>() {
+    override fun areItemsTheSame(oldItem: User, newItem: User): Boolean {
+        return oldItem.uid == newItem.uid
+    }
+
+    override fun areContentsTheSame(oldItem: User, newItem: User): Boolean {
+        return oldItem == newItem
+    }
+}
+
+
+interface OnQueryTextChange {
+    fun onChange(query: String)
 }
 
 

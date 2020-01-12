@@ -3,7 +3,6 @@ package com.example.ourchat.ui.incoming_requests
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.FirestoreUtil
 import com.example.ourchat.data.model.User
 import com.example.ourchat.ui.different_user_profile.RECEIVED_REQUEST_ARRAY
@@ -39,20 +38,20 @@ class IncomingRequestsViewModel : ViewModel() {
 
 
     fun addToFriends(
-        requesterId: String?,
-        loggedUser: User
+        requesterId: String,
+        loggedUserId: String
     ) {
 
-        deleteRequest(requesterId, loggedUser)
+        deleteRequest(requesterId, loggedUserId)
 
         //add id in sentRequest array for logged in user
-        if (requesterId != null) {
-            AuthUtil.authUid.let { requesterId ->
-                FirestoreUtil.firestoreInstance.collection("users").document(requesterId)
-                    .update(FRIENDS, FieldValue.arrayUnion(requesterId)).addOnSuccessListener {
+
+
+        FirestoreUtil.firestoreInstance.collection("users").document(requesterId)
+            .update(FRIENDS, FieldValue.arrayUnion(loggedUserId)).addOnSuccessListener {
                         //add loggedInUserId in receivedRequest array for other user
-                        FirestoreUtil.firestoreInstance.collection("users").document(requesterId)
-                            .update(FRIENDS, FieldValue.arrayUnion(AuthUtil.authUid))
+                FirestoreUtil.firestoreInstance.collection("users").document(loggedUserId)
+                    .update(FRIENDS, FieldValue.arrayUnion(requesterId))
                             .addOnSuccessListener {
 
                             }.addOnFailureListener {
@@ -61,21 +60,17 @@ class IncomingRequestsViewModel : ViewModel() {
                     }.addOnFailureListener {
 
                     }
-            }
         }
 
 
-    }
 
 
     fun deleteRequest(
-        requesterId: String?,
-        loggedUser: User
+        requesterId: String,
+        loggedUserId: String
     ) {
 
         //remove id from sentRequest array for logged in user
-        if (requesterId != null) {
-            loggedUser.uid?.let { loggedUserId ->
                 FirestoreUtil.firestoreInstance.collection("users").document(loggedUserId)
                     .update(RECEIVED_REQUEST_ARRAY, FieldValue.arrayRemove(requesterId))
                     .addOnSuccessListener {
@@ -83,7 +78,7 @@ class IncomingRequestsViewModel : ViewModel() {
                         FirestoreUtil.firestoreInstance.collection("users").document(requesterId)
                             .update(
                                 SENT_REQUEST_ARRAY,
-                                FieldValue.arrayRemove(AuthUtil.authUid)
+                                FieldValue.arrayRemove(loggedUserId)
                             )
                             .addOnSuccessListener {
 
@@ -93,10 +88,10 @@ class IncomingRequestsViewModel : ViewModel() {
                     }.addOnFailureListener {
 
                     }
-            }
-        }
     }
 
-
 }
+
+
+
 

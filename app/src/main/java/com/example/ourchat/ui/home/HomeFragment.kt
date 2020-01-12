@@ -13,10 +13,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.databinding.HomeFragmentBinding
-import com.example.ourchat.ui.contacts.PROFILE_PICTURE
-import com.example.ourchat.ui.contacts.UID
-import com.example.ourchat.ui.contacts.USERNAME
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.facebook.login.LoginManager
 import com.google.firebase.auth.FirebaseAuth
@@ -24,20 +22,20 @@ import com.google.gson.Gson
 import java.lang.String
 
 
-
 class HomeFragment : Fragment() {
 
+    var receivedRequestsCount: Int? = null
 
     lateinit var binding: HomeFragmentBinding
+    val gson = Gson()
     private lateinit var countBadgeTextView: TextView
     private val adapter: ChatPreviewAdapter by lazy {
         ChatPreviewAdapter(ClickListener { chatParticipant ->
             //navigate to chat with selected user on chat outer item click
+            val clickedUser = gson.toJson(chatParticipant.particpant)
             findNavController().navigate(
                 R.id.action_homeFragment_to_chatFragment, bundleOf(
-                    USERNAME to chatParticipant.particpant!!.username,
-                    PROFILE_PICTURE to chatParticipant.particpant!!.profile_picture_url,
-                    UID to chatParticipant.particpant!!.uid
+                    CLICKED_USER to clickedUser
                 )
             )
         })
@@ -74,13 +72,16 @@ class HomeFragment : Fragment() {
             //save logged user data in shared pref to use in other fragments
             val mPrefs: SharedPreferences = activity!!.getPreferences(MODE_PRIVATE)
             val prefsEditor: SharedPreferences.Editor = mPrefs.edit()
-            val gson = Gson()
             val json = gson.toJson(loggedUser)
             prefsEditor.putString("loggedUser", json)
             prefsEditor.apply()
 
+            activity?.title = loggedUser.username
+
             //show notification badge if there is incoming requests
-            setupBadge(loggedUser.receivedRequests?.size)
+            receivedRequestsCount = loggedUser.receivedRequests?.size
+            setupBadge(receivedRequestsCount)
+
 
 
             //get user chat history
@@ -123,10 +124,14 @@ class HomeFragment : Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
 
+
         inflater.inflate(R.menu.main_menu, menu)
         val menuItem = menu.findItem(R.id.action_incoming_requests)
         val actionView = menuItem?.actionView
         countBadgeTextView = actionView?.findViewById<View>(R.id.count_badge) as TextView
+        //if fragment is coming from back stack setupBadge will be called before onCreateOptionsMenu so we have to call setupbadge again
+        setupBadge(receivedRequestsCount)
+
 
 
         actionView.setOnClickListener { onOptionsItemSelected(menuItem) }
@@ -173,7 +178,7 @@ class HomeFragment : Fragment() {
         }
         R.id.action_incoming_requests -> {
             findNavController().navigate(R.id.action_homeFragment_to_incomingRequestsFragment)
-            println("MainActivity.onOptionsItemSelected:${item.title}")
+
 
             true
         }

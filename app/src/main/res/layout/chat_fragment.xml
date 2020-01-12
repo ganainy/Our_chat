@@ -44,6 +44,8 @@
             android:hint="@string/type_a_message"
             android:paddingStart="16dp"
             android:textSize="16sp"
+            android:imeOptions="actionSend"
+            android:inputType="text"
             app:errorEnabled="true"
             app:layout_constraintBottom_toBottomOf="@+id/sendFab"
             app:layout_constraintEnd_toStartOf="@+id/sendFab"

@@ -7,6 +7,7 @@ import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.FirestoreUtil
 import com.example.ourchat.data.model.ChatParticipant
 import com.example.ourchat.data.model.User
+import com.google.firebase.firestore.Query
 import java.util.*
 
 
@@ -79,11 +80,10 @@ class HomeViewModel : ViewModel() {
 
         val loggedUserId = loggedUser.uid.toString()
 
-        FirestoreUtil.firestoreInstance.collection("messages").whereArrayContains(
-            "chat_members",
-            loggedUserId
-        )
-            .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+        val query: Query = FirestoreUtil.firestoreInstance.collection("messages")
+            .whereArrayContains("chat_members", loggedUserId)
+
+        query.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
                 if (firebaseFirestoreException == null) {
 
                     chatParticipantList.clear()

@@ -10,7 +10,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.example.ourchat.R
+import com.example.ourchat.Utils.CLICKED_USER
+import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.DifferentUserProfileFragmentBinding
+import com.example.ourchat.ui.main_activity.SharedViewModel
+import com.google.gson.Gson
 
 class DifferentUserProfileFragment : Fragment() {
     private lateinit var binding: DifferentUserProfileFragmentBinding
@@ -20,6 +24,7 @@ class DifferentUserProfileFragment : Fragment() {
     }
 
     private lateinit var viewModel: DifferentUserProfileFragmentViewModel
+    private lateinit var sharedViewModel: SharedViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,21 +43,22 @@ class DifferentUserProfileFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel =
             ViewModelProviders.of(this).get(DifferentUserProfileFragmentViewModel::class.java)
+        sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
-        //get data from profile fragment
-        val uid = arguments?.getString("uid")
-        val bio = arguments?.getString("bio")
-        val profile_picture_url = arguments?.getString("profile_picture_url")
-        val username = arguments?.getString("username")
+        //get data of clicked user from find user fragment
+        val gson = Gson()
+        val user = gson.fromJson(arguments?.getString(CLICKED_USER), User::class.java)
 
+
+        activity?.title = user.username?.split("\\s".toRegex())?.get(0) + "'s profile"
 
         //check if alreadyFriends
-        viewModel.checkIfFriends(uid)
+        viewModel.checkIfFriends(user.uid)
 
         //set data to views and download image
-        binding.bioTextView.text = bio ?: "No bio yet"
-        binding.name.text = username
-        viewModel.downloadProfilePicture(profile_picture_url)
+        binding.bioTextView.text = user.bio ?: "No bio yet"
+        binding.name.text = user.username
+        viewModel.downloadProfilePicture(user.profile_picture_url)
 
 
         //show downloaded image in profile imageview
@@ -64,9 +70,9 @@ class DifferentUserProfileFragment : Fragment() {
         binding.sendFriendRequestButton.setOnClickListener {
             //add id to sentRequests document in user
             if (binding.sendFriendRequestButton.text == getString(R.string.friend_request_not_sent)) {
-                viewModel.updateSentRequestsForSender(uid)
+                viewModel.updateSentRequestsForSender(user.uid)
             } else if (binding.sendFriendRequestButton.text == getString(R.string.friend_request_sent)) {
-                viewModel.cancelFriendRequest(uid)
+                viewModel.cancelFriendRequest(user.uid)
             }
         }
 
@@ -90,6 +96,13 @@ class DifferentUserProfileFragment : Fragment() {
             }
 
         })
+
+
+        //load friends of that user
+        sharedViewModel.loadFriends(user).observe(this, Observer {
+            println("DifferentUserProfileFragment.onActivityCreated:${it?.size}")
+        })
+
     }
 
 

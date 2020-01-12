@@ -88,7 +88,7 @@ class IncomingRequestsFragment : Fragment() {
             IncomingRequestsAdapter(
                 object : IncomingRequestsAdapter.ButtonCallback {
                     override fun onConfirmClicked(requestSender: User, position: Int) {
-                        viewModel.addToFriends(requestSender.uid, loggedUser)
+                        viewModel.addToFriends(requestSender.uid!!, loggedUser.uid!!)
 
                         Toast.makeText(
                             context,
@@ -99,7 +99,7 @@ class IncomingRequestsFragment : Fragment() {
                     }
 
                     override fun onDeleteClicked(requestSender: User, position: Int) {
-                        viewModel.deleteRequest(requestSender.uid, loggedUser)
+                        viewModel.deleteRequest(requestSender.uid!!, loggedUser.uid!!)
                         Toast.makeText(context, "Request deleted", Toast.LENGTH_LONG).show()
                         deleteFromRecycler(position)
                     }
