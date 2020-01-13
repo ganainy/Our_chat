@@ -63,5 +63,6 @@
 
     <string name="you">You: %1$s</string>
     <string name="other">%1$s: %2$s</string>
+    <string name="no_users_to_add_yet">No users to add yet.</string>
 
 </resources>

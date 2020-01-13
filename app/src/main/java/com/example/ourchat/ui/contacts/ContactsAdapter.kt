@@ -41,7 +41,7 @@ class ContactsAdapter(private val itemClickCallback: ItemClickCallback) :
 
 
     override fun onBindViewHolder(holder: UserHolder, position: Int) {
-        val item = usersList[position]
+        val item = getItem(position)
 
         holder.bind(item, itemClickCallback)
     }

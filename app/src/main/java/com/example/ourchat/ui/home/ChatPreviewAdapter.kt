@@ -25,7 +25,7 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
     , Filterable, OnQueryTextChange {
 
 
-    var chatList = mutableListOf<ChatParticipant>()
+    var chatList = listOf<ChatParticipant>()
     var filteredChatList = mutableListOf<ChatParticipant>()
 
 
@@ -94,7 +94,7 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
                    val charString = charSequence.toString()
                    filteredChatList = mutableListOf()
                    if (charString.isEmpty()) {
-                       filteredChatList = chatList
+                       filteredChatList = chatList as MutableList<ChatParticipant>
 
 
                    } else {

@@ -14,8 +14,10 @@ import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
+import com.example.ourchat.Utils.eventbus_events.KeyboardEvent
 import com.example.ourchat.databinding.SignupFragmentBinding
 import kotlinx.android.synthetic.main.issue_layout.view.*
+import org.greenrobot.eventbus.EventBus
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -57,6 +59,8 @@ class SignupFragment : Fragment() {
 
         //handle register click
         binding.registerButton.setOnClickListener {
+
+            EventBus.getDefault().post(KeyboardEvent())
 
             binding.userName.isErrorEnabled = false
             binding.email.isErrorEnabled = false

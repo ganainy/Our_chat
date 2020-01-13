@@ -8,8 +8,6 @@ import androidx.lifecycle.ViewModel
 import com.example.ourchat.Utils.*
 import com.example.ourchat.data.model.User
 import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.StorageReference
 
 
@@ -22,7 +20,6 @@ class SharedViewModel : ViewModel() {
     private lateinit var mStorageRef: StorageReference
     private var usersCollectionRef: CollectionReference =
         FirestoreUtil.firestoreInstance.collection("users")
-    private val userDocRef: DocumentReference by lazy { usersCollectionRef.document(AuthUtil.authUid) }
 
 
 
@@ -54,10 +51,9 @@ class SharedViewModel : ViewModel() {
 
     //save download uri of image in the user document
     private fun saveImageUriInFirebase(downloadUri: Uri?) {
-        val db = FirebaseFirestore.getInstance()
 
-        AuthUtil.authUid.let {
-            db.collection("users").document(it)
+        AuthUtil.getAuthId().let {
+            FirestoreUtil.firestoreInstance.collection("users").document(it)
                 .update(PROFILE_PICTURE_URL, downloadUri.toString())
                 .addOnSuccessListener {
                     uploadImageLoadStateMutableLiveData.value = LoadState.SUCCESS

@@ -86,16 +86,18 @@ class HomeFragment : Fragment() {
 
             //get user chat history
             viewModel.getChats(loggedUser!!)?.observe(this, Observer { chatParticipantsList ->
+
                 //Hide loading image
                 binding.loadingChatImageView.visibility = View.GONE
                 if (chatParticipantsList.isNullOrEmpty()) {
                     //show no chat layout
                     binding.noChatLayout.visibility = View.VISIBLE
                 } else {
+
                     binding.noChatLayout.visibility = View.GONE
                     binding.recycler.adapter = adapter
-                    adapter.submitList(chatParticipantsList)
-                    adapter.chatList = chatParticipantsList
+                    adapter.submitList(chatParticipantsList.distinct())
+                    adapter.chatList = chatParticipantsList.distinct()
                 }
 
             })

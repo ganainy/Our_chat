@@ -69,7 +69,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
 
     override fun getItemViewType(position: Int): Int {
         return when (messageList[position].from) {
-            AuthUtil.authUid -> {
+            AuthUtil.getAuthId() -> {
                 TYPE_SENT_MESSAGE
             }
             else -> {

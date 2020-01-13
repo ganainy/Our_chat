@@ -9,8 +9,8 @@ object AuthUtil {
         FirebaseAuth.getInstance()
     }
 
-    val authUid: String by lazy {
-        println("firebaseAuthInstance.:")
-        firebaseAuthInstance.currentUser!!.uid
+
+    fun getAuthId(): String {
+        return firebaseAuthInstance.currentUser!!.uid
     }
 }

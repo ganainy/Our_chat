@@ -3,13 +3,13 @@ package com.example.ourchat.ui.different_user_profile
 import android.app.Application
 import android.graphics.drawable.Drawable
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
 
-import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -19,7 +19,7 @@ const val RECEIVED_REQUEST_ARRAY = "receivedRequests"
 class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewModel(app) {
 
 
-    val friendRequestState = MutableLiveData<FriendRequestState>()
+    private val friendRequestStateMutableLiveData = MutableLiveData<FriendRequestState>()
 
     var loadedImage = MutableLiveData<RequestBuilder<Drawable>>()
 
@@ -37,11 +37,11 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
         //add id in sentRequest array for logged in user
         val db = FirebaseFirestore.getInstance()
         if (uid != null) {
-            AuthUtil.authUid.let {
+            AuthUtil.getAuthId().let {
                 db.collection("users").document(it)
                     .update(SENT_REQUEST_ARRAY, FieldValue.arrayUnion(uid)).addOnSuccessListener {
                         //add loggedInUserId in receivedRequest array for other user
-                        updateReceivedRequestsForReceiver(db, uid, AuthUtil.authUid)
+                        updateReceivedRequestsForReceiver(db, uid, AuthUtil.getAuthId())
                     }.addOnFailureListener {
                         throw it
                     }
@@ -69,36 +69,32 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
 
 
     //get document if logged in user and check if other user id is in the sentRequest list
-    fun checkIfFriends(uid: String?) {
+    fun checkIfFriends(uid: String?): LiveData<FriendRequestState> {
         val db = FirebaseFirestore.getInstance()
         if (uid != null) {
-            AuthUtil.authUid.let {
-                db.collection("users").document(it)
-                    .addSnapshotListener(EventListener { it, firebaseFirestoreException ->
+            AuthUtil.getAuthId().let {
+                db.collection("users").document(it).get().addOnSuccessListener {
+                    val user = it?.toObject(com.example.ourchat.data.model.User::class.java)
 
-                        println("DifferentUserProfileFragmentViewModel.checkIfFriends:")
-                        if (firebaseFirestoreException == null) {
-                            val user = it?.toObject(com.example.ourchat.data.model.User::class.java)
-
-                            val sentRequests = user?.sentRequests
-                            if (sentRequests != null) {
-                                for (sentRequest in sentRequests) {
-                                    if (sentRequest == uid) {
-                                        friendRequestState.value = FriendRequestState.SENT
-                                        return@EventListener
-                                    }
-                                }
-                                friendRequestState.value = FriendRequestState.NOT_SENT
+                    val sentRequests = user?.sentRequests
+                    if (sentRequests != null) {
+                        for (sentRequest in sentRequests) {
+                            if (sentRequest == uid) {
+                                friendRequestStateMutableLiveData.value = FriendRequestState.SENT
+                                return@addOnSuccessListener
                             }
-
-                        } else {
-                            //error
                         }
-                    })
+                        friendRequestStateMutableLiveData.value = FriendRequestState.NOT_SENT
+                    }
+                }.addOnFailureListener {
+                    //error
+                }
+
             }
 
 
         }
+        return friendRequestStateMutableLiveData
     }
 
     fun cancelFriendRequest(uid: String?) {
@@ -106,14 +102,14 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
         //remove id from sentRequest array for logged in user
         val db = FirebaseFirestore.getInstance()
         if (uid != null) {
-            AuthUtil.authUid.let {
+            AuthUtil.getAuthId().let {
                 db.collection("users").document(it)
                     .update(SENT_REQUEST_ARRAY, FieldValue.arrayRemove(uid)).addOnSuccessListener {
                         //remove loggedInUserId from receivedRequest array for other user
                         db.collection("users").document(uid)
                             .update(
                                 RECEIVED_REQUEST_ARRAY,
-                                FieldValue.arrayRemove(AuthUtil.authUid)
+                                FieldValue.arrayRemove(AuthUtil.getAuthId())
                             )
                             .addOnSuccessListener {
                             }.addOnFailureListener {

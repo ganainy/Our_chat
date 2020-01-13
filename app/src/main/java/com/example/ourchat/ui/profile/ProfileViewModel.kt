@@ -12,7 +12,7 @@ import com.google.firebase.firestore.DocumentReference
 class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
 
 
-    private var userDocRef: DocumentReference? = AuthUtil.authUid.let {
+    private var userDocRef: DocumentReference? = AuthUtil.getAuthId().let {
         FirestoreUtil.firestoreInstance.collection("users").document(it)
     }
 

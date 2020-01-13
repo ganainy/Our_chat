@@ -61,7 +61,7 @@ class LoginFragment : Fragment() {
             it.findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
         }
 
-        //Report text change to viewmodel and Observe if email format is correct
+        //Report text change to viewModel and Observe if email format is correct
         binding.emailEditText.afterTextChanged { email ->
             viewModel.isEmailFormatCorrect(email).observe(this, Observer { isEmailFormatCorrect ->
                 if (!isEmailFormatCorrect) {//email format is not correct

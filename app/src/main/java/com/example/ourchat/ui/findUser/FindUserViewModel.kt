@@ -1,37 +1,30 @@
 package com.example.ourchat.ui.findUser
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.ourchat.Utils.AuthUtil
-
-import com.example.ourchat.Utils.ErrorMessage
-import com.example.ourchat.Utils.LoadState
+import com.example.ourchat.Utils.FirestoreUtil
 import com.example.ourchat.data.model.User
 import com.example.ourchat.ui.incoming_requests.FRIENDS
 import com.google.firebase.firestore.EventListener
-import com.google.firebase.firestore.FirebaseFirestore
 
 class FindUserViewModel : ViewModel() {
 
 
-    val usersLoadState = MutableLiveData<LoadState>()
-
-    val userDocuments = MutableLiveData<MutableList<User?>>()
-
-    lateinit var db: FirebaseFirestore
-
-    fun loadUsers() {
+    private val userDocumentsMutableLiveData = MutableLiveData<MutableList<User?>>()
 
 
-        usersLoadState.value = LoadState.LOADING
-        db = FirebaseFirestore.getInstance()
-        val docRef = db.collection("users")
+    fun loadUsers(): LiveData<MutableList<User?>> {
+
+
+        val docRef = FirestoreUtil.firestoreInstance.collection("users")
         docRef.get()
             .addOnSuccessListener { querySnapshot ->
                 //add any user that isn't logged in user to result
                 val result = mutableListOf<User?>()
                 for (document in querySnapshot.documents) {
-                    if (!document.get("uid").toString().equals(AuthUtil.authUid)) {
+                    if (!document.get("uid").toString().equals(AuthUtil.getAuthId())) {
                         val user = document.toObject(User::class.java)
                         result.add(user)
                     }
@@ -40,7 +33,7 @@ class FindUserViewModel : ViewModel() {
 
 
                 // remove friends of logged in user from result list
-                docRef.whereArrayContains(FRIENDS, AuthUtil.authUid)
+                docRef.whereArrayContains(FRIENDS, AuthUtil.getAuthId())
                     .addSnapshotListener(
                         EventListener { querySnapshot, firebaseFirestoreException ->
                             if (firebaseFirestoreException == null) {
@@ -52,13 +45,12 @@ class FindUserViewModel : ViewModel() {
 
                                     }
 
-                                    userDocuments.value = result
-                                    usersLoadState.value = LoadState.SUCCESS
+                                    userDocumentsMutableLiveData.value = result
+
 
                                 }
                             } else {
-                                ErrorMessage.errorMessage = firebaseFirestoreException.message
-                                usersLoadState.value = LoadState.FAILURE
+                                userDocumentsMutableLiveData.value = null
                             }
                         })
 
@@ -68,9 +60,10 @@ class FindUserViewModel : ViewModel() {
 
             }
             .addOnFailureListener { exception ->
-                ErrorMessage.errorMessage = exception.message
-                usersLoadState.value = LoadState.FAILURE
+                userDocumentsMutableLiveData.value = null
             }
+
+        return userDocumentsMutableLiveData
     }
 
 

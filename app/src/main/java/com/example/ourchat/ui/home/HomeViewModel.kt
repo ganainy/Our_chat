@@ -28,7 +28,7 @@ class HomeViewModel : ViewModel() {
                        chatParticipantList.clear()
 
                        querySnapshot?.documents?.forEach { documentSnapshot ->
-                           if (documentSnapshot.id.contains(AuthUtil.authUid, true)) {
+                           if (documentSnapshot.id.contains(AuthUtil.getAuthId(), true)) {
 
                                                        val lastMessageOwner = ChatParticipant()
 
@@ -43,7 +43,7 @@ class HomeViewModel : ViewModel() {
                                val lastMessageOwnerId = lastMessage.get("from") as String
 
 
-                               if (lastMessageOwnerId == AuthUtil.authUid) {
+                               if (lastMessageOwnerId == AuthUtil.getAuthId()) {
                                    //last message was typed by logged in user
                                    //leave ownerUser null
                                    lastMessageOwner.particpant = null
@@ -84,64 +84,66 @@ class HomeViewModel : ViewModel() {
             .whereArrayContains("chat_members", loggedUserId)
 
         query.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-                if (firebaseFirestoreException == null) {
+            println("HomeViewMo query.addSnapshotListenener")
+            if (firebaseFirestoreException == null) {
 
-                    chatParticipantList.clear()
+                chatParticipantList.clear()
 
-                    if (!querySnapshot?.documents.isNullOrEmpty()) {
-                        //user has chats , now get last message and receiver user
-                        querySnapshot?.documents?.forEach { messageDocument ->
+                if (!querySnapshot?.documents.isNullOrEmpty()) {
+                    //user has chats , now get last message and receiver user
+                    querySnapshot?.documents?.forEach { messageDocument ->
 
-                            val chatParticipant = ChatParticipant()
+                        val chatParticipant = ChatParticipant()
 
-                            //get last message & last message sender
-                            val messagesList =
-                                messageDocument.get("messages") as List<HashMap<String, Any>>?
-                            val lastMessage = messagesList?.get(messagesList.size - 1)
-                            chatParticipant.lastMessage = lastMessage?.get("text") as String
-                            chatParticipant.lastMessageDate = lastMessage.get("date") as Long
-                            val lastMessageOwnerId = lastMessage.get("from") as String
+                        //get last message & last message sender
+                        val messagesList =
+                            messageDocument.get("messages") as List<HashMap<String, Any>>?
+                        val lastMessage = messagesList?.get(messagesList.size - 1)
+                        chatParticipant.lastMessage = lastMessage?.get("text") as String
+                        chatParticipant.lastMessageDate = lastMessage.get("date") as Long
+                        val lastMessageOwnerId = lastMessage.get("from") as String
 
-                            //set isLoggedUser to know if logged user typed last message or not
-                            chatParticipant.isLoggedUser = (lastMessageOwnerId == loggedUserId)
+                        //set isLoggedUser to know if logged user typed last message or not
+                        chatParticipant.isLoggedUser = (lastMessageOwnerId == loggedUserId)
 
-                            //get other chat participant id and use it to get his information
-                            val chatMembers = messageDocument.get("chat_members") as List<String>?
-                            chatMembers?.forEach { chatMemberId ->
-                                if (chatMemberId != loggedUserId) {
-                                    //get profile of other chat member
-                                    FirestoreUtil.firestoreInstance.collection("users")
-                                        .document(chatMemberId).get()
-                                        .addOnSuccessListener { chatMember ->
-                                            FirestoreUtil.firestoreInstance.collection("users")
-                                                .document(chatMemberId).get().addOnSuccessListener {
-                                                    val particpant = it.toObject(User::class.java)
-                                                    chatParticipant.particpant = particpant
-                                                    chatParticipantList.add(chatParticipant)
-                                                    chatParticipantsListMutableLiveData.value =
-                                                        chatParticipantList
+                        //get other chat participant id and use it to get his information
+                        val chatMembers = messageDocument.get("chat_members") as List<String>?
+                        chatMembers?.forEach { chatMemberId ->
+                            if (chatMemberId != loggedUserId) {
+                                //get profile of other chat member
+                                FirestoreUtil.firestoreInstance.collection("users")
+                                    .document(chatMemberId).get()
+                                    .addOnSuccessListener { chatMember ->
+                                        FirestoreUtil.firestoreInstance.collection("users")
+                                            .document(chatMemberId).get().addOnSuccessListener {
+                                                val particpant = it.toObject(User::class.java)
+                                                chatParticipant.particpant = particpant
+                                                chatParticipantList.add(chatParticipant)
+                                                chatParticipantsListMutableLiveData.value =
+                                                    chatParticipantList
 
-                                                }.addOnFailureListener {
+                                            }.addOnFailureListener {
 
-                                                }
-                                        }
-                                }
+                                            }
+                                    }
                             }
-
                         }
-                    } else {
-                        //user has no chats
-                        chatParticipantsListMutableLiveData.value = null
+
                     }
+                } else {
+                    //user has no chats
+                    chatParticipantsListMutableLiveData.value = null
                 }
+            }
             }
         return chatParticipantsListMutableLiveData
     }
 
     fun getUserData(): LiveData<User> {
+
         if (loggedUserMutableLiveData.value != null) return loggedUserMutableLiveData
 
-        FirestoreUtil.firestoreInstance.collection("users").document(AuthUtil.authUid)
+        FirestoreUtil.firestoreInstance.collection("users").document(AuthUtil.getAuthId())
             .addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
                 if (firebaseFirestoreException == null) {
                     val loggedUser = documentSnapshot?.toObject(User::class.java)

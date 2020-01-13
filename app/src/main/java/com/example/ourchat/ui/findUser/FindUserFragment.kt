@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
 import com.example.ourchat.Utils.CLICKED_USER
-import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.databinding.FindUserFragmentBinding
 import com.google.gson.Gson
 
@@ -39,36 +38,22 @@ class FindUserFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(FindUserViewModel::class.java)
         // get list of users
-        viewModel.loadUsers()
+        viewModel.loadUsers().observe(this, Observer { usersList ->
+            //hide loading
+            binding.loadingImage.visibility = View.GONE
 
-
-        //get list of all users
-        //todo don't load user if already friend
-        //todo add pagination to get users 20 by 20(coding in flow video)
-        viewModel.userDocuments.observe(this, Observer {
-            adapter.submitList(it)
-            adapter.userList = it
-            println("FindUserFragment.usercount:${it.size}")
-        })
-
-
-        //Show loading until list of all users is downloaded
-        viewModel.usersLoadState.observe(this, Observer {
-            when (it) {
-                LoadState.LOADING -> {
-                    binding.loadingLayout.visibility = View.VISIBLE
-                }
-
-                LoadState.SUCCESS -> {
-                    //bio updated successfully
-                    binding.loadingLayout.visibility = View.GONE
-                }
-
-                LoadState.FAILURE -> {
-                    binding.loadingLayout.visibility = View.GONE
-                }
+            if (usersList.isNullOrEmpty()) {
+                binding.noUsersLayout.visibility = View.VISIBLE
+            } else {
+                adapter.submitList(usersList)
+                adapter.userList = usersList
             }
+
+
         })
+
+
+
 
 
         //setup recycler
@@ -90,20 +75,6 @@ class FindUserFragment : Fragment() {
         binding.recycler.adapter = adapter
 
 
-        /*  //hide search view while scrolling
-          binding.recycler.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-              override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                  super.onScrollStateChanged(recyclerView, newState)
-                  if (newState == SCROLL_STATE_DRAGGING) {
-                      binding.searchView.visibility = View.GONE
-                  }
-                  if (newState == SCROLL_STATE_IDLE) {
-                      binding.searchView.visibility = View.VISIBLE
-                  }
-
-              }
-          })
-  */
 
     }
 
@@ -140,7 +111,7 @@ class FindUserFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
 
         R.id.action_search -> {
-            println("MainActivity.onOptionsItemSelected:${item.title}")
+
             true
         }
         else -> {
