@@ -1,5 +1,6 @@
 package com.example.ourchat.ui.chat
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -34,7 +35,8 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
                             val message = Message(
                                 message["from"].toString(),
                                 message["date"] as Long,
-                                message["text"].toString()
+                                message["text"].toString(),
+                                message["image_uri"].toString()
                             )
                             messagesList.add(message)
                         }
@@ -60,6 +62,64 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
             "date" to timeMilli,
             "from" to senderId,
             "text" to message
+        )
+
+
+        //so we don't create multiple nodes for same chat
+        messageCollectionReference.document("${senderId}_${receiverId}").get()
+            .addOnSuccessListener { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    //this node exists send your message
+                    messageCollectionReference.document("${senderId}_${receiverId}")
+                        .update("messages", FieldValue.arrayUnion(messageMap))
+
+                } else {
+                    //senderId_receiverId node doesn't exist check receiverId_senderId
+                    messageCollectionReference.document("${receiverId}_${senderId}").get()
+                        .addOnSuccessListener { documentSnapshot ->
+
+                            if (documentSnapshot.exists()) {
+                                messageCollectionReference.document("${receiverId}_${senderId}")
+                                    .update("messages", FieldValue.arrayUnion(messageMap))
+                            } else {
+                                //no previous chat history(senderId_receiverId & receiverId_senderId both don't exist)
+                                //so we create document senderId_receiverId then messages array then add messageMap to messages
+                                messageCollectionReference.document("${senderId}_${receiverId}")
+                                    .set(
+                                        mapOf("messages" to mutableListOf<Message>()),
+                                        SetOptions.merge()
+                                    ).addOnSuccessListener {
+                                        //this node exists send your message
+                                        messageCollectionReference.document("${senderId}_${receiverId}")
+                                            .update("messages", FieldValue.arrayUnion(messageMap))
+
+                                        //add ids of chat members
+                                        messageCollectionReference.document("${senderId}_${receiverId}")
+                                            .update(
+                                                "chat_members",
+                                                FieldValue.arrayUnion(senderId, receiverId)
+                                            )
+
+                                    }
+                            }
+                        }
+                }
+            }
+
+    }
+
+
+    fun sendImageMessage(chatImageUri: Uri) {
+
+
+        //create message map
+        val date = Date()
+        val timeMilli: Long = date.time
+
+        val messageMap = mapOf(
+            "date" to timeMilli,
+            "from" to senderId,
+            "image_uri" to chatImageUri.toString()
         )
 
 

@@ -15,9 +15,6 @@ import com.google.firebase.firestore.DocumentSnapshot
 import java.util.*
 
 
-
-
-
 @BindingAdapter("setRoundImage")
 fun setRoundImage(imageView: ImageView, item: User) {
     item.let {
@@ -40,9 +37,6 @@ fun formatDate(textView: TextView, date: Long) {
     textView.text = getTimeAgo(Date(date), textView.context)
 
 }
-
-
-
 
 
 /*
@@ -85,15 +79,31 @@ fun MaterialButton.setTheLoadingState(state: LoadState) {
 
 @BindingAdapter("setLastMessageText")
 fun setLastMessageText(textView: TextView, chatParticipant: ChatParticipant) {
-    //format last message to show like you:hello OR amr:Hi depending on sender
-    if (chatParticipant.isLoggedUser!!) {
+
+    //format last message to show like you:hello OR amr:Hi depending on sender OR you sent photo OR amr sent photo
+    //depending on sender and is it text or image message
+
+    if (chatParticipant.isLoggedUser!! && chatParticipant.lastMessage != "null") {
+        //format last message to show like you:hello
         textView.text = textView.context.getString(R.string.you, chatParticipant.lastMessage)
-    } else {
+    } else if (chatParticipant.isLoggedUser!! && chatParticipant.imageUri != "null") {
+        //format last message to show like you sent an image
+        textView.text = textView.context.getString(R.string.you_sent_image)
+    } else if (!chatParticipant.isLoggedUser!! && chatParticipant.lastMessage != "null") {
+        //format last message to show like amr:hello
         textView.text = textView.context.getString(
             R.string.other,
             chatParticipant.particpant!!.username!!.split("\\s".toRegex())[0],
             chatParticipant.lastMessage
         )
+    } else if (!chatParticipant.isLoggedUser!! && chatParticipant.imageUri != "null") {
+        //format last message to show like amr sent an image
+        textView.text = textView.context.getString(
+            R.string.other_image,
+            chatParticipant.particpant!!.username!!.split("\\s".toRegex())[0]
+        )
+    } else {
+
     }
 
 }
@@ -114,6 +124,21 @@ fun setRoundImageFromChatParticipant(imageView: ImageView, chatParticipant: Chat
 
 }
 
+
+@BindingAdapter("setChatImage")
+fun setChatImage(imageView: ImageView, imageUri: String) {
+
+    Glide.with(imageView.context)
+        .load(imageUri)
+        .apply(
+            RequestOptions()
+                .placeholder(R.drawable.loading_animation)
+                .error(R.drawable.anonymous_profile)
+
+        )
+        .into(imageView)
+
+}
 
 
 fun currentDate(): Date {

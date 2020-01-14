@@ -7,7 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -15,10 +17,15 @@ import androidx.lifecycle.ViewModelProviders
 import com.example.ourchat.R
 import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.Utils.LOGGED_USER
+import com.example.ourchat.Utils.eventbus_events.SelectGalleryImageEvent
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ChatFragmentBinding
+import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.google.gson.Gson
+import org.greenrobot.eventbus.EventBus
 
+
+const val SELECT_CHAT_IMAGE_REQUEST = 3
 
 class ChatFragment : Fragment() {
 
@@ -37,6 +44,7 @@ class ChatFragment : Fragment() {
     }
 
     private lateinit var viewModel: ChatViewModel
+    private lateinit var sharedViewModel: SharedViewModel
     private lateinit var viewModeldFactory: ChatViewModelFactory
 
     override fun onCreateView(
@@ -71,6 +79,7 @@ class ChatFragment : Fragment() {
             viewModel =
                 ViewModelProviders.of(this, viewModeldFactory).get(ChatViewModel::class.java)
         }
+        sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
         //Move layouts up when soft keyboard is shown
         activity!!.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
@@ -98,6 +107,32 @@ class ChatFragment : Fragment() {
 
         })
 
+
+        //open alert dialog with option on attachmentImageView click
+        binding.attachmentImageView.setOnClickListener {
+
+            val dialogBuilder = context?.let { it1 -> AlertDialog.Builder(it1) }
+            val inflater = this.layoutInflater
+            val dialogView: View = inflater.inflate(R.layout.attachment_layout, null)
+            dialogBuilder?.setView(dialogView)
+            val alertDialog = dialogBuilder?.create()
+            alertDialog?.show()
+
+            //handle select image button click
+            val sendPictureButton = dialogView.findViewById<View>(R.id.sendPictureButton) as Button
+            sendPictureButton.setOnClickListener {
+                EventBus.getDefault().post(SelectGalleryImageEvent(SELECT_CHAT_IMAGE_REQUEST))
+                alertDialog?.dismiss()
+            }
+
+
+        }
+
+        //chat image was uploaded now store the uri with the message
+        sharedViewModel.chatImageUriMutableLiveData.observe(this, Observer { chatImageUri ->
+            viewModel.sendImageMessage(chatImageUri)
+        })
+
     }
 
     private fun sendMessage() {
@@ -108,9 +143,6 @@ class ChatFragment : Fragment() {
         viewModel.sendMessage(binding.messageEditText.text.toString())
         binding.messageEditText.setText("")
     }
-
-
-    //todo override menu and add block option
 
 
 }

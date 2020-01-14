@@ -21,6 +21,7 @@ import com.example.ourchat.R
 import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.Utils.eventbus_events.KeyboardEvent
+import com.example.ourchat.Utils.eventbus_events.SelectGalleryImageEvent
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ProfileFragmentBinding
 import com.example.ourchat.ui.main.MainActivity
@@ -31,8 +32,10 @@ import kotlinx.android.synthetic.main.bottom_sheet_profile_picture.view.*
 import org.greenrobot.eventbus.EventBus
 import java.io.ByteArrayOutputStream
 
+const val SELECT_PROFILE_IMAGE_REQUEST = 2
 
 class ProfileFragment : Fragment() {
+
 
     private lateinit var mBottomSheetBehavior: BottomSheetBehavior<NestedScrollView>
     lateinit var binding: ProfileFragmentBinding
@@ -120,8 +123,7 @@ class ProfileFragment : Fragment() {
             mainActivity.dispatchTakePictureIntent()
         }
         binding.bottomSheet.galleryButton.setOnClickListener {
-            mainActivity = activity as MainActivity
-            mainActivity.selectFromGallery()
+            EventBus.getDefault().post(SelectGalleryImageEvent(SELECT_PROFILE_IMAGE_REQUEST))
         }
 
 

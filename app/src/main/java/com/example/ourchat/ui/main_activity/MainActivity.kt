@@ -23,8 +23,11 @@ import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.Utils.eventbus_events.CallbackManagerEvent
 import com.example.ourchat.Utils.eventbus_events.ConnectionChangeEvent
 import com.example.ourchat.Utils.eventbus_events.KeyboardEvent
+import com.example.ourchat.Utils.eventbus_events.SelectGalleryImageEvent
 import com.example.ourchat.databinding.ActivityMainBinding
+import com.example.ourchat.ui.chat.SELECT_CHAT_IMAGE_REQUEST
 import com.example.ourchat.ui.main_activity.SharedViewModel
+import com.example.ourchat.ui.profile.SELECT_PROFILE_IMAGE_REQUEST
 import com.facebook.CallbackManager
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.issue_layout.view.*
@@ -38,7 +41,6 @@ class MainActivity : AppCompatActivity() {
 
     val REQUEST_IMAGE_CAPTURE = 1
     var isActivityRecreated = false
-    private val PICK_IMAGE_REQUEST = 2
     lateinit var callbackManager: CallbackManager
     private lateinit var sharedViewModel: SharedViewModel
     private lateinit var binding: ActivityMainBinding
@@ -119,6 +121,11 @@ class MainActivity : AppCompatActivity() {
         callbackManager = event.callbackManager
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onSelectGalleryImageEvent(event: SelectGalleryImageEvent) {
+        selectFromGallery(event.REQUEST_CODE)
+    }
+
 
     fun dispatchTakePictureIntent() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
@@ -129,11 +136,11 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun selectFromGallery() {
+    fun selectFromGallery(requestCode: Int) {
         var intent = Intent()
         intent.type = "image/*"
         intent.action = Intent.ACTION_GET_CONTENT
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST)
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), requestCode)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -144,12 +151,22 @@ class MainActivity : AppCompatActivity() {
             //update live data so profile fragment will show result image
             sharedViewModel.imageBitmap.postValue(imageBitmap)
         }
-        if (data != null && resultCode == RESULT_OK) {
+        if (requestCode == SELECT_PROFILE_IMAGE_REQUEST && data != null && resultCode == RESULT_OK) {
             //update live data so profile fragment will show result image
             sharedViewModel.galleryImageUri.postValue(data.data)
             //upload image to firebase storage
-            sharedViewModel.uploadImageByUri(data.data)
+            sharedViewModel.uploadProfileImageByUri(data.data)
         }
+
+
+        if (requestCode == SELECT_CHAT_IMAGE_REQUEST && data != null && resultCode == RESULT_OK) {
+
+            //upload image to firebase storage
+            sharedViewModel.uploadChatImageByUri(data.data)
+        }
+
+
+
 
         // Pass the activity result back to the Facebook SDK
         callbackManager.onActivityResult(requestCode, resultCode, data)

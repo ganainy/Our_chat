@@ -14,12 +14,13 @@ import com.google.firebase.storage.StorageReference
 class SharedViewModel : ViewModel() {
 
     val loadStateMutableLiveData = MutableLiveData<LoadState>()
-    val uploadImageLoadStateMutableLiveData = MutableLiveData<LoadState>()
     private var friendsListMutableLiveData =
         MutableLiveData<List<com.example.ourchat.data.model.User>>()
     private lateinit var mStorageRef: StorageReference
     private var usersCollectionRef: CollectionReference =
         FirestoreUtil.firestoreInstance.collection("users")
+    val uploadImageLoadStateMutableLiveData = MutableLiveData<LoadState>()
+    val chatImageUriMutableLiveData = MutableLiveData<Uri>()
 
 
 
@@ -67,7 +68,7 @@ class SharedViewModel : ViewModel() {
     }
 
 
-    fun uploadImageByUri(data: Uri?) {
+    fun uploadProfileImageByUri(data: Uri?) {
         //show upload ui
         uploadImageLoadStateMutableLiveData.value = LoadState.LOADING
 
@@ -90,6 +91,32 @@ class SharedViewModel : ViewModel() {
         }
 
     }
+
+
+    fun uploadChatImageByUri(data: Uri?) {
+
+        mStorageRef = StorageUtil.storageInstance.reference
+        val ref = mStorageRef.child("chat_pictures/" + data?.path)
+        var uploadTask = data?.let { ref.putFile(it) }
+
+        uploadTask?.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                //error
+            }
+            ref.downloadUrl
+        }?.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val downloadUri = task.result
+                //todo save download uri with message
+                chatImageUriMutableLiveData.value = downloadUri
+
+            } else {
+                //error
+            }
+        }
+
+    }
+
 
 
     fun loadFriends(loggedUser: User): LiveData<List<User>> {

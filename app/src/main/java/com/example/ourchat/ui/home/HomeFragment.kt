@@ -76,6 +76,8 @@ class HomeFragment : Fragment() {
             prefsEditor.putString("loggedUser", json)
             prefsEditor.apply()
 
+
+            //todo remove this line
             activity?.title = loggedUser.username
 
             //show notification badge if there is incoming requests

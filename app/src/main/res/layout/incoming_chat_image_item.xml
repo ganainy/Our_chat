@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
@@ -20,41 +18,43 @@
             type="Integer" />
     </data>
 
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_marginStart="100dp"
         android:layout_height="wrap_content"
-        android:onClick="@{() -> clickListener.onMessageClick(position)}">
-
+        android:layout_marginEnd="100dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:background="@drawable/sent_bubble"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:background="@drawable/incoming_bubble"
+            android:onClick="@{() -> clickListener.onMessageClick(position)}"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
 
-            <TextView
+            <ImageView
                 android:id="@+id/image_sent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:gravity="start"
-                android:lineSpacingExtra="2dp"
+                android:minWidth="200dp"
+                android:minHeight="200dp"
                 android:paddingLeft="8dp"
                 android:paddingTop="4dp"
                 android:paddingRight="8dp"
                 android:paddingBottom="10dp"
-                android:text="@{message.text}"
                 android:textColor="@color/primaryTextColor"
                 android:textSize="14sp"
                 app:layout_constraintBottom_toTopOf="@+id/dateTextView"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:text="hasfasihasfasihasfasi" />
+                app:setChatImage="@{message.imagUri}"
+                tools:src="@color/grey" />
+
 
             <TextView
                 android:id="@+id/dateTextView"
@@ -69,7 +69,7 @@
                 tools:text="14:16" />
 
             <TextView
-                android:layout_width="16dp"
+                android:layout_width="20dp"
                 android:layout_height="0dp"
                 app:layout_constraintEnd_toStartOf="@+id/dateTextView"
                 app:layout_constraintStart_toStartOf="parent"
@@ -79,7 +79,7 @@
                 android:id="@+id/stateImageView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="8dp"
                 android:layout_marginBottom="4dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

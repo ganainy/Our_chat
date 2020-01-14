@@ -99,8 +99,9 @@ class HomeViewModel : ViewModel() {
                         val messagesList =
                             messageDocument.get("messages") as List<HashMap<String, Any>>?
                         val lastMessage = messagesList?.get(messagesList.size - 1)
-                        chatParticipant.lastMessage = lastMessage?.get("text") as String
-                        chatParticipant.lastMessageDate = lastMessage.get("date") as Long
+                        chatParticipant.lastMessage = lastMessage?.get("text") as String?
+                        chatParticipant.imageUri = lastMessage?.get("image_uri") as String?
+                        chatParticipant.lastMessageDate = lastMessage?.get("date") as Long
                         val lastMessageOwnerId = lastMessage.get("from") as String
 
                         //set isLoggedUser to know if logged user typed last message or not

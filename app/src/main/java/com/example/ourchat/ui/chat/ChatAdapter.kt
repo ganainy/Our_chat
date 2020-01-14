@@ -24,7 +24,9 @@ import com.example.ourchat.Utils.AuthUtil
 
 
 import com.example.ourchat.data.model.Message
+import com.example.ourchat.databinding.IncomingChatImageItemBinding
 import com.example.ourchat.databinding.IncomingMessageItemBinding
+import com.example.ourchat.databinding.SentChatImageItemBinding
 import com.example.ourchat.databinding.SentMessageItemBinding
 
 class ChatAdapter(private val context: Context?, private val clickListener: MessageClickListener) :
@@ -34,12 +36,16 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     companion object {
         private const val TYPE_SENT_MESSAGE = 0
         private const val TYPE_RECEIVED_MESSAGE = 1
+        private const val TYPE_SENT_IMAGE_MESSAGE = 2
+        private const val TYPE_RECEIVED_IMAGE_MESSAGE = 3
     }
 
     fun setDataSource(mMessageList: List<Message>) {
         messageList = mMessageList
 
     }
+
+    //todo show view holder while image is uploading after selection , fix dialog layout , send audio record and files ,fix network callback, fix setLastMessageText
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
@@ -48,6 +54,12 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             }
             TYPE_RECEIVED_MESSAGE -> {
                 ReceivedMessageViewHolder.from(parent)
+            }
+            TYPE_SENT_IMAGE_MESSAGE -> {
+                SentImageMessageViewHolder.from(parent)
+            }
+            TYPE_RECEIVED_IMAGE_MESSAGE -> {
+                ReceivedImageMessageViewHolder.from(parent)
             }
             else -> throw IllegalArgumentException("Invalid view type")
         }
@@ -63,19 +75,34 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             is ReceivedMessageViewHolder -> {
                 holder.bind(clickListener, messageList[position])
             }
+            is SentImageMessageViewHolder -> {
+                holder.bind(clickListener, messageList[position])
+            }
+            is ReceivedImageMessageViewHolder -> {
+                holder.bind(clickListener, messageList[position])
+            }
             else -> throw IllegalArgumentException("Invalid ViewHolder type")
         }
     }
 
     override fun getItemViewType(position: Int): Int {
-        return when (messageList[position].from) {
-            AuthUtil.getAuthId() -> {
-                TYPE_SENT_MESSAGE
-            }
-            else -> {
-                TYPE_RECEIVED_MESSAGE
-            }
+
+        if (messageList[position].from == AuthUtil.getAuthId() && messageList[position].text != "null") {
+            println("ChatAdapter.getItemViewType:${position}:sent message")
+            return TYPE_SENT_MESSAGE
+        } else if (messageList[position].from != AuthUtil.getAuthId() && messageList[position].text != "null") {
+            println("ChatAdapter.getItemViewType:${position}:received message")
+            return TYPE_RECEIVED_MESSAGE
+        } else if (messageList[position].from == AuthUtil.getAuthId() && messageList[position].imagUri != "null") {
+            println("ChatAdapter.getItemViewType:${position}:sent image")
+            return TYPE_SENT_IMAGE_MESSAGE
+        } else if (messageList[position].from != AuthUtil.getAuthId() && messageList[position].imagUri != "null") {
+            println("ChatAdapter.getItemViewType:${position}:received image")
+            return TYPE_RECEIVED_IMAGE_MESSAGE
+        } else {
+            throw IllegalArgumentException("Invalid ItemViewType")
         }
+
     }
 
 
@@ -122,6 +149,51 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             }
         }
     }
+
+    //----------------SentImageMessageViewHolder------------
+    class SentImageMessageViewHolder private constructor(val binding: SentChatImageItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(clickListener: MessageClickListener, item: Message) {
+            binding.message = item
+            binding.clickListener = clickListener
+            binding.position = adapterPosition
+            binding.executePendingBindings()
+        }
+
+        companion object {
+            fun from(parent: ViewGroup): SentImageMessageViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = SentChatImageItemBinding.inflate(layoutInflater, parent, false)
+
+                return SentImageMessageViewHolder(binding)
+            }
+        }
+    }
+
+
+    //----------------ReceivedImageMessageViewHolder------------
+    class ReceivedImageMessageViewHolder private constructor(val binding: IncomingChatImageItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(clickListener: MessageClickListener, item: Message) {
+            binding.message = item
+            binding.clickListener = clickListener
+            binding.position = adapterPosition
+            binding.executePendingBindings()//
+        }
+
+        companion object {
+            fun from(parent: ViewGroup): ReceivedImageMessageViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = IncomingChatImageItemBinding.inflate(layoutInflater, parent, false)
+
+                return ReceivedImageMessageViewHolder(binding)
+            }
+        }
+    }
+
+
 
 
 }
