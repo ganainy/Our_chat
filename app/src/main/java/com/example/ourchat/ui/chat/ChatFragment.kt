@@ -100,7 +100,7 @@ class ChatFragment : Fragment() {
         //pass messages list for recycler to show
         viewModel.loadMessages().observe(this, Observer { messagesList ->
 
-            adapter.setDataSource(messagesList)
+            adapter.submitList(messagesList)
             binding.recycler.adapter = adapter
             //scroll to last items in recycler (recent messages)
             binding.recycler.scrollToPosition(messagesList.size - 1)
@@ -130,7 +130,7 @@ class ChatFragment : Fragment() {
 
         //chat image was uploaded now store the uri with the message
         sharedViewModel.chatImageUriMutableLiveData.observe(this, Observer { chatImageUri ->
-            viewModel.sendImageMessage(chatImageUri)
+            viewModel.sendMessage(null, chatImageUri.toString(), 1)
         })
 
     }
@@ -140,7 +140,7 @@ class ChatFragment : Fragment() {
             Toast.makeText(context, getString(R.string.empty_message), Toast.LENGTH_LONG).show()
             return
         }
-        viewModel.sendMessage(binding.messageEditText.text.toString())
+        viewModel.sendMessage(binding.messageEditText.text.toString(), null, 0)
         binding.messageEditText.setText("")
     }
 

@@ -16,13 +16,14 @@
 
 package com.example.ourchat.ui.chat
 
+
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ourchat.Utils.AuthUtil
-
-
 import com.example.ourchat.data.model.Message
 import com.example.ourchat.databinding.IncomingChatImageItemBinding
 import com.example.ourchat.databinding.IncomingMessageItemBinding
@@ -30,8 +31,8 @@ import com.example.ourchat.databinding.SentChatImageItemBinding
 import com.example.ourchat.databinding.SentMessageItemBinding
 
 class ChatAdapter(private val context: Context?, private val clickListener: MessageClickListener) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    private lateinit var messageList: List<Message>
+    ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallbackMessages()) {
+
 
     companion object {
         private const val TYPE_SENT_MESSAGE = 0
@@ -40,10 +41,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
         private const val TYPE_RECEIVED_IMAGE_MESSAGE = 3
     }
 
-    fun setDataSource(mMessageList: List<Message>) {
-        messageList = mMessageList
 
-    }
 
     //todo show view holder while image is uploading after selection , fix dialog layout , send audio record and files ,fix network callback, fix setLastMessageText
 
@@ -65,21 +63,21 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
         }
     }
 
-    override fun getItemCount() = messageList.size
+
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
             is SentMessageViewHolder -> {
-                holder.bind(clickListener, messageList[position])
+                holder.bind(clickListener, getItem(position))
             }
             is ReceivedMessageViewHolder -> {
-                holder.bind(clickListener, messageList[position])
+                holder.bind(clickListener, getItem(position))
             }
             is SentImageMessageViewHolder -> {
-                holder.bind(clickListener, messageList[position])
+                holder.bind(clickListener, getItem(position))
             }
             is ReceivedImageMessageViewHolder -> {
-                holder.bind(clickListener, messageList[position])
+                holder.bind(clickListener, getItem(position))
             }
             else -> throw IllegalArgumentException("Invalid ViewHolder type")
         }
@@ -87,16 +85,18 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
 
     override fun getItemViewType(position: Int): Int {
 
-        if (messageList[position].from == AuthUtil.getAuthId() && messageList[position].text != "null") {
+        val currentMessage = getItem(position)
+
+        if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 0L) {
             println("ChatAdapter.getItemViewType:${position}:sent message")
             return TYPE_SENT_MESSAGE
-        } else if (messageList[position].from != AuthUtil.getAuthId() && messageList[position].text != "null") {
+        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 0L) {
             println("ChatAdapter.getItemViewType:${position}:received message")
             return TYPE_RECEIVED_MESSAGE
-        } else if (messageList[position].from == AuthUtil.getAuthId() && messageList[position].imagUri != "null") {
+        } else if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 1L) {
             println("ChatAdapter.getItemViewType:${position}:sent image")
             return TYPE_SENT_IMAGE_MESSAGE
-        } else if (messageList[position].from != AuthUtil.getAuthId() && messageList[position].imagUri != "null") {
+        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 1L) {
             println("ChatAdapter.getItemViewType:${position}:received image")
             return TYPE_RECEIVED_IMAGE_MESSAGE
         } else {
@@ -203,6 +203,15 @@ interface MessageClickListener {
 }
 
 
+class DiffCallbackMessages : DiffUtil.ItemCallback<Message>() {
+    override fun areItemsTheSame(oldItem: Message, newItem: Message): Boolean {
+        return oldItem.date == newItem.date
+    }
+
+    override fun areContentsTheSame(oldItem: Message, newItem: Message): Boolean {
+        return oldItem == newItem
+    }
+}
 
 
 

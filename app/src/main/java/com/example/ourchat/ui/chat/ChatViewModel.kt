@@ -1,6 +1,5 @@
 package com.example.ourchat.ui.chat
 
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -36,7 +35,8 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
                                 message["from"].toString(),
                                 message["date"] as Long,
                                 message["text"].toString(),
-                                message["image_uri"].toString()
+                                message["image_uri"].toString(),
+                                message["type"] as Long?
                             )
                             messagesList.add(message)
                         }
@@ -51,18 +51,42 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
     }
 
 
-    fun sendMessage(message: String) {
+    fun sendMessage(message: String?, imageUri: String?, type: Long) {
+        /**
+         * 0-> text
+         * 1-> photo
+         * 2-> audio
+         * 3-> file
+         * */
 
-
-        //create message map
+        //create date
         val date = Date()
         val timeMilli: Long = date.time
 
-        val messageMap = mapOf(
+//create message hashmap depending on message type
+
+        val messageMap = when (type) {
+
+            0L -> {
+                mapOf(
             "date" to timeMilli,
             "from" to senderId,
-            "text" to message
+                    "text" to message,
+                    "type" to 0
+                )
+            }
+            1L -> {
+                mapOf(
+                    "date" to timeMilli,
+                    "from" to senderId,
+                    "image_uri" to imageUri,
+                    "type" to 1
         )
+            }
+            else -> throw java.lang.Exception("uknown type")
+        }
+
+
 
 
         //so we don't create multiple nodes for same chat
@@ -109,60 +133,60 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
     }
 
 
-    fun sendImageMessage(chatImageUri: Uri) {
+    /* fun sendImageMessage(chatImageUri: Uri) {
 
 
-        //create message map
-        val date = Date()
-        val timeMilli: Long = date.time
+         //create message map
+         val date = Date()
+         val timeMilli: Long = date.time
 
-        val messageMap = mapOf(
-            "date" to timeMilli,
-            "from" to senderId,
-            "image_uri" to chatImageUri.toString()
-        )
+         val messageMap = mapOf(
+             "date" to timeMilli,
+             "from" to senderId,
+             "image_uri" to chatImageUri.toString()
+         )
 
 
-        //so we don't create multiple nodes for same chat
-        messageCollectionReference.document("${senderId}_${receiverId}").get()
-            .addOnSuccessListener { documentSnapshot ->
-                if (documentSnapshot.exists()) {
-                    //this node exists send your message
-                    messageCollectionReference.document("${senderId}_${receiverId}")
-                        .update("messages", FieldValue.arrayUnion(messageMap))
+         //so we don't create multiple nodes for same chat
+         messageCollectionReference.document("${senderId}_${receiverId}").get()
+             .addOnSuccessListener { documentSnapshot ->
+                 if (documentSnapshot.exists()) {
+                     //this node exists send your message
+                     messageCollectionReference.document("${senderId}_${receiverId}")
+                         .update("messages", FieldValue.arrayUnion(messageMap))
 
-                } else {
-                    //senderId_receiverId node doesn't exist check receiverId_senderId
-                    messageCollectionReference.document("${receiverId}_${senderId}").get()
-                        .addOnSuccessListener { documentSnapshot ->
+                 } else {
+                     //senderId_receiverId node doesn't exist check receiverId_senderId
+                     messageCollectionReference.document("${receiverId}_${senderId}").get()
+                         .addOnSuccessListener { documentSnapshot ->
 
-                            if (documentSnapshot.exists()) {
-                                messageCollectionReference.document("${receiverId}_${senderId}")
-                                    .update("messages", FieldValue.arrayUnion(messageMap))
-                            } else {
-                                //no previous chat history(senderId_receiverId & receiverId_senderId both don't exist)
-                                //so we create document senderId_receiverId then messages array then add messageMap to messages
-                                messageCollectionReference.document("${senderId}_${receiverId}")
-                                    .set(
-                                        mapOf("messages" to mutableListOf<Message>()),
-                                        SetOptions.merge()
-                                    ).addOnSuccessListener {
-                                        //this node exists send your message
-                                        messageCollectionReference.document("${senderId}_${receiverId}")
-                                            .update("messages", FieldValue.arrayUnion(messageMap))
+                             if (documentSnapshot.exists()) {
+                                 messageCollectionReference.document("${receiverId}_${senderId}")
+                                     .update("messages", FieldValue.arrayUnion(messageMap))
+                             } else {
+                                 //no previous chat history(senderId_receiverId & receiverId_senderId both don't exist)
+                                 //so we create document senderId_receiverId then messages array then add messageMap to messages
+                                 messageCollectionReference.document("${senderId}_${receiverId}")
+                                     .set(
+                                         mapOf("messages" to mutableListOf<Message>()),
+                                         SetOptions.merge()
+                                     ).addOnSuccessListener {
+                                         //this node exists send your message
+                                         messageCollectionReference.document("${senderId}_${receiverId}")
+                                             .update("messages", FieldValue.arrayUnion(messageMap))
 
-                                        //add ids of chat members
-                                        messageCollectionReference.document("${senderId}_${receiverId}")
-                                            .update(
-                                                "chat_members",
-                                                FieldValue.arrayUnion(senderId, receiverId)
-                                            )
+                                         //add ids of chat members
+                                         messageCollectionReference.document("${senderId}_${receiverId}")
+                                             .update(
+                                                 "chat_members",
+                                                 FieldValue.arrayUnion(senderId, receiverId)
+                                             )
 
-                                    }
-                            }
-                        }
-                }
-            }
+                                     }
+                             }
+                         }
+                 }
+             }
 
-    }
+     }*/
 }

@@ -83,20 +83,20 @@ fun setLastMessageText(textView: TextView, chatParticipant: ChatParticipant) {
     //format last message to show like you:hello OR amr:Hi depending on sender OR you sent photo OR amr sent photo
     //depending on sender and is it text or image message
 
-    if (chatParticipant.isLoggedUser!! && chatParticipant.lastMessage != "null") {
+    if (chatParticipant.isLoggedUser!! && chatParticipant.lastMessageType == 0L) {
         //format last message to show like you:hello
         textView.text = textView.context.getString(R.string.you, chatParticipant.lastMessage)
-    } else if (chatParticipant.isLoggedUser!! && chatParticipant.imageUri != "null") {
+    } else if (chatParticipant.isLoggedUser!! && chatParticipant.lastMessageType == 1L) {
         //format last message to show like you sent an image
         textView.text = textView.context.getString(R.string.you_sent_image)
-    } else if (!chatParticipant.isLoggedUser!! && chatParticipant.lastMessage != "null") {
+    } else if (!chatParticipant.isLoggedUser!! && chatParticipant.lastMessageType == 0L) {
         //format last message to show like amr:hello
         textView.text = textView.context.getString(
             R.string.other,
             chatParticipant.particpant!!.username!!.split("\\s".toRegex())[0],
             chatParticipant.lastMessage
         )
-    } else if (!chatParticipant.isLoggedUser!! && chatParticipant.imageUri != "null") {
+    } else if (!chatParticipant.isLoggedUser!! && chatParticipant.lastMessageType == 1L) {
         //format last message to show like amr sent an image
         textView.text = textView.context.getString(
             R.string.other_image,
