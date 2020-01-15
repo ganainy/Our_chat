@@ -13,6 +13,7 @@ import com.google.firebase.storage.StorageReference
 
 class SharedViewModel : ViewModel() {
 
+
     val loadStateMutableLiveData = MutableLiveData<LoadState>()
     private var friendsListMutableLiveData =
         MutableLiveData<List<com.example.ourchat.data.model.User>>()
@@ -20,7 +21,8 @@ class SharedViewModel : ViewModel() {
     private var usersCollectionRef: CollectionReference =
         FirestoreUtil.firestoreInstance.collection("users")
     val uploadImageLoadStateMutableLiveData = MutableLiveData<LoadState>()
-    val chatImageUriMutableLiveData = MutableLiveData<Uri>()
+    val chatImageDownloadUriMutableLiveData = MutableLiveData<Uri>()
+    val chatImageMutableLiveData = MutableLiveData<Uri>()
 
 
 
@@ -107,8 +109,7 @@ class SharedViewModel : ViewModel() {
         }?.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val downloadUri = task.result
-                //todo save download uri with message
-                chatImageUriMutableLiveData.value = downloadUri
+                chatImageDownloadUriMutableLiveData.value = downloadUri
 
             } else {
                 //error

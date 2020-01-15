@@ -66,5 +66,7 @@
     <string name="other_image">%1$s sent an image</string>
     <string name="no_users_to_add_yet">No users to add yet.</string>
     <string name="you_sent_image">You sent an image</string>
+    <string name="send_file">Send file</string>
+    <string name="send_picture">Send picture</string>
 
 </resources>

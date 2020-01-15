@@ -133,8 +133,7 @@ fun setChatImage(imageView: ImageView, imageUri: String) {
         .apply(
             RequestOptions()
                 .placeholder(R.drawable.loading_animation)
-                .error(R.drawable.anonymous_profile)
-
+                .error(R.drawable.ic_poor_connection_black_24dp)
         )
         .into(imageView)
 

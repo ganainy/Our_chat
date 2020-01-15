@@ -15,7 +15,7 @@ open class MyApplication : Application() {
 
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
     private lateinit var connectivityManager: ConnectivityManager
-    private var appJustStarted = true
+
 
     override fun onCreate() {
         super.onCreate()
@@ -26,27 +26,28 @@ open class MyApplication : Application() {
             }
 
             override fun onActivityResumed(activity: Activity) {
-                registerNetworkCallback()
+
             }
 
             override fun onActivityStarted(activity: Activity) {
             }
 
             override fun onActivityDestroyed(activity: Activity) {
-            }
-
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
-            }
-
-            override fun onActivityStopped(activity: Activity) {
                 if (::networkCallback.isInitialized) {
                     connectivityManager.unregisterNetworkCallback(networkCallback)
 
                 }
             }
 
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+            }
 
+            override fun onActivityStopped(activity: Activity) {
+
+            }
+
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                registerNetworkCallback()
             }
 
 
@@ -70,20 +71,7 @@ open class MyApplication : Application() {
 
             }
 
-            override fun onAvailable(network: Network) {
-                super.onAvailable(network)
-                if (appJustStarted) {
-                    appJustStarted = false
-                } else {
-                    println("MyApplication.onAvailable:")
-                    EventBus.getDefault().post(
-                        ConnectionChangeEvent(
-                            "Network is restored."
-                        )
-                    )
-                }
 
-            }
 
         }
         connectivityManager.registerNetworkCallback(

@@ -42,8 +42,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     }
 
 
-
-    //todo show view holder while image is uploading after selection , fix dialog layout , send audio record and files ,fix network callback, fix setLastMessageText
+    //todo show view holder while image is uploading after selection , fix dialog layout , send audio record and files ,fix network callback
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {

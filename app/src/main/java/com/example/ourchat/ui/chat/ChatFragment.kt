@@ -15,20 +15,25 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.example.ourchat.R
+import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.Utils.LOGGED_USER
+import com.example.ourchat.Utils.eventbus_events.SelectFileEvent
 import com.example.ourchat.Utils.eventbus_events.SelectGalleryImageEvent
+import com.example.ourchat.data.model.Message
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ChatFragmentBinding
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.google.gson.Gson
 import org.greenrobot.eventbus.EventBus
+import java.util.*
 
 
 const val SELECT_CHAT_IMAGE_REQUEST = 3
 
 class ChatFragment : Fragment() {
 
+    private var messageList = mutableListOf<Message>()
     lateinit var binding: ChatFragmentBinding
     val adapter: ChatAdapter by lazy {
         ChatAdapter(context, object : MessageClickListener {
@@ -98,12 +103,12 @@ class ChatFragment : Fragment() {
         }
 
         //pass messages list for recycler to show
-        viewModel.loadMessages().observe(this, Observer { messagesList ->
-
-            adapter.submitList(messagesList)
+        viewModel.loadMessages().observe(this, Observer { mMessagesList ->
+            messageList = mMessagesList as MutableList<Message>
+            adapter.submitList(mMessagesList)
             binding.recycler.adapter = adapter
             //scroll to last items in recycler (recent messages)
-            binding.recycler.scrollToPosition(messagesList.size - 1)
+            binding.recycler.scrollToPosition(mMessagesList.size - 1)
 
         })
 
@@ -124,13 +129,28 @@ class ChatFragment : Fragment() {
                 EventBus.getDefault().post(SelectGalleryImageEvent(SELECT_CHAT_IMAGE_REQUEST))
                 alertDialog?.dismiss()
             }
+            //handle select image button click
+            val sendFileButton = dialogView.findViewById<View>(R.id.sendFileButton) as Button
+            sendFileButton.setOnClickListener {
+                EventBus.getDefault().post(SelectFileEvent())
+                alertDialog?.dismiss()
+            }
 
 
         }
 
         //chat image was uploaded now store the uri with the message
-        sharedViewModel.chatImageUriMutableLiveData.observe(this, Observer { chatImageUri ->
+        sharedViewModel.chatImageDownloadUriMutableLiveData.observe(this, Observer { chatImageUri ->
             viewModel.sendMessage(null, chatImageUri.toString(), 1)
+        })
+
+
+        //result on gallery select image , show in recycler until image uploaded
+        sharedViewModel.chatImageMutableLiveData.observe(this, Observer {
+            messageList.add(Message(AuthUtil.getAuthId(), Date().time, null, it.toString(), 1))
+            adapter.submitList(messageList)
+            adapter.notifyItemInserted(messageList.size - 1)
+            binding.recycler.scrollToPosition(messageList.size - 1)
         })
 
     }

@@ -1,6 +1,7 @@
 package com.example.ourchat.ui.main
 
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -8,6 +9,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
@@ -20,10 +22,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.ourchat.R
 import com.example.ourchat.Utils.ErrorMessage
 import com.example.ourchat.Utils.LoadState
-import com.example.ourchat.Utils.eventbus_events.CallbackManagerEvent
-import com.example.ourchat.Utils.eventbus_events.ConnectionChangeEvent
-import com.example.ourchat.Utils.eventbus_events.KeyboardEvent
-import com.example.ourchat.Utils.eventbus_events.SelectGalleryImageEvent
+import com.example.ourchat.Utils.eventbus_events.*
 import com.example.ourchat.databinding.ActivityMainBinding
 import com.example.ourchat.ui.chat.SELECT_CHAT_IMAGE_REQUEST
 import com.example.ourchat.ui.main_activity.SharedViewModel
@@ -36,10 +35,12 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
 
+const val REQUES_CHOOSE_FILE = 4
+const val REQUEST_IMAGE_CAPTURE = 1
+
 class MainActivity : AppCompatActivity() {
 
 
-    val REQUEST_IMAGE_CAPTURE = 1
     var isActivityRecreated = false
     lateinit var callbackManager: CallbackManager
     private lateinit var sharedViewModel: SharedViewModel
@@ -126,6 +127,11 @@ class MainActivity : AppCompatActivity() {
         selectFromGallery(event.REQUEST_CODE)
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onSelectFileEvent(event: SelectFileEvent) {
+        openFileChooser()
+    }
+
 
     fun dispatchTakePictureIntent() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
@@ -163,10 +169,14 @@ class MainActivity : AppCompatActivity() {
 
             //upload image to firebase storage
             sharedViewModel.uploadChatImageByUri(data.data)
+            sharedViewModel.chatImageMutableLiveData.value = data.data
         }
 
-
-
+        if (requestCode == REQUES_CHOOSE_FILE && data != null && resultCode == RESULT_OK) {
+            val filePath = data.dataString
+            println("MainActivity.onActivityResult:${filePath}")
+            //todo we have file uri , upload and show in chat and make it clickable
+        }
 
         // Pass the activity result back to the Facebook SDK
         callbackManager.onActivityResult(requestCode, resultCode, data)
@@ -193,6 +203,22 @@ class MainActivity : AppCompatActivity() {
         imm?.hideSoftInputFromWindow(binding.toolbar.windowToken, 0)
 
     }
+
+    fun openFileChooser() {
+        val i = Intent(Intent.ACTION_GET_CONTENT)
+        i.type = "*/*"
+        try {
+            startActivityForResult(i, REQUES_CHOOSE_FILE)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(
+                applicationContext,
+                "No suitable file manager was found on this debive",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+
+    }
+
 
 }
 
