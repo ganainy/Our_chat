@@ -173,9 +173,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (requestCode == REQUES_CHOOSE_FILE && data != null && resultCode == RESULT_OK) {
-            val filePath = data.dataString
+            val filePath = data.data
             println("MainActivity.onActivityResult:${filePath}")
             //todo we have file uri , upload and show in chat and make it clickable
+            sharedViewModel.uploadFile(filePath)
         }
 
         // Pass the activity result back to the Facebook SDK

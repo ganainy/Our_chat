@@ -22,6 +22,8 @@ class SharedViewModel : ViewModel() {
         FirestoreUtil.firestoreInstance.collection("users")
     val uploadImageLoadStateMutableLiveData = MutableLiveData<LoadState>()
     val chatImageDownloadUriMutableLiveData = MutableLiveData<Uri>()
+    val chatFileMapMutableLiveData = MutableLiveData<Map<String, Any?>>()
+
     val chatImageMutableLiveData = MutableLiveData<Uri>()
 
 
@@ -95,24 +97,31 @@ class SharedViewModel : ViewModel() {
     }
 
 
-    fun uploadChatImageByUri(data: Uri?) {
+    fun uploadFile(data: Uri?) {
 
         mStorageRef = StorageUtil.storageInstance.reference
-        val ref = mStorageRef.child("chat_pictures/" + data?.path)
+        val ref = mStorageRef.child("chat_files/" + data?.path)
         var uploadTask = data?.let { ref.putFile(it) }
 
         uploadTask?.continueWithTask { task ->
             if (!task.isSuccessful) {
                 //error
+                println("SharedViewModel.uploadChatImageByUri:error1 ${task.exception?.message}")
             }
             ref.downloadUrl
         }?.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val downloadUri = task.result
-                chatImageDownloadUriMutableLiveData.value = downloadUri
+                println("SharedViewModel.uploadChatImageByUri:on complete")
+                chatFileMapMutableLiveData.value = mapOf<String, Any?>(
+                    "downloadUri" to downloadUri,
+                    "fileName" to data?.lastPathSegment
+                )
+
 
             } else {
                 //error
+                println("SharedViewModel.uploadChatImageByUri:error2 ${task.exception?.message}")
             }
         }
 
@@ -145,6 +154,27 @@ class SharedViewModel : ViewModel() {
     //used by facebook login fragment to show loading layout from main activity
     fun showLoadState(mLoadState: LoadState) {
         loadStateMutableLiveData.value = mLoadState
+    }
+
+    fun uploadChatImageByUri(data: Uri?) {
+        mStorageRef = StorageUtil.storageInstance.reference
+        val ref = mStorageRef.child("chat_pictures/" + data?.path)
+        var uploadTask = data?.let { ref.putFile(it) }
+
+        uploadTask?.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                //error
+            }
+            ref.downloadUrl
+        }?.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val downloadUri = task.result
+                chatImageDownloadUriMutableLiveData.value = downloadUri
+
+            } else {
+                //error
+            }
+        }
     }
 
     //used to pass images from main activity(on activity result) to profile fragment to show new choosen picture

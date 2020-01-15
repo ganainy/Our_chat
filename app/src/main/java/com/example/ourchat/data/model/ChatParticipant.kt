@@ -7,7 +7,9 @@ data class ChatParticipant(
     var lastMessageDate: Long? = null,
     var isLoggedUser: Boolean? = null,
     var imageUri: String? = null,
-    var lastMessageType: Long? = null
+    var lastMessageType: Long? = null,
+    var fileUri: String? = null,
+    var fileName: String? = null
 
 
 )

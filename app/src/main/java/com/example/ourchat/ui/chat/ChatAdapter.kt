@@ -25,10 +25,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.data.model.Message
-import com.example.ourchat.databinding.IncomingChatImageItemBinding
-import com.example.ourchat.databinding.IncomingMessageItemBinding
-import com.example.ourchat.databinding.SentChatImageItemBinding
-import com.example.ourchat.databinding.SentMessageItemBinding
+import com.example.ourchat.databinding.*
 
 class ChatAdapter(private val context: Context?, private val clickListener: MessageClickListener) :
     ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallbackMessages()) {
@@ -39,6 +36,8 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
         private const val TYPE_RECEIVED_MESSAGE = 1
         private const val TYPE_SENT_IMAGE_MESSAGE = 2
         private const val TYPE_RECEIVED_IMAGE_MESSAGE = 3
+        private const val TYPE_SENT_FILE_MESSAGE = 4
+        private const val TYPE_RECEIVED_FILE_MESSAGE = 5
     }
 
 
@@ -57,6 +56,12 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             }
             TYPE_RECEIVED_IMAGE_MESSAGE -> {
                 ReceivedImageMessageViewHolder.from(parent)
+            }
+            TYPE_SENT_FILE_MESSAGE -> {
+                SentFileMessageViewHolder.from(parent)
+            }
+            TYPE_RECEIVED_FILE_MESSAGE -> {
+                ReceivedFileMessageViewHolder.from(parent)
             }
             else -> throw IllegalArgumentException("Invalid view type")
         }
@@ -78,6 +83,12 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             is ReceivedImageMessageViewHolder -> {
                 holder.bind(clickListener, getItem(position))
             }
+            is ReceivedFileMessageViewHolder -> {
+                holder.bind(clickListener, getItem(position))
+            }
+            is SentFileMessageViewHolder -> {
+                holder.bind(clickListener, getItem(position))
+            }
             else -> throw IllegalArgumentException("Invalid ViewHolder type")
         }
     }
@@ -87,17 +98,17 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
         val currentMessage = getItem(position)
 
         if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 0L) {
-            println("ChatAdapter.getItemViewType:${position}:sent message")
             return TYPE_SENT_MESSAGE
         } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 0L) {
-            println("ChatAdapter.getItemViewType:${position}:received message")
             return TYPE_RECEIVED_MESSAGE
         } else if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 1L) {
-            println("ChatAdapter.getItemViewType:${position}:sent image")
             return TYPE_SENT_IMAGE_MESSAGE
         } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 1L) {
-            println("ChatAdapter.getItemViewType:${position}:received image")
             return TYPE_RECEIVED_IMAGE_MESSAGE
+        } else if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 3L) {
+            return TYPE_SENT_FILE_MESSAGE
+        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 3L) {
+            return TYPE_RECEIVED_FILE_MESSAGE
         } else {
             throw IllegalArgumentException("Invalid ItemViewType")
         }
@@ -188,6 +199,50 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
                 val binding = IncomingChatImageItemBinding.inflate(layoutInflater, parent, false)
 
                 return ReceivedImageMessageViewHolder(binding)
+            }
+        }
+    }
+
+
+    //----------------SentFileMessageViewHolder------------
+    class SentFileMessageViewHolder private constructor(val binding: SentChatFileItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(clickListener: MessageClickListener, item: Message) {
+            binding.message = item
+            binding.clickListener = clickListener
+            binding.position = adapterPosition
+            binding.executePendingBindings()//
+        }
+
+        companion object {
+            fun from(parent: ViewGroup): SentFileMessageViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = SentChatFileItemBinding.inflate(layoutInflater, parent, false)
+
+                return SentFileMessageViewHolder(binding)
+            }
+        }
+    }
+
+
+    //----------------ReceivedFileMessageViewHolder------------
+    class ReceivedFileMessageViewHolder private constructor(val binding: IncomingChatFileItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(clickListener: MessageClickListener, item: Message) {
+            binding.message = item
+            binding.clickListener = clickListener
+            binding.position = adapterPosition
+            binding.executePendingBindings()//
+        }
+
+        companion object {
+            fun from(parent: ViewGroup): ReceivedFileMessageViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = IncomingChatFileItemBinding.inflate(layoutInflater, parent, false)
+
+                return ReceivedFileMessageViewHolder(binding)
             }
         }
     }

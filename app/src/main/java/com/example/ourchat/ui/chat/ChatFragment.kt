@@ -141,16 +141,35 @@ class ChatFragment : Fragment() {
 
         //chat image was uploaded now store the uri with the message
         sharedViewModel.chatImageDownloadUriMutableLiveData.observe(this, Observer { chatImageUri ->
-            viewModel.sendMessage(null, chatImageUri.toString(), 1)
+            viewModel.sendMessage(null, chatImageUri.toString(), null, 1)
         })
 
 
         //result on gallery select image , show in recycler until image uploaded
         sharedViewModel.chatImageMutableLiveData.observe(this, Observer {
-            messageList.add(Message(AuthUtil.getAuthId(), Date().time, null, it.toString(), 1))
+            messageList.add(
+                Message(
+                    AuthUtil.getAuthId(),
+                    Date().time,
+                    null,
+                    null,
+                    null,
+                    it.toString(),
+                    1
+                )
+            )
             adapter.submitList(messageList)
             adapter.notifyItemInserted(messageList.size - 1)
             binding.recycler.scrollToPosition(messageList.size - 1)
+        })
+
+
+        //chat file was uploaded now store the uri with the message
+        sharedViewModel.chatFileMapMutableLiveData.observe(this, Observer { chatFileMap ->
+            viewModel.sendMessage(
+                null, chatFileMap["downloadUri"].toString(),
+                chatFileMap["fileName"].toString(), 3
+            )
         })
 
     }
@@ -160,7 +179,7 @@ class ChatFragment : Fragment() {
             Toast.makeText(context, getString(R.string.empty_message), Toast.LENGTH_LONG).show()
             return
         }
-        viewModel.sendMessage(binding.messageEditText.text.toString(), null, 0)
+        viewModel.sendMessage(binding.messageEditText.text.toString(), null, null, 0)
         binding.messageEditText.setText("")
     }
 

@@ -5,8 +5,10 @@ data class Message(
     val from: String?,
     val date: Long?,
     val text: String?,
-    val imagUri: String?,
+    val imageUri: String?,
+    val fileUri: String?,
+    val fileName: String?,
     val type: Long?
 ) {
-    constructor() : this(null, null, null, null, null)
+    constructor() : this(null, null, null, null, null, null, null)
 }

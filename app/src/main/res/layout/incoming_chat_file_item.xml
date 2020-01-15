@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
@@ -20,19 +18,20 @@
             type="Integer" />
     </data>
 
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
-        android:onClick="@{() -> clickListener.onMessageClick(position)}">
-
+        android:layout_marginEnd="100dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/bubble"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:background="@drawable/sent_bubble"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:background="@drawable/incoming_bubble"
+            android:onClick="@{() -> clickListener.onMessageClick(position)}"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
 
@@ -40,37 +39,49 @@
                 android:id="@+id/image_sent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
                 android:gravity="start"
-                android:minWidth="200dp"
-                android:minHeight="200dp"
                 android:paddingLeft="8dp"
                 android:paddingTop="4dp"
                 android:paddingRight="8dp"
                 android:paddingBottom="10dp"
+                android:src="@drawable/ic_file_black_24dp"
                 android:textColor="@color/primaryTextColor"
-                android:textSize="14sp"
                 app:layout_constraintBottom_toTopOf="@+id/dateTextView"
-                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:setChatImage="@{message.imageUri}"
-                tools:src="@color/grey" />
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/textView10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@{message.fileName}"
+                android:textAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"
+                app:layout_constrainedWidth="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/image_sent"
+                app:layout_constraintTop_toTopOf="@+id/image_sent"
+                tools:text="file nameile nameile namile nameile nameile nameile nameeile nameile name" />
+
 
             <TextView
                 android:id="@+id/dateTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
+                android:layout_marginBottom="4dp"
                 android:gravity="end"
                 app:formatDate="@{message.date}"
-                app:layout_constraintBottom_toBottomOf="@+id/stateImageView"
+                app:layout_constraintBottom_toBottomOf="@id/bubble"
                 app:layout_constraintEnd_toStartOf="@+id/stateImageView"
-                app:layout_constraintTop_toTopOf="@+id/stateImageView"
+                app:layout_constraintTop_toBottomOf="@id/barrier3"
                 tools:text="14:16" />
 
             <TextView
-                android:layout_width="16dp"
+                android:layout_width="20dp"
                 android:layout_height="0dp"
                 app:layout_constraintEnd_toStartOf="@+id/dateTextView"
                 app:layout_constraintStart_toStartOf="parent"
@@ -80,11 +91,20 @@
                 android:id="@+id/stateImageView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="4dp"
-                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintBottom_toBottomOf="@+id/dateTextView"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/dateTextView"
                 app:srcCompat="@drawable/ic_sent_grey_24dp" />
+
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/barrier3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="textView10,image_sent"
+                tools:layout_editor_absoluteX="2dp"
+                tools:layout_editor_absoluteY="85dp" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

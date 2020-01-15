@@ -19,60 +19,7 @@ class HomeViewModel : ViewModel() {
         MutableLiveData<MutableList<ChatParticipant>>()
     private val loggedUserMutableLiveData = MutableLiveData<User>()
 
-    /*   fun getChats(): LiveData<MutableList<ChatParticipant>>? {
 
-           FirestoreUtil.firestoreInstance.collection("messages")
-               .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-                   if (firebaseFirestoreException == null) {
-
-                       chatParticipantList.clear()
-
-                       querySnapshot?.documents?.forEach { documentSnapshot ->
-                           if (documentSnapshot.id.contains(AuthUtil.getAuthId(), true)) {
-
-                                                       val lastMessageOwner = ChatParticipant()
-
-                               val messagesList =
-                                   documentSnapshot.get("messages") as List<HashMap<String, Any>>?
-                               val lastMessage = messagesList?.get(messagesList.size - 1)
-
-                               lastMessageOwner.lastMessage = lastMessage?.get("text") as String
-                               lastMessageOwner.lastMessageDate = lastMessage.get("date") as Long
-
-
-                               val lastMessageOwnerId = lastMessage.get("from") as String
-
-
-                               if (lastMessageOwnerId == AuthUtil.getAuthId()) {
-                                   //last message was typed by logged in user
-                                   //leave ownerUser null
-                                   lastMessageOwner.particpant = null
-                                   chatParticipantList.add(lastMessageOwner)
-                                   *//* lastMessageOwnerListMutableLiveData.value =
-                                     lastMessageOwnerList*//*
-                            } else {
-                                //get user who wrote last message
-                                FirestoreUtil.firestoreInstance.collection("users")
-                                    .document(lastMessageOwnerId).get().addOnSuccessListener {
-                                        val mLastMessageOwner = it.toObject(User::class.java)
-                                        lastMessageOwner.particpant = mLastMessageOwner
-                                        chatParticipantList.add(lastMessageOwner)
-                                        *//*      lastMessageOwnerListMutableLiveData.value =
-                                                  lastMessageOwnerList*//*
-                                    }.addOnFailureListener {
-
-                                    }
-                            }
-
-
-                        }
-
-                        lastMessageOwnerListMutableLiveData.value = chatParticipantList
-                    }
-                }
-            }
-        return lastMessageOwnerListMutableLiveData
-    }*/
 
     fun getChats(loggedUser: User): LiveData<MutableList<ChatParticipant>>? {
 
@@ -105,7 +52,14 @@ class HomeViewModel : ViewModel() {
                         when (lastMessageType) {
                             0L -> chatParticipant.lastMessage = lastMessage.get("text") as String
                             1L -> chatParticipant.imageUri = lastMessage.get("image_uri") as String
+                            3L -> {
+                                chatParticipant.fileUri = lastMessage.get("file_uri") as String
+                                chatParticipant.fileName = lastMessage.get("file_name") as String
+                            }
+                            else -> throw java.lang.Exception("uknown type")
+
                         }
+
 
                         chatParticipant.lastMessageType = lastMessageType
                         chatParticipant.lastMessageDate = lastMessage.get("date") as Long

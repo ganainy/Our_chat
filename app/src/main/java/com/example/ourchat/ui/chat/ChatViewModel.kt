@@ -36,6 +36,8 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
                                 message["date"] as Long,
                                 message["text"].toString(),
                                 message["image_uri"].toString(),
+                                message["file_uri"].toString(),
+                                message["file_name"].toString(),
                                 message["type"] as Long?
                             )
                             messagesList.add(message)
@@ -51,7 +53,7 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
     }
 
 
-    fun sendMessage(message: String?, imageUri: String?, type: Long) {
+    fun sendMessage(message: String?, uri: String?, fileName: String?, type: Long) {
         /**
          * 0-> text
          * 1-> photo
@@ -69,8 +71,8 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
 
             0L -> {
                 mapOf(
-            "date" to timeMilli,
-            "from" to senderId,
+                    "date" to timeMilli,
+                    "from" to senderId,
                     "text" to message,
                     "type" to 0
                 )
@@ -79,9 +81,18 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
                 mapOf(
                     "date" to timeMilli,
                     "from" to senderId,
-                    "image_uri" to imageUri,
+                    "image_uri" to uri,
                     "type" to 1
         )
+            }
+            3L -> {
+                mapOf(
+                    "date" to timeMilli,
+                    "from" to senderId,
+                    "file_uri" to uri,
+                    "file_name" to fileName,
+                    "type" to 3
+                )
             }
             else -> throw java.lang.Exception("uknown type")
         }
