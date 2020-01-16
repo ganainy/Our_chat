@@ -1,42 +1,31 @@
 package com.example.ourchat.ui.main
 
 
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.Navigation
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.ourchat.R
-import com.example.ourchat.Utils.ErrorMessage
-import com.example.ourchat.Utils.LoadState
-import com.example.ourchat.Utils.eventbus_events.*
+import com.example.ourchat.Utils.eventbus_events.CallbackManagerEvent
+import com.example.ourchat.Utils.eventbus_events.ConnectionChangeEvent
+import com.example.ourchat.Utils.eventbus_events.KeyboardEvent
 import com.example.ourchat.databinding.ActivityMainBinding
-import com.example.ourchat.ui.chat.SELECT_CHAT_IMAGE_REQUEST
 import com.example.ourchat.ui.main_activity.SharedViewModel
-import com.example.ourchat.ui.profile.SELECT_PROFILE_IMAGE_REQUEST
 import com.facebook.CallbackManager
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.issue_layout.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
-
-const val REQUES_CHOOSE_FILE = 4
-const val REQUEST_IMAGE_CAPTURE = 1
 
 class MainActivity : AppCompatActivity() {
 
@@ -78,32 +67,6 @@ class MainActivity : AppCompatActivity() {
             .setupWithNavController(navController, appBarConfiguration)
 
 
-        //handle any change in loading state in whole app
-        binding.issueLayout.cancelImage.setOnClickListener {
-            binding.issueLayout.visibility = View.GONE
-        }
-
-        sharedViewModel.loadStateMutableLiveData.observe(this, Observer {
-
-            when (it) {
-                LoadState.LOADING -> {
-                    binding.loadingLayout.visibility = View.VISIBLE
-                    binding.issueLayout.visibility = View.GONE
-                }
-                LoadState.SUCCESS -> {
-                    binding.loadingLayout.visibility = View.GONE
-                    binding.issueLayout.visibility = View.GONE
-                }
-                LoadState.FAILURE -> {
-                    binding.loadingLayout.visibility = View.GONE
-                    binding.issueLayout.visibility = View.VISIBLE
-                    binding.issueLayout.textViewIssue.text = ErrorMessage.errorMessage
-                }
-
-            }
-        })
-
-
     }
 
 
@@ -122,62 +85,10 @@ class MainActivity : AppCompatActivity() {
         callbackManager = event.callbackManager
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onSelectGalleryImageEvent(event: SelectGalleryImageEvent) {
-        selectFromGallery(event.REQUEST_CODE)
-    }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onSelectFileEvent(event: SelectFileEvent) {
-        openFileChooser()
-    }
-
-
-    fun dispatchTakePictureIntent() {
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-            takePictureIntent.resolveActivity(packageManager)?.also {
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-            }
-        }
-    }
-
-
-    fun selectFromGallery(requestCode: Int) {
-        var intent = Intent()
-        intent.type = "image/*"
-        intent.action = Intent.ACTION_GET_CONTENT
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), requestCode)
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            val imageBitmap = data?.extras?.get("data") as Bitmap
-            //update live data so profile fragment will show result image
-            sharedViewModel.imageBitmap.postValue(imageBitmap)
-        }
-        if (requestCode == SELECT_PROFILE_IMAGE_REQUEST && data != null && resultCode == RESULT_OK) {
-            //update live data so profile fragment will show result image
-            sharedViewModel.galleryImageUri.postValue(data.data)
-            //upload image to firebase storage
-            sharedViewModel.uploadProfileImageByUri(data.data)
-        }
-
-
-        if (requestCode == SELECT_CHAT_IMAGE_REQUEST && data != null && resultCode == RESULT_OK) {
-
-            //upload image to firebase storage
-            sharedViewModel.uploadChatImageByUri(data.data)
-            sharedViewModel.chatImageMutableLiveData.value = data.data
-        }
-
-        if (requestCode == REQUES_CHOOSE_FILE && data != null && resultCode == RESULT_OK) {
-            val filePath = data.data
-            println("MainActivity.onActivityResult:${filePath}")
-            //todo we have file uri , upload and show in chat and make it clickable
-            sharedViewModel.uploadFile(filePath)
-        }
 
         // Pass the activity result back to the Facebook SDK
         callbackManager.onActivityResult(requestCode, resultCode, data)
@@ -191,34 +102,19 @@ class MainActivity : AppCompatActivity() {
 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onMessageEvent(event: KeyboardEvent) {
-        println("MainActivity.onMessageEvent:")
+    fun onKeyboardEvent(event: KeyboardEvent) {
         hideKeyboard()
     }
 
 
-    fun hideKeyboard() {
-
+    private fun hideKeyboard() {
 
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
         imm?.hideSoftInputFromWindow(binding.toolbar.windowToken, 0)
 
     }
 
-    fun openFileChooser() {
-        val i = Intent(Intent.ACTION_GET_CONTENT)
-        i.type = "*/*"
-        try {
-            startActivityForResult(i, REQUES_CHOOSE_FILE)
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(
-                applicationContext,
-                "No suitable file manager was found on this debive",
-                Toast.LENGTH_LONG
-            ).show()
-        }
 
-    }
 
 
 }

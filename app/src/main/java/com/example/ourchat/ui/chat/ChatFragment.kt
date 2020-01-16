@@ -1,8 +1,15 @@
 package com.example.ourchat.ui.chat
 
+import android.Manifest
+import android.app.DownloadManager
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +17,7 @@ import android.view.WindowManager
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -18,38 +26,91 @@ import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.Utils.LOGGED_USER
-import com.example.ourchat.Utils.eventbus_events.SelectFileEvent
-import com.example.ourchat.Utils.eventbus_events.SelectGalleryImageEvent
+import com.example.ourchat.Utils.eventbus_events.PermissionEvent
 import com.example.ourchat.data.model.Message
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ChatFragmentBinding
-import com.example.ourchat.ui.main_activity.SharedViewModel
+import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.single.PermissionListener
 import org.greenrobot.eventbus.EventBus
 import java.util.*
 
 
 const val SELECT_CHAT_IMAGE_REQUEST = 3
+const val CHOOSE_FILE_REQUEST = 4
+
 
 class ChatFragment : Fragment() {
 
     private var messageList = mutableListOf<Message>()
     lateinit var binding: ChatFragmentBinding
-    val adapter: ChatAdapter by lazy {
+    private val adapter: ChatAdapter by lazy {
         ChatAdapter(context, object : MessageClickListener {
-            override fun onMessageClick(position: Int) {
-                println("ChatFragment.onMessageClick:$position")
+            override fun onMessageClick(position: Int, message: Message) {
+                //show dialog confirming user want to download file then proceed to download or cancel
+                if (message.type == 3L) {
+                    //file message we should download
+                    val dialogBuilder = context?.let { it1 -> AlertDialog.Builder(it1) }
+                    dialogBuilder?.setMessage("Do you want to download clicked file?")
+                        ?.setPositiveButton(
+                            "yes"
+                        ) { _, _ ->
+                            downloadFile(message)
+                        }?.setNegativeButton("cancel", null)?.show()
+
+                }
             }
 
         })
     }
+
+    private fun downloadFile(message: Message) {
+        //check for storage permission then download if granted
+        Dexter.withActivity(activity!!)
+            .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            .withListener(object : PermissionListener {
+                override fun onPermissionGranted(response: PermissionGrantedResponse?) {
+                    //download file
+                    val downloadManager =
+                        activity!!.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                    val uri = Uri.parse(message.fileUri)
+                    val request = DownloadManager.Request(uri)
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                    request.setDestinationInExternalPublicDir(
+                        Environment.DIRECTORY_DOWNLOADS,
+                        uri.lastPathSegment
+                    )
+                    downloadManager.enqueue(request)
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    permission: com.karumi.dexter.listener.PermissionRequest?,
+                    token: PermissionToken?
+                ) {
+                    token?.continuePermissionRequest()
+                    //notify parent activity that permission denied to show toast for manual permission giving
+                    showSnackBar()
+                }
+
+                override fun onPermissionDenied(response: PermissionDeniedResponse?) {
+                    //notify parent activity that permission denied to show toast for manual permission giving
+                    EventBus.getDefault().post(PermissionEvent())
+                }
+            }).check()
+    }
+
+
 
     companion object {
         fun newInstance() = ChatFragment()
     }
 
     private lateinit var viewModel: ChatViewModel
-    private lateinit var sharedViewModel: SharedViewModel
     private lateinit var viewModeldFactory: ChatViewModelFactory
 
     override fun onCreateView(
@@ -84,7 +145,7 @@ class ChatFragment : Fragment() {
             viewModel =
                 ViewModelProviders.of(this, viewModeldFactory).get(ChatViewModel::class.java)
         }
-        sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
+
 
         //Move layouts up when soft keyboard is shown
         activity!!.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
@@ -116,6 +177,7 @@ class ChatFragment : Fragment() {
         //open alert dialog with option on attachmentImageView click
         binding.attachmentImageView.setOnClickListener {
 
+            //todo replace with bottom sheet like whatsapp
             val dialogBuilder = context?.let { it1 -> AlertDialog.Builder(it1) }
             val inflater = this.layoutInflater
             val dialogView: View = inflater.inflate(R.layout.attachment_layout, null)
@@ -123,56 +185,25 @@ class ChatFragment : Fragment() {
             val alertDialog = dialogBuilder?.create()
             alertDialog?.show()
 
-            //handle select image button click
+            //handle sendPictureButton click
             val sendPictureButton = dialogView.findViewById<View>(R.id.sendPictureButton) as Button
             sendPictureButton.setOnClickListener {
-                EventBus.getDefault().post(SelectGalleryImageEvent(SELECT_CHAT_IMAGE_REQUEST))
+                selectFromGallery()
                 alertDialog?.dismiss()
             }
-            //handle select image button click
+            //handle sendFileButton click
             val sendFileButton = dialogView.findViewById<View>(R.id.sendFileButton) as Button
             sendFileButton.setOnClickListener {
-                EventBus.getDefault().post(SelectFileEvent())
+                openFileChooser()
                 alertDialog?.dismiss()
             }
 
 
         }
 
-        //chat image was uploaded now store the uri with the message
-        sharedViewModel.chatImageDownloadUriMutableLiveData.observe(this, Observer { chatImageUri ->
-            viewModel.sendMessage(null, chatImageUri.toString(), null, 1)
-        })
-
-
-        //result on gallery select image , show in recycler until image uploaded
-        sharedViewModel.chatImageMutableLiveData.observe(this, Observer {
-            messageList.add(
-                Message(
-                    AuthUtil.getAuthId(),
-                    Date().time,
-                    null,
-                    null,
-                    null,
-                    it.toString(),
-                    1
-                )
-            )
-            adapter.submitList(messageList)
-            adapter.notifyItemInserted(messageList.size - 1)
-            binding.recycler.scrollToPosition(messageList.size - 1)
-        })
-
-
-        //chat file was uploaded now store the uri with the message
-        sharedViewModel.chatFileMapMutableLiveData.observe(this, Observer { chatFileMap ->
-            viewModel.sendMessage(
-                null, chatFileMap["downloadUri"].toString(),
-                chatFileMap["fileName"].toString(), 3
-            )
-        })
-
     }
+
+
 
     private fun sendMessage() {
         if (binding.messageEditText.text.isEmpty()) {
@@ -183,5 +214,100 @@ class ChatFragment : Fragment() {
         binding.messageEditText.setText("")
     }
 
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        //select file result
+        if (requestCode == CHOOSE_FILE_REQUEST && data != null && resultCode == AppCompatActivity.RESULT_OK) {
+
+            val filePath = data.data
+            //chat file was uploaded now store the uri with the message
+            viewModel.uploadChatFileByUri(filePath).observe(this, Observer { chatFileMap ->
+                viewModel.sendMessage(
+                    null,
+                    chatFileMap["downloadUri"].toString(),
+                    chatFileMap["fileName"].toString(),
+                    3
+                )
+                //todo show placeholder while file uploads
+            })
+
+        }
+
+        //select picture result
+        if (requestCode == SELECT_CHAT_IMAGE_REQUEST && data != null && resultCode == AppCompatActivity.RESULT_OK) {
+
+            //show fake item with image in recycler until image is uploaded
+            showPlaceholderPhoto(data.data)
+
+            //upload image to firebase storage
+            viewModel.uploadChatImageByUri(data.data)
+                .observe(this, Observer { uploadedChatImageUri ->
+                    //chat image was uploaded now store the uri with the message
+                    viewModel.sendMessage(null, uploadedChatImageUri.toString(), null, 1)
+                })
+
+        }
+
+    }
+
+
+    private fun openFileChooser() {
+        val i = Intent(Intent.ACTION_GET_CONTENT)
+        i.type = "*/*"
+        try {
+            startActivityForResult(i, CHOOSE_FILE_REQUEST)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(
+                context,
+                "No suitable file manager was found on this device",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun showPlaceholderPhoto(data: Uri?) {
+        messageList.add(
+            Message(
+                AuthUtil.getAuthId(),
+                Date().time,
+                null,
+                data.toString(),
+                null,
+                data.toString(),
+                1
+            )
+        )
+        adapter.submitList(messageList)
+        adapter.notifyItemInserted(messageList.size - 1)
+        binding.recycler.scrollToPosition(messageList.size - 1)
+    }
+
+    private fun selectFromGallery() {
+        var intent = Intent()
+        intent.type = "image/*"
+        intent.action = Intent.ACTION_GET_CONTENT
+        startActivityForResult(
+            Intent.createChooser(intent, "Select Picture"),
+            SELECT_CHAT_IMAGE_REQUEST
+        )
+    }
+
+    private fun showSnackBar() {
+        Snackbar.make(
+            binding.coordinator,
+            "Storage permission is needed to download clicked file on your device",
+            Snackbar.LENGTH_LONG
+        ).setAction(
+            "Grant", View.OnClickListener {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                val uri = Uri.fromParts("package", activity!!.packageName, null)
+                intent.data = uri
+                startActivity(intent)
+            }
+        ).show()
+
+    }
 
 }

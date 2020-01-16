@@ -1,14 +1,17 @@
 package com.example.ourchat.ui.profile
 
 import android.content.Context.MODE_PRIVATE
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -21,10 +24,8 @@ import com.example.ourchat.R
 import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.Utils.eventbus_events.KeyboardEvent
-import com.example.ourchat.Utils.eventbus_events.SelectGalleryImageEvent
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ProfileFragmentBinding
-import com.example.ourchat.ui.main.MainActivity
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.Gson
@@ -32,7 +33,8 @@ import kotlinx.android.synthetic.main.bottom_sheet_profile_picture.view.*
 import org.greenrobot.eventbus.EventBus
 import java.io.ByteArrayOutputStream
 
-const val SELECT_PROFILE_IMAGE_REQUEST = 2
+const val SELECT_PROFILE_IMAGE_REQUEST = 5
+const val REQUEST_IMAGE_CAPTURE = 6
 
 class ProfileFragment : Fragment() {
 
@@ -40,7 +42,6 @@ class ProfileFragment : Fragment() {
     private lateinit var mBottomSheetBehavior: BottomSheetBehavior<NestedScrollView>
     lateinit var binding: ProfileFragmentBinding
     lateinit var adapter: FriendsAdapter
-    lateinit var mainActivity: MainActivity
 
     companion object {
         fun newInstance() = ProfileFragment()
@@ -117,13 +118,12 @@ class ProfileFragment : Fragment() {
         })
 
 
-        //todo can be replaced with event bus to remove dependency on certain activity
+
         binding.bottomSheet.cameraButton.setOnClickListener {
-            mainActivity = activity as MainActivity
-            mainActivity.dispatchTakePictureIntent()
+            openCamera()
         }
         binding.bottomSheet.galleryButton.setOnClickListener {
-            EventBus.getDefault().post(SelectGalleryImageEvent(SELECT_PROFILE_IMAGE_REQUEST))
+            selectFromGallery()
         }
 
 
@@ -132,37 +132,8 @@ class ProfileFragment : Fragment() {
         binding.cameraImageView.setOnClickListener { selectProfilePicture() }
 
 
-        //Observe camera image change from parent activity
-        sharedViewModel.imageBitmap.observe(this, androidx.lifecycle.Observer {
-            binding.profileImage.setImageBitmap(it)
 
 
-            // Get the data from an ImageView as bytes
-            binding.profileImage.isDrawingCacheEnabled = true
-            binding.profileImage.buildDrawingCache()
-            val bitmap = (binding.profileImage.drawable as BitmapDrawable).bitmap
-            val baos = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-            val data = baos.toByteArray()
-            sharedViewModel.uploadImageAsBytearray(data)
-
-
-            mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-        })
-
-        //Observe gallery image change from parent activity
-        sharedViewModel.galleryImageUri.observe(this, androidx.lifecycle.Observer {
-            binding.profileImage.setImageURI(it)
-            mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-        })
-
-
-        //Observe upload image state and show appropriate ui
-        sharedViewModel.uploadImageLoadStateMutableLiveData.observe(
-            this,
-            androidx.lifecycle.Observer {
-            setProfileImageLoadUi(it)
-        })
 
 
         //edit bio handle click
@@ -194,6 +165,28 @@ class ProfileFragment : Fragment() {
 
 
 
+    }
+
+    private fun uploadTakenImage(imageBitmap: Bitmap) {
+
+        binding.profileImage.setImageBitmap(imageBitmap)
+
+        // Get the data from an ImageView as bytes
+        //todo fix those deperacated methods
+        binding.profileImage.isDrawingCacheEnabled = true
+        binding.profileImage.buildDrawingCache()
+        val bitmap = (binding.profileImage.drawable as BitmapDrawable).bitmap
+        val baos = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        val data = baos.toByteArray()
+
+        //upload image and show loading layout while uploading
+        viewModel.uploadImageAsBytearray(data).observe(this, Observer { imageUploadState ->
+            setProfileImageLoadUi(imageUploadState)
+        })
+
+
+        mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
 
 
@@ -228,6 +221,54 @@ class ProfileFragment : Fragment() {
 
     private fun selectProfilePicture() {
         mBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        //result of selecting image from gallery
+        if (requestCode == SELECT_PROFILE_IMAGE_REQUEST && data != null && resultCode == AppCompatActivity.RESULT_OK) {
+
+            //set selected image in profile image view and upload it
+            binding.profileImage.setImageURI(data.data)
+            mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+
+            //upload image and show loading layout while uploading
+            viewModel.uploadProfileImageByUri(data.data)
+                .observe(this, Observer { imageUploadState ->
+                    setProfileImageLoadUi(imageUploadState)
+                })
+
+        }
+
+
+        //result of taking camera image
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == AppCompatActivity.RESULT_OK) {
+            val imageBitmap = data?.extras?.get("data") as Bitmap
+            uploadTakenImage(imageBitmap)
+        }
+
+
+    }
+
+    private fun selectFromGallery() {
+        var intent = Intent()
+        intent.type = "image/*"
+        intent.action = Intent.ACTION_GET_CONTENT
+        startActivityForResult(
+            Intent.createChooser(intent, "Select Picture"),
+            SELECT_PROFILE_IMAGE_REQUEST
+        )
+    }
+
+
+    private fun openCamera() {
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            takePictureIntent.resolveActivity(activity!!.packageManager)?.also {
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+            }
+        }
     }
 
 

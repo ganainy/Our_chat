@@ -24,7 +24,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="100dp"
-        android:onClick="@{() -> clickListener.onMessageClick(position)}">
+        android:onClick="@{() -> clickListener.onMessageClick(position,message)}">
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -56,7 +56,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
-                android:text="@{message.fileName}"
+                android:textColor="@color/blue"
+                app:setUnderlinedText="@{message.fileName}"
                 android:textAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"
                 app:layout_constrainedWidth="true"
                 app:layout_constraintEnd_toEndOf="@+id/bubble"

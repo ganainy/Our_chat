@@ -1,6 +1,8 @@
 package com.example.ourchat.ui.findUser
 
 import android.content.Context
+import android.text.SpannableString
+import android.text.style.UnderlineSpan
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
@@ -11,7 +13,6 @@ import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.data.model.ChatParticipant
 import com.example.ourchat.data.model.User
 import com.google.android.material.button.MaterialButton
-import com.google.firebase.firestore.DocumentSnapshot
 import java.util.*
 
 
@@ -39,26 +40,7 @@ fun formatDate(textView: TextView, date: Long) {
 }
 
 
-/*
-@BindingAdapter(requireAll = false,value = ["mySetText","queryString"])
-fun mySetText(textView: TextView,user: DocumentSnapshot,queryString:String) {
-    textView.text = user.get("username").toString()
 
-    if (!queryString.isEmpty()){
-    var str = user.get("username").toString()
-    var delimiter = queryString
-    val parts = str.split(delimiter)
-    println("<top>.mySetText:$parts")
-    val text ="<font color=#cc0029>${parts[0]}</font> <font color=#ffcc00>$delimiter</font> <font color=#cc0029>${parts[2]}</font>"
-    textView.text = Html.fromHtml(text)
-    }*/
-
-
-@BindingAdapter("mySetText")
-fun mySetText(textView: TextView, user: DocumentSnapshot) {
-    textView.text = user.get("username").toString()
-
-}
 
 
 @BindingAdapter("setLoadingState")
@@ -102,6 +84,15 @@ fun setLastMessageText(textView: TextView, chatParticipant: ChatParticipant) {
             R.string.other_image,
             chatParticipant.particpant!!.username!!.split("\\s".toRegex())[0]
         )
+    } else if (!chatParticipant.isLoggedUser!! && chatParticipant.lastMessageType == 3L) {
+        //format last message to show like amr sent a file
+        textView.text = textView.context.getString(
+            R.string.other_file,
+            chatParticipant.particpant!!.username!!.split("\\s".toRegex())[0]
+        )
+    } else if (chatParticipant.isLoggedUser!! && chatParticipant.lastMessageType == 3L) {
+        //format last message to show like you sent a file
+        textView.text = textView.context.getString(R.string.you_sent_file)
     } else {
 
     }
@@ -136,6 +127,15 @@ fun setChatImage(imageView: ImageView, imageUri: String) {
                 .error(R.drawable.ic_poor_connection_black_24dp)
         )
         .into(imageView)
+
+}
+
+@BindingAdapter("setUnderlinedText")
+fun setUnderlinedText(textView: TextView, text: String) {
+
+    val content = SpannableString(text)
+    content.setSpan(UnderlineSpan(), 0, content.length, 0)
+    textView.text = content
 
 }
 

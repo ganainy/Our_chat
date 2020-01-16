@@ -12,8 +12,6 @@ import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.ErrorMessage
-import com.example.ourchat.Utils.LoadState
-
 import com.example.ourchat.Utils.eventbus_events.CallbackManagerEvent
 import com.example.ourchat.databinding.FacebookLoginFragmentBinding
 import com.example.ourchat.ui.main_activity.SharedViewModel
@@ -89,8 +87,6 @@ class FacebookLoginFragment : Fragment() {
                                                 })
                                     } else {
                                         //fb user already stored in firestore just navigate to home
-                                        sharedViewModel.loadStateMutableLiveData.value =
-                                            LoadState.SUCCESS
                                         navigateToHome()
                                     }
                                 })
@@ -99,21 +95,17 @@ class FacebookLoginFragment : Fragment() {
             }
 
             override fun onCancel() {
-                ErrorMessage.errorMessage = "Logging in with facebook cancelled"
-                sharedViewModel.loadStateMutableLiveData.value = LoadState.FAILURE
 
             }
 
             override fun onError(error: FacebookException) {
                 ErrorMessage.errorMessage = error.message
-                sharedViewModel.loadStateMutableLiveData.value = LoadState.FAILURE
             }
         })
 
 
         //pass loading state to shared viewmodel to show proper layout
         viewModel.loadState.observe(this, Observer {
-            sharedViewModel.showLoadState(it)
         })
 
     }

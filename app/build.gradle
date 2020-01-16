@@ -100,4 +100,7 @@ dependencies {
 
 //json
     implementation 'com.google.code.gson:gson:2.8.5'
+
+    //dexter
+    implementation 'com.karumi:dexter:6.0.1'
 }

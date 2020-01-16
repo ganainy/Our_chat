@@ -64,9 +64,12 @@
     <string name="you">You: %1$s</string>
     <string name="other">%1$s: %2$s</string>
     <string name="other_image">%1$s sent an image</string>
+    <string name="other_file">%1$s sent a file</string>
     <string name="no_users_to_add_yet">No users to add yet.</string>
     <string name="you_sent_image">You sent an image</string>
     <string name="send_file">Send file</string>
     <string name="send_picture">Send picture</string>
+    <string name="you_sent_file">you sent a file</string>
+
 
 </resources>

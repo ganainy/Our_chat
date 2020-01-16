@@ -253,7 +253,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
 }
 
 interface MessageClickListener {
-    fun onMessageClick(position: Int)
+    fun onMessageClick(position: Int, message: Message)
 }
 
 

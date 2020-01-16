@@ -38,18 +38,7 @@
                 app:defaultNavHost="true"
                 app:navGraph="@navigation/nav_graph" />
 
-            <!--for showing loading-->
-            <include
-                android:id="@+id/loadingLayout"
-                layout="@layout/loading"
-                android:visibility="gone" />
 
-
-            <!--for showing if there any issue-->
-            <include
-                android:id="@+id/issueLayout"
-                layout="@layout/issue_layout"
-                android:visibility="gone" />
 
 
         </FrameLayout>
