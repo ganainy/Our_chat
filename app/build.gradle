@@ -103,4 +103,7 @@ dependencies {
 
     //dexter
     implementation 'com.karumi:dexter:6.0.1'
+
+    //image zoom
+    implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.0'
 }

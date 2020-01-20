@@ -11,6 +11,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
@@ -34,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var callbackManager: CallbackManager
     private lateinit var sharedViewModel: SharedViewModel
     private lateinit var binding: ActivityMainBinding
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +53,7 @@ class MainActivity : AppCompatActivity() {
 
 
         //hide toolbar on signup,login fragments
-        val navController = Navigation.findNavController(this, R.id.nav_host_fragment)
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment)
         navController.addOnDestinationChangedListener { _, destination, _ ->
             if (destination.label == "SignupFragment" || destination.label == "LoginFragment") {
                 binding.toolbar.visibility = View.GONE
@@ -113,8 +115,6 @@ class MainActivity : AppCompatActivity() {
         imm?.hideSoftInputFromWindow(binding.toolbar.windowToken, 0)
 
     }
-
-
 
 
 }

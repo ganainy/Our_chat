@@ -22,12 +22,15 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.Utils.eventbus_events.PermissionEvent
 import com.example.ourchat.data.model.Message
+import com.example.ourchat.data.model.MyImage
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.ChatFragmentBinding
 import com.google.android.material.snackbar.Snackbar
@@ -37,6 +40,8 @@ import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.single.PermissionListener
+import com.stfalcon.imageviewer.StfalconImageViewer
+import com.stfalcon.imageviewer.loader.ImageLoader
 import org.greenrobot.eventbus.EventBus
 import java.util.*
 
@@ -62,6 +67,26 @@ class ChatFragment : Fragment() {
                         ) { _, _ ->
                             downloadFile(message)
                         }?.setNegativeButton("cancel", null)?.show()
+
+                }
+
+                //if clicked item is image open in full screen with pinch to zoom
+                if (message.type == 1L) {
+
+                    binding.fullSizeImageView.visibility = View.VISIBLE
+
+                    StfalconImageViewer.Builder<MyImage>(
+                        activity!!,
+                        listOf(MyImage(message.imageUri!!)),
+                        ImageLoader<MyImage> { imageView, myImage ->
+                            Glide.with(activity!!)
+                                .load(myImage.url)
+                                .apply(RequestOptions().error(R.drawable.ic_poor_connection_black_24dp))
+                                .into(imageView)
+                        })
+                        .withDismissListener { binding.fullSizeImageView.visibility = View.GONE }
+                        .show()
+
 
                 }
             }
@@ -222,6 +247,9 @@ class ChatFragment : Fragment() {
         if (requestCode == CHOOSE_FILE_REQUEST && data != null && resultCode == AppCompatActivity.RESULT_OK) {
 
             val filePath = data.data
+
+            showPlaceholderFile(filePath)
+
             //chat file was uploaded now store the uri with the message
             viewModel.uploadChatFileByUri(filePath).observe(this, Observer { chatFileMap ->
                 viewModel.sendMessage(
@@ -230,7 +258,7 @@ class ChatFragment : Fragment() {
                     chatFileMap["fileName"].toString(),
                     3
                 )
-                //todo show placeholder while file uploads
+
             })
 
         }
@@ -277,6 +305,24 @@ class ChatFragment : Fragment() {
                 null,
                 data.toString(),
                 1
+            )
+        )
+        adapter.submitList(messageList)
+        adapter.notifyItemInserted(messageList.size - 1)
+        binding.recycler.scrollToPosition(messageList.size - 1)
+    }
+
+
+    private fun showPlaceholderFile(data: Uri?) {
+        messageList.add(
+            Message(
+                AuthUtil.getAuthId(),
+                Date().time,
+                null,
+                null,
+                data.toString(),
+                data.toString(),
+                3
             )
         )
         adapter.submitList(messageList)
