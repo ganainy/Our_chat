@@ -34,16 +34,21 @@
                     tools:listitem="@layout/sent_message_item" />
 
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/sendFab"
+                <!--  android:backgroundTintMode="@color/white"-->
+
+
+                <com.devlomi.record_view.RecordButton
+                    android:id="@+id/recordFab"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/recv_bg_mic"
+                    android:scaleType="centerInside"
                     android:layout_marginEnd="8dp"
                     android:layout_marginBottom="16dp"
-                    android:backgroundTintMode="@color/white"
-                    android:src="@drawable/ic_right_arrow"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:mic_icon="@drawable/recv_ic_mic_white" />
+
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/messageLayout"
@@ -51,11 +56,11 @@
                     android:layout_height="56dp"
                     android:layout_margin="8dp"
                     android:background="@drawable/circularbordersolid"
-                    app:layout_constraintBottom_toBottomOf="@+id/sendFab"
-                    app:layout_constraintEnd_toStartOf="@+id/sendFab"
+                    app:layout_constraintBottom_toBottomOf="@+id/recordFab"
+                    app:layout_constraintEnd_toStartOf="@+id/recordFab"
                     app:layout_constraintHorizontal_bias="1.0"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/sendFab">
+                    app:layout_constraintTop_toTopOf="@+id/recordFab">
 
                     <ImageView
                         android:id="@+id/attachmentImageView"
@@ -84,6 +89,25 @@
                         app:layout_constraintStart_toStartOf="parent" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+                <com.devlomi.record_view.RecordView
+                    android:id="@+id/record_view"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:counter_time_color="#ff0000"
+                    app:layout_constraintBottom_toBottomOf="@+id/recordFab"
+                    app:layout_constraintEnd_toStartOf="@+id/recordFab"
+                    app:layout_constraintHorizontal_bias="1.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/recordFab"
+                    app:slide_to_cancel_arrow="@drawable/recv_ic_arrow"
+                    app:slide_to_cancel_arrow_color="#000000"
+                    app:slide_to_cancel_bounds="8dp"
+                    app:slide_to_cancel_margin_right="10dp"
+                    app:slide_to_cancel_text="Slide To Cancel"
+
+                    />
 
 
             </androidx.constraintlayout.widget.ConstraintLayout>

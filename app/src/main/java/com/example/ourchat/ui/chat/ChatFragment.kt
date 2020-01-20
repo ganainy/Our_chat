@@ -10,6 +10,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +27,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.devlomi.record_view.OnRecordListener
 import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.CLICKED_USER
@@ -152,6 +156,10 @@ class ChatFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
 
+        //set record view
+        handleRecord()
+
+
         //get logged user from shared preferences
         val mPrefs: SharedPreferences = activity!!.getPreferences(Context.MODE_PRIVATE)
         val gson = Gson()
@@ -176,10 +184,7 @@ class ChatFragment : Fragment() {
         activity!!.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
 
-        //handle send button
-        binding.sendFab.setOnClickListener {
-            sendMessage()
-        }
+
 
 
         //send message on keyboard done click
@@ -228,6 +233,73 @@ class ChatFragment : Fragment() {
 
     }
 
+    private fun handleRecord() {
+
+        binding.recordFab.setRecordView(binding.recordView)
+        binding.recordView.setLessThanSecondAllowed(true)
+
+
+        //change fab icon depending on is text message empty or not
+        binding.messageEditText.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                if (s.isNullOrEmpty()) {
+                    //empty text message
+                    binding.recordFab.isListenForRecord = true
+                    binding.recordFab.setImageResource(R.drawable.recv_ic_mic_white)
+                } else {
+                    binding.recordFab.isListenForRecord = false
+                    binding.recordFab.setImageResource(R.drawable.ic_right_arrow)
+
+                }
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            }
+
+        })
+
+
+        //show message layout after delete animation ends
+        binding.recordView.setOnBasketAnimationEndListener {
+            binding.messageLayout.visibility = View.VISIBLE
+        }
+
+
+        //handle recording audio click
+        binding.recordView.setOnRecordListener(object : OnRecordListener {
+
+            override fun onStart() {
+                //TODO Start Recording..
+                binding.messageLayout.visibility = View.INVISIBLE
+            }
+
+
+            override fun onFinish(recordTime: Long) {
+                //TODO Stop Recording..
+                binding.messageLayout.visibility = View.VISIBLE
+                Log.d("RecordTime", recordTime.toString())
+            }
+
+            override fun onLessThanSecond() {
+                //Do nothing
+            }
+
+            override fun onCancel() {
+            }
+
+
+        })
+
+
+        //handle normal message click
+        binding.recordFab.setOnRecordClickListener {
+            sendMessage()
+        }
+
+    }
 
 
     private fun sendMessage() {
