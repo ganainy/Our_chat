@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -47,6 +48,7 @@ import com.karumi.dexter.listener.single.PermissionListener
 import com.stfalcon.imageviewer.StfalconImageViewer
 import com.stfalcon.imageviewer.loader.ImageLoader
 import org.greenrobot.eventbus.EventBus
+import java.io.IOException
 import java.util.*
 
 
@@ -55,6 +57,9 @@ const val CHOOSE_FILE_REQUEST = 4
 
 
 class ChatFragment : Fragment() {
+
+    private var recorder: MediaRecorder? = null
+
 
     private var messageList = mutableListOf<Message>()
     lateinit var binding: ChatFragmentBinding
@@ -235,6 +240,7 @@ class ChatFragment : Fragment() {
 
     private fun handleRecord() {
 
+
         binding.recordFab.setRecordView(binding.recordView)
         binding.recordView.setLessThanSecondAllowed(true)
 
@@ -272,15 +278,39 @@ class ChatFragment : Fragment() {
         binding.recordView.setOnRecordListener(object : OnRecordListener {
 
             override fun onStart() {
-                //TODO Start Recording..
+                Dexter.withActivity(activity)
+                    .withPermission(Manifest.permission.RECORD_AUDIO)
+                    .withListener(object : PermissionListener {
+                        override fun onPermissionGranted(response: PermissionGrantedResponse?) {
+                            startRecording()
+                        }
+
+                        override fun onPermissionRationaleShouldBeShown(
+                            permission: com.karumi.dexter.listener.PermissionRequest?,
+                            token: PermissionToken?
+                        ) {
+                            token?.continuePermissionRequest()
+                            //notify parent activity that permission denied to show toast for manual permission giving
+                            showSnackBar()
+                        }
+
+                        override fun onPermissionDenied(response: PermissionDeniedResponse?) {
+                            //notify parent activity that permission denied to show toast for manual permission giving
+                            showSnackBar()
+                        }
+                    }).check()
+
                 binding.messageLayout.visibility = View.INVISIBLE
             }
 
 
             override fun onFinish(recordTime: Long) {
-                //TODO Stop Recording..
+                stopRecording()
                 binding.messageLayout.visibility = View.VISIBLE
                 Log.d("RecordTime", recordTime.toString())
+
+                //todo replace hard coded value of path with storage path
+                showPlaceholderRecord("${activity!!.externalCacheDir?.absolutePath}/audiorecord.3gp")
             }
 
             override fun onLessThanSecond() {
@@ -298,6 +328,7 @@ class ChatFragment : Fragment() {
         binding.recordFab.setOnRecordClickListener {
             sendMessage()
         }
+
 
     }
 
@@ -385,6 +416,24 @@ class ChatFragment : Fragment() {
     }
 
 
+    private fun showPlaceholderRecord(data: String?) {
+        messageList.add(
+            Message(
+                AuthUtil.getAuthId(),
+                Date().time,
+                null,
+                null,
+                data,
+                null,
+                4
+            )
+        )
+        adapter.submitList(messageList)
+        adapter.notifyItemInserted(messageList.size - 1)
+        binding.recycler.scrollToPosition(messageList.size - 1)
+    }
+
+
     private fun showPlaceholderFile(data: Uri?) {
         messageList.add(
             Message(
@@ -415,7 +464,7 @@ class ChatFragment : Fragment() {
     private fun showSnackBar() {
         Snackbar.make(
             binding.coordinator,
-            "Storage permission is needed to download clicked file on your device",
+            "Permission is needed for this feature to work",
             Snackbar.LENGTH_LONG
         ).setAction(
             "Grant", View.OnClickListener {
@@ -427,5 +476,34 @@ class ChatFragment : Fragment() {
         ).show()
 
     }
+
+
+    private fun startRecording() {
+        //name of the file where record will be stored
+        val fileName = "${activity!!.externalCacheDir?.absolutePath}/audiorecord.3gp"
+
+        recorder = MediaRecorder().apply {
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+            setOutputFile(fileName)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+            try {
+                prepare()
+            } catch (e: IOException) {
+                println("ChatFragment.startRecording:prepare failed")
+            }
+
+            start()
+        }
+    }
+
+    private fun stopRecording() {
+        recorder?.apply {
+            stop()
+            release()
+        }
+        recorder = null
+    }
+
 
 }

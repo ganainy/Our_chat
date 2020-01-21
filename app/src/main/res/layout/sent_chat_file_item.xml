@@ -38,7 +38,7 @@
 
 
             <ImageView
-                android:id="@+id/image_sent"
+                android:id="@+id/progressbar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -62,8 +62,8 @@
                 app:layout_constrainedWidth="true"
                 app:layout_constraintEnd_toEndOf="@+id/bubble"
                 app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toEndOf="@+id/image_sent"
-                app:layout_constraintTop_toTopOf="@+id/image_sent"
+                app:layout_constraintStart_toEndOf="@+id/progressbar"
+                app:layout_constraintTop_toTopOf="@+id/progressbar"
                 tools:text="file namefile namefilenamefilenamefilenamefilenamefilenamefilenamefile name" />
 
 
@@ -102,7 +102,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:barrierDirection="bottom"
-                app:constraint_referenced_ids="textView10,image_sent"
+                app:constraint_referenced_ids="textView10,progressbar"
                 tools:layout_editor_absoluteX="2dp"
                 tools:layout_editor_absoluteY="82dp" />
 

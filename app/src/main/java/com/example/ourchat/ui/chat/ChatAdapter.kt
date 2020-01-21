@@ -18,14 +18,21 @@ package com.example.ourchat.ui.chat
 
 
 import android.content.Context
+import android.media.MediaPlayer
+import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.ProgressBar
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.data.model.Message
 import com.example.ourchat.databinding.*
+import com.example.ourchat.ui.chat.ChatAdapter.Companion.isPlaying
+import java.io.IOException
 
 class ChatAdapter(private val context: Context?, private val clickListener: MessageClickListener) :
     ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallbackMessages()) {
@@ -38,10 +45,13 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
         private const val TYPE_RECEIVED_IMAGE_MESSAGE = 3
         private const val TYPE_SENT_FILE_MESSAGE = 4
         private const val TYPE_RECEIVED_FILE_MESSAGE = 5
+        private const val TYPE_SENT_RECORD = 6
+        private const val TYPE_RECEIVED_RECORD = 7
+        var isPlaying = false
     }
 
 
-    //todo show view holder while image is uploading after selection , fix dialog layout , send audio record and files ,fix network callback
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
@@ -63,10 +73,15 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             TYPE_RECEIVED_FILE_MESSAGE -> {
                 ReceivedFileMessageViewHolder.from(parent)
             }
+            TYPE_SENT_RECORD -> {
+                SentRecordViewHolder.from(parent)
+            }
+            TYPE_RECEIVED_RECORD -> {
+                ReceivedRecordViewHolder.from(parent)
+            }
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
-
 
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -89,6 +104,12 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             is SentFileMessageViewHolder -> {
                 holder.bind(clickListener, getItem(position))
             }
+            is SentRecordViewHolder -> {
+                holder.bind(clickListener, getItem(position))
+            }
+            is ReceivedRecordViewHolder -> {
+                holder.bind(clickListener, getItem(position))
+            }
             else -> throw IllegalArgumentException("Invalid ViewHolder type")
         }
     }
@@ -109,7 +130,12 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             return TYPE_SENT_FILE_MESSAGE
         } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 3L) {
             return TYPE_RECEIVED_FILE_MESSAGE
+        } else if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 4L) {
+            return TYPE_SENT_RECORD
+        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 4L) {
+            return TYPE_RECEIVED_RECORD
         } else {
+
             throw IllegalArgumentException("Invalid ItemViewType")
         }
 
@@ -248,9 +274,123 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     }
 
 
+    //----------------SentRecordViewHolder------------
+    class SentRecordViewHolder private constructor(val binding: SentAudioItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+
+        fun bind(clickListener: MessageClickListener, item: Message) {
+            binding.message = item
+            binding.clickListener = clickListener
+            binding.position = adapterPosition
+            binding.executePendingBindings()
+
+
+            //todo resume after pause contunue unsted of restart audio
+            binding.playPauseImage.setOnClickListener {
+                isPlaying = if (!isPlaying) {
+                    //play audio if icon is play
+                    startPlaying(item.fileUri!!, binding.progressbar, binding.playPauseImage)
+                    !isPlaying
+                } else {
+                    stopPlaying()
+                    binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+                    !isPlaying
+                }
+
+
+            }
+        }
+
+        companion object {
+            fun from(parent: ViewGroup): SentRecordViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = SentAudioItemBinding.inflate(layoutInflater, parent, false)
+
+                return SentRecordViewHolder(binding)
+            }
+        }
+
+
+    }
+
+
+    //----------------SentRecordViewHolder------------
+    class ReceivedRecordViewHolder private constructor(val binding: ReceivedAudioItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(clickListener: MessageClickListener, item: Message) {
+            binding.message = item
+            binding.clickListener = clickListener
+            binding.position = adapterPosition
+            binding.executePendingBindings()
+        }
+
+        companion object {
+            fun from(parent: ViewGroup): ReceivedRecordViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = ReceivedAudioItemBinding.inflate(layoutInflater, parent, false)
+
+                return ReceivedRecordViewHolder(binding)
+            }
+        }
+    }
 
 
 }
+
+
+private var player: MediaPlayer? = null
+private lateinit var countDownTimer: CountDownTimer
+
+
+private fun startPlaying(
+    fileName: String,
+    progressbar: ProgressBar,
+    playPauseImage: ImageView
+) {
+
+
+    player = MediaPlayer().apply {
+        try {
+            setDataSource(fileName)
+            prepare()
+            start()
+        } catch (e: IOException) {
+            println("ChatFragment.startPlaying:prepare failed")
+        }
+    }
+
+    playPauseImage.setImageResource(R.drawable.ic_pause_black_24dp)
+
+    progressbar.max = player!!.duration
+    // player!!.currentPosition
+    countDownTimer = object : CountDownTimer(player!!.duration.toLong(), 50) {
+        override fun onFinish() {
+            progressbar.progress = (player!!.duration)
+            isPlaying = false
+            playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+        }
+
+        override fun onTick(millisUntilFinished: Long) {
+            progressbar.progress = (player!!.duration - millisUntilFinished).toInt()
+
+        }
+
+    }.start()
+
+
+}
+
+private fun stopPlaying() {
+    countDownTimer.cancel()
+    player?.release()
+    player = null
+}
+
+
+
+
 
 interface MessageClickListener {
     fun onMessageClick(position: Int, message: Message)
