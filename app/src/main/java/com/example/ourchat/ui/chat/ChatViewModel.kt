@@ -11,6 +11,7 @@ import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.StorageReference
+import java.io.File
 import java.util.*
 
 
@@ -22,6 +23,7 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
     private val chatFileMapMutableLiveData = MutableLiveData<Map<String, Any?>>()
     private val messagesMutableLiveData = MutableLiveData<List<Message>>()
     private val chatImageDownloadUriMutableLiveData = MutableLiveData<Uri>()
+    private val chatRecordDownloadUriMutableLiveData = MutableLiveData<Uri>()
 
 
     fun loadMessages(): LiveData<List<Message>> {
@@ -40,14 +42,15 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
                                 message["from"].toString(),
                                 message["date"] as Long,
                                 message["text"].toString(),
-                                message["image_uri"].toString(),
-                                message["file_uri"].toString(),
-                                message["file_name"].toString(),
+                                message["uri"].toString(),
+                                message["name"].toString(),
                                 message["type"] as Long?
                             )
                             messagesList.add(message)
                         }
-                        messagesMutableLiveData.value = messagesList
+
+                        if (!messagesList.isNullOrEmpty())
+                            messagesMutableLiveData.value = messagesList
                     }
 
                 }
@@ -72,35 +75,14 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
 
 //create message hashmap depending on message type
 
-        val messageMap = when (type) {
-
-            0L -> {
-                mapOf(
+        val messageMap = mapOf(
                     "date" to timeMilli,
                     "from" to senderId,
+            "uri" to uri,
                     "text" to message,
-                    "type" to 0
-                )
-            }
-            1L -> {
-                mapOf(
-                    "date" to timeMilli,
-                    "from" to senderId,
-                    "image_uri" to uri,
-                    "type" to 1
-                )
-            }
-            3L -> {
-                mapOf(
-                    "date" to timeMilli,
-                    "from" to senderId,
-                    "file_uri" to uri,
-                    "file_name" to fileName,
-                    "type" to 3
-                )
-            }
-            else -> throw java.lang.Exception("uknown type")
-        }
+            "name" to fileName,
+            "type" to type
+        )
 
 
         //so we don't create multiple nodes for same chat
@@ -165,7 +147,7 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
                 println("SharedViewModel.uploadChatImageByUri:on complete")
                 chatFileMapMutableLiveData.value = mapOf<String, Any?>(
                     "downloadUri" to downloadUri,
-                    "fileName" to data?.lastPathSegment
+                    "fileName" to data?.path
                 )
 
 
@@ -177,6 +159,33 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
         return chatFileMapMutableLiveData
     }
 
+
+    fun uploadRecord(filePath: String): LiveData<Uri> {
+
+        mStorageRef = StorageUtil.storageInstance.reference
+        val ref = mStorageRef.child("records/" + Date().time)
+        var uploadTask = ref.putFile(Uri.fromFile(File(filePath)))
+
+
+        println("ChatViewModel.uploadRecord:${Uri.fromFile(File(filePath))}")
+        println("ChatViewModel.uploadRecord:${filePath}")
+
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                //error
+            }
+            ref.downloadUrl
+        }.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val downloadUri = task.result
+                chatRecordDownloadUriMutableLiveData.value = downloadUri
+            } else {
+                //error
+            }
+        }
+
+        return chatRecordDownloadUriMutableLiveData
+    }
 
     fun uploadChatImageByUri(data: Uri?): LiveData<Uri> {
         mStorageRef = StorageUtil.storageInstance.reference

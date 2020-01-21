@@ -1,11 +1,15 @@
 package com.example.ourchat.ui.chat
 
 import android.Manifest
+import android.animation.AnimatorInflater
+import android.animation.AnimatorSet
 import android.app.DownloadManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
@@ -13,7 +17,6 @@ import android.os.Environment
 import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,7 +31,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
-import com.devlomi.record_view.OnRecordListener
 import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.CLICKED_USER
@@ -59,6 +61,8 @@ const val CHOOSE_FILE_REQUEST = 4
 class ChatFragment : Fragment() {
 
     private var recorder: MediaRecorder? = null
+    var isRecording = false //whether is recoding now or not
+    var isRecord = true //whether it is text message or record
 
 
     private var messageList = mutableListOf<Message>()
@@ -86,7 +90,7 @@ class ChatFragment : Fragment() {
 
                     StfalconImageViewer.Builder<MyImage>(
                         activity!!,
-                        listOf(MyImage(message.imageUri!!)),
+                        listOf(MyImage(message.uri!!)),
                         ImageLoader<MyImage> { imageView, myImage ->
                             Glide.with(activity!!)
                                 .load(myImage.url)
@@ -112,7 +116,7 @@ class ChatFragment : Fragment() {
                     //download file
                     val downloadManager =
                         activity!!.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                    val uri = Uri.parse(message.fileUri)
+                    val uri = Uri.parse(message.uri)
                     val request = DownloadManager.Request(uri)
                     request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                     request.setDestinationInExternalPublicDir(
@@ -137,7 +141,6 @@ class ChatFragment : Fragment() {
                 }
             }).check()
     }
-
 
 
     companion object {
@@ -189,9 +192,6 @@ class ChatFragment : Fragment() {
         activity!!.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
 
-
-
-
         //send message on keyboard done click
         binding.messageEditText.setOnEditorActionListener { _, actionId, _ ->
             sendMessage()
@@ -236,13 +236,10 @@ class ChatFragment : Fragment() {
 
         }
 
+
     }
 
     private fun handleRecord() {
-
-
-        binding.recordFab.setRecordView(binding.recordView)
-        binding.recordView.setLessThanSecondAllowed(true)
 
 
         //change fab icon depending on is text message empty or not
@@ -250,12 +247,11 @@ class ChatFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {
                 if (s.isNullOrEmpty()) {
                     //empty text message
-                    binding.recordFab.isListenForRecord = true
-                    binding.recordFab.setImageResource(R.drawable.recv_ic_mic_white)
+                    binding.recordFab.setImageResource(R.drawable.ic_mic_white_24dp)
+                    isRecord = true
                 } else {
-                    binding.recordFab.isListenForRecord = false
                     binding.recordFab.setImageResource(R.drawable.ic_right_arrow)
-
+                    isRecord = false
                 }
             }
 
@@ -268,65 +264,60 @@ class ChatFragment : Fragment() {
         })
 
 
-        //show message layout after delete animation ends
-        binding.recordView.setOnBasketAnimationEndListener {
-            binding.messageLayout.visibility = View.VISIBLE
-        }
+        binding.recordFab.setOnClickListener {
+            if (isRecord) {
+                //record message
+                if (isRecording) {
+                    //chnage size and color or button so user know its finished recording
+                    val regainer = AnimatorInflater.loadAnimator(
+                        context,
+                        R.animator.regain_size
+                    ) as AnimatorSet
+                    regainer.setTarget(binding.recordFab)
+                    regainer.start()
+                    binding.recordFab.backgroundTintList =
+                        ColorStateList.valueOf(Color.parseColor("#b39ddb"))
 
+                    stopRecording()
 
-        //handle recording audio click
-        binding.recordView.setOnRecordListener(object : OnRecordListener {
+                } else {
+                    Dexter.withActivity(activity)
+                        .withPermission(Manifest.permission.RECORD_AUDIO)
+                        .withListener(object : PermissionListener {
+                            override fun onPermissionGranted(response: PermissionGrantedResponse?) {
+                                //chnage size and color or button so user know its recording
+                                val increaser = AnimatorInflater.loadAnimator(
+                                    context,
+                                    R.animator.increase_size
+                                ) as AnimatorSet
+                                increaser.setTarget(binding.recordFab)
+                                increaser.start()
+                                binding.recordFab.backgroundTintList =
+                                    ColorStateList.valueOf(Color.parseColor("#EE4B4B"))
 
-            override fun onStart() {
-                Dexter.withActivity(activity)
-                    .withPermission(Manifest.permission.RECORD_AUDIO)
-                    .withListener(object : PermissionListener {
-                        override fun onPermissionGranted(response: PermissionGrantedResponse?) {
-                            startRecording()
-                        }
+                                startRecording()
+                            }
 
-                        override fun onPermissionRationaleShouldBeShown(
-                            permission: com.karumi.dexter.listener.PermissionRequest?,
-                            token: PermissionToken?
-                        ) {
-                            token?.continuePermissionRequest()
-                            //notify parent activity that permission denied to show toast for manual permission giving
-                            showSnackBar()
-                        }
+                            override fun onPermissionRationaleShouldBeShown(
+                                permission: com.karumi.dexter.listener.PermissionRequest?,
+                                token: PermissionToken?
+                            ) {
+                                token?.continuePermissionRequest()
+                                //notify parent activity that permission denied to show toast for manual permission giving
+                                showSnackBar()
+                            }
 
-                        override fun onPermissionDenied(response: PermissionDeniedResponse?) {
-                            //notify parent activity that permission denied to show toast for manual permission giving
-                            showSnackBar()
-                        }
-                    }).check()
-
-                binding.messageLayout.visibility = View.INVISIBLE
+                            override fun onPermissionDenied(response: PermissionDeniedResponse?) {
+                                //notify parent activity that permission denied to show toast for manual permission giving
+                                showSnackBar()
+                            }
+                        }).check()
+                }
+                isRecording = !isRecording
+            } else {
+                //text message
+                sendMessage()
             }
-
-
-            override fun onFinish(recordTime: Long) {
-                stopRecording()
-                binding.messageLayout.visibility = View.VISIBLE
-                Log.d("RecordTime", recordTime.toString())
-
-                //todo replace hard coded value of path with storage path
-                showPlaceholderRecord("${activity!!.externalCacheDir?.absolutePath}/audiorecord.3gp")
-            }
-
-            override fun onLessThanSecond() {
-                //Do nothing
-            }
-
-            override fun onCancel() {
-            }
-
-
-        })
-
-
-        //handle normal message click
-        binding.recordFab.setOnRecordClickListener {
-            sendMessage()
         }
 
 
@@ -406,7 +397,6 @@ class ChatFragment : Fragment() {
                 null,
                 data.toString(),
                 null,
-                data.toString(),
                 1
             )
         )
@@ -416,16 +406,16 @@ class ChatFragment : Fragment() {
     }
 
 
-    private fun showPlaceholderRecord(data: String?) {
+    private fun showPlaceholderRecord() {
+        //show fake item with progress bar while record uploads
         messageList.add(
             Message(
                 AuthUtil.getAuthId(),
                 Date().time,
                 null,
                 null,
-                data,
                 null,
-                4
+                8
             )
         )
         adapter.submitList(messageList)
@@ -440,9 +430,8 @@ class ChatFragment : Fragment() {
                 AuthUtil.getAuthId(),
                 Date().time,
                 null,
-                null,
                 data.toString(),
-                data.toString(),
+                data?.path.toString(),
                 3
             )
         )
@@ -489,8 +478,9 @@ class ChatFragment : Fragment() {
             setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
             try {
                 prepare()
+
             } catch (e: IOException) {
-                println("ChatFragment.startRecording:prepare failed")
+                println("ChatFragment.startRecording${e.message}")
             }
 
             start()
@@ -498,11 +488,23 @@ class ChatFragment : Fragment() {
     }
 
     private fun stopRecording() {
+
         recorder?.apply {
+
             stop()
             release()
         }
         recorder = null
+
+
+        viewModel.uploadRecord("${activity!!.externalCacheDir?.absolutePath}/audiorecord.3gp")
+            .observe(this@ChatFragment,
+                Observer {
+                    viewModel.sendMessage(null, it.toString(), null, 4)
+                })
+
+        showPlaceholderRecord()
+
     }
 
 

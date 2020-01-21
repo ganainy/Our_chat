@@ -59,7 +59,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:textColor="@color/blue"
-                app:setUnderlinedText="@{message.fileName}"
+                app:setUnderlinedText="@{message.name}"
                 android:textAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"
                 app:layout_constrainedWidth="true"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -70,14 +70,16 @@
 
             <TextView
                 android:id="@+id/dateTextView"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
                 android:layout_marginBottom="4dp"
                 android:gravity="end"
                 app:formatDate="@{message.date}"
                 app:layout_constraintBottom_toBottomOf="@id/bubble"
-                app:layout_constraintEnd_toStartOf="@+id/stateImageView"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/barrier3"
                 tools:text="14:16" />
 
@@ -87,16 +89,6 @@
                 app:layout_constraintEnd_toStartOf="@+id/dateTextView"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/dateTextView" />
-
-            <ImageView
-                android:id="@+id/stateImageView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                app:layout_constraintBottom_toBottomOf="@+id/dateTextView"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/dateTextView"
-                app:srcCompat="@drawable/ic_sent_grey_24dp" />
 
             <androidx.constraintlayout.widget.Barrier
                 android:id="@+id/barrier3"

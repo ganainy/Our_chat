@@ -47,6 +47,8 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
         private const val TYPE_RECEIVED_FILE_MESSAGE = 5
         private const val TYPE_SENT_RECORD = 6
         private const val TYPE_RECEIVED_RECORD = 7
+        private const val TYPE_SENT_RECORD_PLACEHOLDER = 8
+
         var isPlaying = false
     }
 
@@ -79,6 +81,9 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             TYPE_RECEIVED_RECORD -> {
                 ReceivedRecordViewHolder.from(parent)
             }
+            TYPE_SENT_RECORD_PLACEHOLDER -> {
+                SentRecordPlaceHolderViewHolder.from(parent)
+            }
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -110,6 +115,9 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             is ReceivedRecordViewHolder -> {
                 holder.bind(clickListener, getItem(position))
             }
+            is SentRecordPlaceHolderViewHolder -> {
+                holder.bind(clickListener, getItem(position))
+            }
             else -> throw IllegalArgumentException("Invalid ViewHolder type")
         }
     }
@@ -134,6 +142,8 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             return TYPE_SENT_RECORD
         } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 4L) {
             return TYPE_RECEIVED_RECORD
+        } else if (currentMessage.type == 8L) {
+            return TYPE_SENT_RECORD_PLACEHOLDER
         } else {
 
             throw IllegalArgumentException("Invalid ItemViewType")
@@ -290,7 +300,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             binding.playPauseImage.setOnClickListener {
                 isPlaying = if (!isPlaying) {
                     //play audio if icon is play
-                    startPlaying(item.fileUri!!, binding.progressbar, binding.playPauseImage)
+                    startPlaying(item.uri!!, binding.progressbar, binding.playPauseImage)
                     !isPlaying
                 } else {
                     stopPlaying()
@@ -315,7 +325,33 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     }
 
 
-    //----------------SentRecordViewHolder------------
+    //----------------SentRecordPlaceHolderViewHolder------------
+    class SentRecordPlaceHolderViewHolder private constructor(val binding: SentAudioPlaceholderItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+
+        fun bind(clickListener: MessageClickListener, item: Message) {
+            binding.message = item
+            binding.clickListener = clickListener
+            binding.position = adapterPosition
+            binding.executePendingBindings()
+
+        }
+
+        companion object {
+            fun from(parent: ViewGroup): SentRecordPlaceHolderViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = SentAudioPlaceholderItemBinding.inflate(layoutInflater, parent, false)
+
+                return SentRecordPlaceHolderViewHolder(binding)
+            }
+        }
+
+
+    }
+
+
+    //----------------ReceivedRecordViewHolder------------
     class ReceivedRecordViewHolder private constructor(val binding: ReceivedAudioItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 

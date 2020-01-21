@@ -107,6 +107,5 @@ dependencies {
     //image zoom
     implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.0'
 
-    //animated record view
-    implementation 'com.devlomi.record-view:record-view:2.0.1'
+
 }

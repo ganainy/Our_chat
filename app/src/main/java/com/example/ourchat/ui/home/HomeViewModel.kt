@@ -20,7 +20,6 @@ class HomeViewModel : ViewModel() {
     private val loggedUserMutableLiveData = MutableLiveData<User>()
 
 
-
     fun getChats(loggedUser: User): LiveData<MutableList<ChatParticipant>>? {
 
         if (chatParticipantsListMutableLiveData.value != null) return chatParticipantsListMutableLiveData
@@ -47,23 +46,15 @@ class HomeViewModel : ViewModel() {
                             messageDocument.get("messages") as List<HashMap<String, Any>>?
                         val lastMessage = messagesList?.get(messagesList.size - 1)
                         //get message or photo url depending on last message type
-                        val lastMessageType = lastMessage?.get("type") as Long
 
-                        when (lastMessageType) {
-                            0L -> chatParticipant.lastMessage = lastMessage.get("text") as String
-                            1L -> chatParticipant.imageUri = lastMessage.get("image_uri") as String
-                            3L -> {
-                                chatParticipant.fileUri = lastMessage.get("file_uri") as String
-                                chatParticipant.fileName = lastMessage.get("file_name") as String
-                            }
-                            else -> throw java.lang.Exception("uknown type")
-
-                        }
-
-
+                        val lastMessageType = lastMessage?.get("type") as Long?
+                        chatParticipant.lastMessage = lastMessage?.get("text") as String?
+                        chatParticipant.uri = lastMessage?.get("uri") as String?
+                        chatParticipant.name = lastMessage?.get("name") as String?
                         chatParticipant.lastMessageType = lastMessageType
-                        chatParticipant.lastMessageDate = lastMessage.get("date") as Long
-                        val lastMessageOwnerId = lastMessage.get("from") as String
+                        chatParticipant.lastMessageDate = lastMessage?.get("date") as Long?
+                        val lastMessageOwnerId = lastMessage?.get("from") as String?
+
 
                         //set isLoggedUser to know if logged user typed last message or not
                         chatParticipant.isLoggedUser = (lastMessageOwnerId == loggedUserId)

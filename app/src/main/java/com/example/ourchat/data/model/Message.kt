@@ -5,10 +5,9 @@ data class Message(
     val from: String?,
     val date: Long?,
     val text: String?,
-    val imageUri: String?,
-    val fileUri: String?,
-    val fileName: String?,
+    val uri: String?,
+    val name: String?,
     val type: Long?
 ) {
-    constructor() : this(null, null, null, null, null, null, null)
+    constructor() : this(null, null, null, null, null, null)
 }
