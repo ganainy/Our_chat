@@ -9,7 +9,7 @@
 
         <variable
             name="message"
-            type="com.example.ourchat.data.model.Message" />
+            type="com.example.ourchat.data.model.ImageMessage" />
 
         <variable
             name="clickListener"
@@ -38,12 +38,11 @@
 
             <ImageView
                 android:id="@+id/progressbar"
-                android:layout_width="wrap_content"
+                android:layout_width="250dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
+                android:adjustViewBounds="true"
                 android:gravity="start"
-                android:minWidth="200dp"
-                android:minHeight="200dp"
                 android:paddingLeft="8dp"
                 android:paddingTop="4dp"
                 android:paddingRight="8dp"
@@ -54,7 +53,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:setChatImage="@{message.imageUri}"
+                app:setChatImage="@{message.uri}"
                 tools:src="@color/grey" />
 
             <TextView
@@ -62,11 +61,12 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
+                android:layout_marginBottom="4dp"
                 android:gravity="end"
-                app:formatDate="@{message.date}"
+                app:formatDate="@{message.created_at}"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                tools:layout_editor_absoluteY="200dp"
                 tools:text="14:16" />
 
             <TextView

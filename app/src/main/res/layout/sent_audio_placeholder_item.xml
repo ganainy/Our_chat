@@ -72,7 +72,7 @@
                 android:layout_marginBottom="4dp"
                 android:gravity="end"
                 android:maxLines="1"
-                app:formatDate="@{message.date}"
+                app:formatDate="@{message.created_at}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

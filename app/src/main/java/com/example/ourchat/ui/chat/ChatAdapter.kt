@@ -29,9 +29,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
-import com.example.ourchat.data.model.Message
+import com.example.ourchat.Utils.eventbus_events.UpdateRecordEvent
+import com.example.ourchat.data.model.*
 import com.example.ourchat.databinding.*
-import com.example.ourchat.ui.chat.ChatAdapter.Companion.isPlaying
+import org.greenrobot.eventbus.EventBus
 import java.io.IOException
 
 class ChatAdapter(private val context: Context?, private val clickListener: MessageClickListener) :
@@ -48,8 +49,6 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
         private const val TYPE_SENT_RECORD = 6
         private const val TYPE_RECEIVED_RECORD = 7
         private const val TYPE_SENT_RECORD_PLACEHOLDER = 8
-
-        var isPlaying = false
     }
 
 
@@ -92,31 +91,31 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
             is SentMessageViewHolder -> {
-                holder.bind(clickListener, getItem(position))
+                holder.bind(clickListener, getItem(position) as TextMessage)
             }
             is ReceivedMessageViewHolder -> {
-                holder.bind(clickListener, getItem(position))
+                holder.bind(clickListener, getItem(position) as TextMessage)
             }
             is SentImageMessageViewHolder -> {
-                holder.bind(clickListener, getItem(position))
+                holder.bind(clickListener, getItem(position) as ImageMessage)
             }
             is ReceivedImageMessageViewHolder -> {
-                holder.bind(clickListener, getItem(position))
+                holder.bind(clickListener, getItem(position) as ImageMessage)
             }
             is ReceivedFileMessageViewHolder -> {
-                holder.bind(clickListener, getItem(position))
+                holder.bind(clickListener, getItem(position) as FileMessage)
             }
             is SentFileMessageViewHolder -> {
-                holder.bind(clickListener, getItem(position))
+                holder.bind(clickListener, getItem(position) as FileMessage)
             }
             is SentRecordViewHolder -> {
-                holder.bind(clickListener, getItem(position))
+                holder.bind(clickListener, getItem(position) as RecordMessage)
             }
             is ReceivedRecordViewHolder -> {
-                holder.bind(clickListener, getItem(position))
+                holder.bind(clickListener, getItem(position) as RecordMessage)
             }
             is SentRecordPlaceHolderViewHolder -> {
-                holder.bind(clickListener, getItem(position))
+                holder.bind(clickListener, getItem(position) as RecordMessage)
             }
             else -> throw IllegalArgumentException("Invalid ViewHolder type")
         }
@@ -126,23 +125,23 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
 
         val currentMessage = getItem(position)
 
-        if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 0L) {
+        if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 0.0) {
             return TYPE_SENT_MESSAGE
-        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 0L) {
+        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 0.0) {
             return TYPE_RECEIVED_MESSAGE
-        } else if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 1L) {
+        } else if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 1.0) {
             return TYPE_SENT_IMAGE_MESSAGE
-        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 1L) {
+        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 1.0) {
             return TYPE_RECEIVED_IMAGE_MESSAGE
-        } else if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 3L) {
+        } else if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 2.0) {
             return TYPE_SENT_FILE_MESSAGE
-        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 3L) {
+        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 2.0) {
             return TYPE_RECEIVED_FILE_MESSAGE
-        } else if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 4L) {
+        } else if (currentMessage.from == AuthUtil.getAuthId() && currentMessage.type == 3.0) {
             return TYPE_SENT_RECORD
-        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 4L) {
+        } else if (currentMessage.from != AuthUtil.getAuthId() && currentMessage.type == 3.0) {
             return TYPE_RECEIVED_RECORD
-        } else if (currentMessage.type == 8L) {
+        } else if (currentMessage.type == 8.0) {
             return TYPE_SENT_RECORD_PLACEHOLDER
         } else {
 
@@ -156,7 +155,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     class SentMessageViewHolder private constructor(val binding: SentMessageItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(clickListener: MessageClickListener, item: Message) {
+        fun bind(clickListener: MessageClickListener, item: TextMessage) {
             binding.message = item
             binding.clickListener = clickListener
             binding.position = adapterPosition
@@ -179,7 +178,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     class ReceivedMessageViewHolder private constructor(val binding: IncomingMessageItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(clickListener: MessageClickListener, item: Message) {
+        fun bind(clickListener: MessageClickListener, item: TextMessage) {
             binding.message = item
             binding.clickListener = clickListener
             binding.position = adapterPosition
@@ -200,7 +199,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     class SentImageMessageViewHolder private constructor(val binding: SentChatImageItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(clickListener: MessageClickListener, item: Message) {
+        fun bind(clickListener: MessageClickListener, item: ImageMessage) {
             binding.message = item
             binding.clickListener = clickListener
             binding.position = adapterPosition
@@ -222,7 +221,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     class ReceivedImageMessageViewHolder private constructor(val binding: IncomingChatImageItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(clickListener: MessageClickListener, item: Message) {
+        fun bind(clickListener: MessageClickListener, item: ImageMessage) {
             binding.message = item
             binding.clickListener = clickListener
             binding.position = adapterPosition
@@ -244,7 +243,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     class SentFileMessageViewHolder private constructor(val binding: SentChatFileItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(clickListener: MessageClickListener, item: Message) {
+        fun bind(clickListener: MessageClickListener, item: FileMessage) {
             binding.message = item
             binding.clickListener = clickListener
             binding.position = adapterPosition
@@ -266,7 +265,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     class ReceivedFileMessageViewHolder private constructor(val binding: IncomingChatFileItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(clickListener: MessageClickListener, item: Message) {
+        fun bind(clickListener: MessageClickListener, item: FileMessage) {
             binding.message = item
             binding.clickListener = clickListener
             binding.position = adapterPosition
@@ -289,7 +288,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
         RecyclerView.ViewHolder(binding.root) {
 
 
-        fun bind(clickListener: MessageClickListener, item: Message) {
+        fun bind(clickListener: MessageClickListener, item: RecordMessage) {
             binding.message = item
             binding.clickListener = clickListener
             binding.position = adapterPosition
@@ -298,15 +297,15 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
 
             //todo resume after pause contunue unsted of restart audio
             binding.playPauseImage.setOnClickListener {
-                isPlaying = if (!isPlaying) {
-                    //play audio if icon is play
-                    startPlaying(item.uri!!, binding.progressbar, binding.playPauseImage)
-                    !isPlaying
-                } else {
-                    stopPlaying()
-                    binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
-                    !isPlaying
-                }
+                /*   isPlaying = if (!isPlaying) {
+                       //play audio if icon is play
+                       startPlaying(item.uri!!, binding.progressbar, binding.playPauseImage)
+                       !isPlaying
+                   } else {
+                       stopPlaying()
+                       binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+                       !isPlaying
+                   }*/
 
 
             }
@@ -355,11 +354,26 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     class ReceivedRecordViewHolder private constructor(val binding: ReceivedAudioItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(clickListener: MessageClickListener, item: Message) {
+        fun bind(clickListener: MessageClickListener, item: RecordMessage) {
             binding.message = item
             binding.clickListener = clickListener
             binding.position = adapterPosition
             binding.executePendingBindings()
+
+
+            binding.playPauseImage.setOnClickListener {
+                EventBus.getDefault().post(UpdateRecordEvent(item, adapterPosition))
+                /*   isPlaying = if (!isPlaying) {
+                       //play audio if icon is play
+                       startPlaying(item.uri!!, binding.progressbar, binding.playPauseImage)
+                       !isPlaying
+                   } else {
+                       stopPlaying()
+                       binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+                       !isPlaying
+                   }*/
+            }
+
         }
 
         companion object {
@@ -404,7 +418,7 @@ private fun startPlaying(
     countDownTimer = object : CountDownTimer(player!!.duration.toLong(), 50) {
         override fun onFinish() {
             progressbar.progress = (player!!.duration)
-            isPlaying = false
+            //isPlaying = false
             playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
         }
 
@@ -435,11 +449,11 @@ interface MessageClickListener {
 
 class DiffCallbackMessages : DiffUtil.ItemCallback<Message>() {
     override fun areItemsTheSame(oldItem: Message, newItem: Message): Boolean {
-        return oldItem.date == newItem.date
+        return oldItem.created_at == newItem.created_at
     }
 
     override fun areContentsTheSame(oldItem: Message, newItem: Message): Boolean {
-        return oldItem == newItem
+        return oldItem.equals(newItem)
     }
 }
 

@@ -39,27 +39,7 @@
     <string name="empty_message">Can\'t send empty message</string>
 
 
-    <!-- Date Util -->
-    <string name="date_util_term_less">less than</string>
-    <string name="date_util_term_a">a</string>
-    <string name="date_util_term_an">an</string>
 
-    <string name="date_util_unit_minute">minute</string>
-    <string name="date_util_unit_minutes">minutes</string>
-    <string name="date_util_unit_hour">hour</string>
-    <string name="date_util_unit_hours">hours</string>
-    <string name="date_util_unit_day">day</string>
-    <string name="date_util_unit_days">days</string>
-    <string name="date_util_unit_month">month</string>
-    <string name="date_util_unit_months">months</string>
-    <string name="date_util_unit_year">year</string>
-    <string name="date_util_unit_years">years</string>
-
-    <string name="date_util_prefix_about">about</string>
-    <string name="date_util_prefix_over">over</string>
-    <string name="date_util_prefix_almost">almost</string>
-
-    <string name="date_util_suffix">ago</string>
 
     <string name="you">You: %1$s</string>
     <string name="other">%1$s: %2$s</string>
@@ -70,6 +50,8 @@
     <string name="send_file">Send file</string>
     <string name="send_picture">Send picture</string>
     <string name="you_sent_file">you sent a file</string>
+    <string name="you_sent_record">you sent a voice record</string>
+    <string name="other_record">%1$s sent a voice record</string>
 
 
 </resources>

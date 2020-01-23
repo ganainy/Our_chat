@@ -7,7 +7,7 @@
 
         <variable
             name="message"
-            type="com.example.ourchat.data.model.Message" />
+            type="com.example.ourchat.data.model.FileMessage" />
 
         <variable
             name="clickListener"
@@ -76,7 +76,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="4dp"
                 android:gravity="end"
-                app:formatDate="@{message.date}"
+                app:formatDate="@{message.created_at}"
                 app:layout_constraintBottom_toBottomOf="@id/bubble"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

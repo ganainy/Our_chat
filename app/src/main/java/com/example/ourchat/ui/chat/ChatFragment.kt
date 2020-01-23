@@ -36,11 +36,11 @@ import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.Utils.eventbus_events.PermissionEvent
-import com.example.ourchat.data.model.Message
-import com.example.ourchat.data.model.MyImage
-import com.example.ourchat.data.model.User
+import com.example.ourchat.data.model.*
 import com.example.ourchat.databinding.ChatFragmentBinding
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
 import com.google.gson.Gson
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
@@ -63,6 +63,7 @@ class ChatFragment : Fragment() {
     private var recorder: MediaRecorder? = null
     var isRecording = false //whether is recoding now or not
     var isRecord = true //whether it is text message or record
+    private lateinit var loggedUser: User
 
 
     private var messageList = mutableListOf<Message>()
@@ -70,8 +71,29 @@ class ChatFragment : Fragment() {
     private val adapter: ChatAdapter by lazy {
         ChatAdapter(context, object : MessageClickListener {
             override fun onMessageClick(position: Int, message: Message) {
+
+
+                //if clicked item is image open in full screen with pinch to zoom
+                if (message.type == 1.0) {
+
+                    binding.fullSizeImageView.visibility = View.VISIBLE
+
+                    StfalconImageViewer.Builder<MyImage>(
+                        activity!!,
+                        listOf(MyImage((message as ImageMessage).uri!!)),
+                        ImageLoader<MyImage> { imageView, myImage ->
+                            Glide.with(activity!!)
+                                .load(myImage.url)
+                                .apply(RequestOptions().error(R.drawable.ic_broken_image_black_24dp))
+                                .into(imageView)
+                        })
+                        .withDismissListener { binding.fullSizeImageView.visibility = View.GONE }
+                        .show()
+
+
+                }
                 //show dialog confirming user want to download file then proceed to download or cancel
-                if (message.type == 3L) {
+                else if (message.type == 2.0) {
                     //file message we should download
                     val dialogBuilder = context?.let { it1 -> AlertDialog.Builder(it1) }
                     dialogBuilder?.setMessage("Do you want to download clicked file?")
@@ -81,26 +103,9 @@ class ChatFragment : Fragment() {
                             downloadFile(message)
                         }?.setNegativeButton("cancel", null)?.show()
 
-                }
-
-                //if clicked item is image open in full screen with pinch to zoom
-                if (message.type == 1L) {
-
-                    binding.fullSizeImageView.visibility = View.VISIBLE
-
-                    StfalconImageViewer.Builder<MyImage>(
-                        activity!!,
-                        listOf(MyImage(message.uri!!)),
-                        ImageLoader<MyImage> { imageView, myImage ->
-                            Glide.with(activity!!)
-                                .load(myImage.url)
-                                .apply(RequestOptions().error(R.drawable.ic_poor_connection_black_24dp))
-                                .into(imageView)
-                        })
-                        .withDismissListener { binding.fullSizeImageView.visibility = View.GONE }
-                        .show()
-
-
+                } else if (message.type == 3.0) {
+                    println("ChatFragment.onUpdateRecordEvent:${message.created_at}")
+                    viewModel.updateRecord(message as RecordMessage)
                 }
             }
 
@@ -116,7 +121,7 @@ class ChatFragment : Fragment() {
                     //download file
                     val downloadManager =
                         activity!!.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                    val uri = Uri.parse(message.uri)
+                    val uri = Uri.parse((message as FileMessage).uri)
                     val request = DownloadManager.Request(uri)
                     request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                     request.setDestinationInExternalPublicDir(
@@ -163,6 +168,7 @@ class ChatFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        println("ChatFragment.onActivityCreated:${FieldValue.serverTimestamp()}")
 
         //set record view
         handleRecord()
@@ -172,7 +178,7 @@ class ChatFragment : Fragment() {
         val mPrefs: SharedPreferences = activity!!.getPreferences(Context.MODE_PRIVATE)
         val gson = Gson()
         val json: String? = mPrefs.getString(LOGGED_USER, null)
-        val loggedUser: User = gson.fromJson(json, User::class.java)
+        loggedUser = gson.fromJson(json, User::class.java)
 
         //get receiver data from contacts fragment
         val clickedUser = gson.fromJson(arguments?.getString(CLICKED_USER), User::class.java)
@@ -279,8 +285,11 @@ class ChatFragment : Fragment() {
                         ColorStateList.valueOf(Color.parseColor("#b39ddb"))
 
                     stopRecording()
+                    Toast.makeText(context, "Finished recording", Toast.LENGTH_SHORT).show()
+                    isRecording = !isRecording
 
                 } else {
+
                     Dexter.withActivity(activity)
                         .withPermission(Manifest.permission.RECORD_AUDIO)
                         .withListener(object : PermissionListener {
@@ -296,6 +305,8 @@ class ChatFragment : Fragment() {
                                     ColorStateList.valueOf(Color.parseColor("#EE4B4B"))
 
                                 startRecording()
+                                Toast.makeText(context, "Recording", Toast.LENGTH_SHORT).show()
+                                isRecording = !isRecording
                             }
 
                             override fun onPermissionRationaleShouldBeShown(
@@ -312,8 +323,9 @@ class ChatFragment : Fragment() {
                                 showSnackBar()
                             }
                         }).check()
+
                 }
-                isRecording = !isRecording
+
             } else {
                 //text message
                 sendMessage()
@@ -329,7 +341,15 @@ class ChatFragment : Fragment() {
             Toast.makeText(context, getString(R.string.empty_message), Toast.LENGTH_LONG).show()
             return
         }
-        viewModel.sendMessage(binding.messageEditText.text.toString(), null, null, 0)
+        viewModel.sendMessage(
+            TextMessage(
+                loggedUser.uid,
+                Timestamp(Date()),
+                0.0,
+                binding.messageEditText.text.toString()
+            )
+        )
+
         binding.messageEditText.setText("")
     }
 
@@ -347,10 +367,13 @@ class ChatFragment : Fragment() {
             //chat file was uploaded now store the uri with the message
             viewModel.uploadChatFileByUri(filePath).observe(this, Observer { chatFileMap ->
                 viewModel.sendMessage(
-                    null,
-                    chatFileMap["downloadUri"].toString(),
-                    chatFileMap["fileName"].toString(),
-                    3
+                    FileMessage(
+                        loggedUser.uid,
+                        Timestamp(Date()),
+                        2.0,
+                        chatFileMap["fileName"].toString(),
+                        chatFileMap["downloadUri"].toString()
+                    )
                 )
 
             })
@@ -367,10 +390,18 @@ class ChatFragment : Fragment() {
             viewModel.uploadChatImageByUri(data.data)
                 .observe(this, Observer { uploadedChatImageUri ->
                     //chat image was uploaded now store the uri with the message
-                    viewModel.sendMessage(null, uploadedChatImageUri.toString(), null, 1)
+                    viewModel.sendMessage(
+                        ImageMessage(
+                            loggedUser.uid,
+                            Timestamp(Date()),
+                            1.0,
+                            uploadedChatImageUri.toString()
+                        )
+                    )
                 })
 
         }
+
 
     }
 
@@ -391,13 +422,11 @@ class ChatFragment : Fragment() {
 
     private fun showPlaceholderPhoto(data: Uri?) {
         messageList.add(
-            Message(
+            ImageMessage(
                 AuthUtil.getAuthId(),
-                Date().time,
                 null,
-                data.toString(),
-                null,
-                1
+                1.0,
+                data.toString()
             )
         )
         adapter.submitList(messageList)
@@ -409,13 +438,13 @@ class ChatFragment : Fragment() {
     private fun showPlaceholderRecord() {
         //show fake item with progress bar while record uploads
         messageList.add(
-            Message(
+            RecordMessage(
                 AuthUtil.getAuthId(),
-                Date().time,
+                null,
+                8.0,
                 null,
                 null,
-                null,
-                8
+                null
             )
         )
         adapter.submitList(messageList)
@@ -426,13 +455,12 @@ class ChatFragment : Fragment() {
 
     private fun showPlaceholderFile(data: Uri?) {
         messageList.add(
-            Message(
+            FileMessage(
                 AuthUtil.getAuthId(),
-                Date().time,
                 null,
+                2.0,
                 data.toString(),
-                data?.path.toString(),
-                3
+                data?.path.toString()
             )
         )
         adapter.submitList(messageList)
@@ -500,7 +528,12 @@ class ChatFragment : Fragment() {
         viewModel.uploadRecord("${activity!!.externalCacheDir?.absolutePath}/audiorecord.3gp")
             .observe(this@ChatFragment,
                 Observer {
-                    viewModel.sendMessage(null, it.toString(), null, 4)
+                    viewModel.sendMessage(
+                        RecordMessage(
+                            AuthUtil.getAuthId(),
+                            Timestamp(Date()), 3.0, null, it.toString(), null
+                        )
+                    )
                 })
 
         showPlaceholderRecord()

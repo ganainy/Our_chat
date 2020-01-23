@@ -30,7 +30,6 @@ class HomeViewModel : ViewModel() {
             .whereArrayContains("chat_members", loggedUserId)
 
         query.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-            println("HomeViewMo query.addSnapshotListenener")
             if (firebaseFirestoreException == null) {
 
                 chatParticipantList.clear()
@@ -45,14 +44,13 @@ class HomeViewModel : ViewModel() {
                         val messagesList =
                             messageDocument.get("messages") as List<HashMap<String, Any>>?
                         val lastMessage = messagesList?.get(messagesList.size - 1)
+
                         //get message or photo url depending on last message type
 
-                        val lastMessageType = lastMessage?.get("type") as Long?
+                        val lastMessageType = lastMessage?.get("type") as Double?
                         chatParticipant.lastMessage = lastMessage?.get("text") as String?
-                        chatParticipant.uri = lastMessage?.get("uri") as String?
-                        chatParticipant.name = lastMessage?.get("name") as String?
                         chatParticipant.lastMessageType = lastMessageType
-                        chatParticipant.lastMessageDate = lastMessage?.get("date") as Long?
+                        //todo fix sees created_at as hashmap not timestamp   chatParticipant.lastMessageDate = lastMessage?.get("created_at") as Timestamp?
                         val lastMessageOwnerId = lastMessage?.get("from") as String?
 
 
