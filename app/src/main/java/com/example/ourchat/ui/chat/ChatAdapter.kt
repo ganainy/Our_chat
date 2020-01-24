@@ -22,22 +22,23 @@ import android.media.MediaPlayer
 import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.ProgressBar
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
-import com.example.ourchat.Utils.eventbus_events.UpdateRecordEvent
+import com.example.ourchat.Utils.eventbus_events.UpdateRecycleItemEvent
 import com.example.ourchat.data.model.*
 import com.example.ourchat.databinding.*
 import org.greenrobot.eventbus.EventBus
 import java.io.IOException
 
+
 class ChatAdapter(private val context: Context?, private val clickListener: MessageClickListener) :
     ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallbackMessages()) {
 
+
+    lateinit var messageList: MutableList<Message>
 
     companion object {
         private const val TYPE_SENT_MESSAGE = 0
@@ -52,9 +53,9 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     }
 
 
-
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+
+
         return when (viewType) {
             TYPE_SENT_MESSAGE -> {
                 SentMessageViewHolder.from(parent)
@@ -149,6 +150,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
         }
 
     }
+
 
 
     //----------------SentMessageViewHolder------------
@@ -247,7 +249,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             binding.message = item
             binding.clickListener = clickListener
             binding.position = adapterPosition
-            binding.executePendingBindings()//
+            binding.executePendingBindings()
         }
 
         companion object {
@@ -295,17 +297,43 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             binding.executePendingBindings()
 
 
-            //todo resume after pause contunue unsted of restart audio
+            //reset views (to reset other records other than the one playing)
+            var isPlaying = false
+            binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+            binding.progressbar.max = 0
+
+
             binding.playPauseImage.setOnClickListener {
-                /*   isPlaying = if (!isPlaying) {
-                       //play audio if icon is play
-                       startPlaying(item.uri!!, binding.progressbar, binding.playPauseImage)
-                       !isPlaying
-                   } else {
-                       stopPlaying()
-                       binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
-                       !isPlaying
-                   }*/
+                if (isPlaying) {
+                    //pause the record
+                    binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+                    stopPlaying()
+                    isPlaying = !isPlaying
+                } else {
+                    //play the record
+                    startPlaying(item.uri!!, adapterPosition)
+                    binding.progressbar.max = player.duration
+                    binding.playPauseImage.setImageResource(R.drawable.ic_pause_black_24dp)
+                    isPlaying = !isPlaying
+                }
+
+
+
+                countDownTimer = object : CountDownTimer(player.duration.toLong(), 50) {
+                    override fun onFinish() {
+                        if (isPlaying) {
+                            binding.progressbar.progress = (player.duration)
+                            binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+                        }
+                    }
+
+                    override fun onTick(millisUntilFinished: Long) {
+                        if (isPlaying)
+                            binding.progressbar.progress =
+                                (player.duration.minus(millisUntilFinished)).toInt()
+                    }
+
+                }.start()
 
 
             }
@@ -361,19 +389,46 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             binding.executePendingBindings()
 
 
-            binding.playPauseImage.setOnClickListener {
-                EventBus.getDefault().post(UpdateRecordEvent(item, adapterPosition))
-                /*   isPlaying = if (!isPlaying) {
+            /*   binding.playPauseImage.setOnClickListener {
+                   isPlayingList[adapterPosition] = if (!isPlayingList[adapterPosition]) {
                        //play audio if icon is play
-                       startPlaying(item.uri!!, binding.progressbar, binding.playPauseImage)
-                       !isPlaying
+                       startPlaying(
+                           item.uri!!,
+                           adapterPosition
+                       )
+
+
+                       binding.playPauseImage.setImageResource(R.drawable.ic_pause_black_24dp)
+
+                       binding.progressbar.max = player?.duration ?: 0
+                       binding.progressbar.progressDrawable.setColorFilter(
+                           Color.RED, android.graphics.PorterDuff.Mode.SRC_IN
+                       )
+
+                       countDownTimer = object : CountDownTimer(player?.duration?.toLong() ?: 0L, 50) {
+                           override fun onFinish() {
+                               binding.progressbar.progress = (player?.duration) ?: 0
+                               isPlayingList[adapterPosition] = false
+                               binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+                           }
+
+                           override fun onTick(millisUntilFinished: Long) {
+                               binding.progressbar.progress =
+                                   (player?.duration?.minus(millisUntilFinished))?.toInt() ?: 0
+
+                           }
+
+                       }.start()
+
+
+                       true
                    } else {
                        stopPlaying()
                        binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
-                       !isPlaying
-                   }*/
-            }
-
+                       false
+                   }
+               }
+   */
         }
 
         companion object {
@@ -390,18 +445,17 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
 }
 
 
-private var player: MediaPlayer? = null
+private var player = MediaPlayer()
 private lateinit var countDownTimer: CountDownTimer
 
 
-private fun startPlaying(
-    fileName: String,
-    progressbar: ProgressBar,
-    playPauseImage: ImageView
-) {
+private fun startPlaying(fileName: String, adapterPosition: Int) {
 
+    EventBus.getDefault().post(UpdateRecycleItemEvent(adapterPosition))
 
-    player = MediaPlayer().apply {
+    stopPlaying()
+
+    player.apply {
         try {
             setDataSource(fileName)
             prepare()
@@ -411,35 +465,13 @@ private fun startPlaying(
         }
     }
 
-    playPauseImage.setImageResource(R.drawable.ic_pause_black_24dp)
-
-    progressbar.max = player!!.duration
-    // player!!.currentPosition
-    countDownTimer = object : CountDownTimer(player!!.duration.toLong(), 50) {
-        override fun onFinish() {
-            progressbar.progress = (player!!.duration)
-            //isPlaying = false
-            playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
-        }
-
-        override fun onTick(millisUntilFinished: Long) {
-            progressbar.progress = (player!!.duration - millisUntilFinished).toInt()
-
-        }
-
-    }.start()
-
 
 }
 
 private fun stopPlaying() {
-    countDownTimer.cancel()
-    player?.release()
-    player = null
+//        countDownTimer.cancel()
+    player.reset()
 }
-
-
-
 
 
 interface MessageClickListener {

@@ -36,6 +36,7 @@ import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.Utils.eventbus_events.PermissionEvent
+import com.example.ourchat.Utils.eventbus_events.UpdateRecycleItemEvent
 import com.example.ourchat.data.model.*
 import com.example.ourchat.databinding.ChatFragmentBinding
 import com.google.android.material.snackbar.Snackbar
@@ -50,6 +51,8 @@ import com.karumi.dexter.listener.single.PermissionListener
 import com.stfalcon.imageviewer.StfalconImageViewer
 import com.stfalcon.imageviewer.loader.ImageLoader
 import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import java.io.IOException
 import java.util.*
 
@@ -104,8 +107,7 @@ class ChatFragment : Fragment() {
                         }?.setNegativeButton("cancel", null)?.show()
 
                 } else if (message.type == 3.0) {
-                    println("ChatFragment.onUpdateRecordEvent:${message.created_at}")
-                    viewModel.updateRecord(message as RecordMessage)
+                    adapter.notifyDataSetChanged()
                 }
             }
 
@@ -207,6 +209,7 @@ class ChatFragment : Fragment() {
         //pass messages list for recycler to show
         viewModel.loadMessages().observe(this, Observer { mMessagesList ->
             messageList = mMessagesList as MutableList<Message>
+            adapter.messageList = messageList
             adapter.submitList(mMessagesList)
             binding.recycler.adapter = adapter
             //scroll to last items in recycler (recent messages)
@@ -243,7 +246,24 @@ class ChatFragment : Fragment() {
         }
 
 
+        //observe when new record is uploaded
+        viewModel.chatRecordDownloadUriMutableLiveData.observe(
+            this@ChatFragment,
+            Observer { recordUri ->
+                println("observer called")
+                viewModel.sendMessage(
+                    RecordMessage(
+                        AuthUtil.getAuthId(),
+                        Timestamp(Date()),
+                        3.0,
+                        null,
+                        recordUri.toString(),
+                        null
+                    )
+                )
+            })
     }
+
 
     private fun handleRecord() {
 
@@ -283,8 +303,10 @@ class ChatFragment : Fragment() {
                     regainer.start()
                     binding.recordFab.backgroundTintList =
                         ColorStateList.valueOf(Color.parseColor("#b39ddb"))
-
+                    //stop recording and upload record
                     stopRecording()
+                    showPlaceholderRecord()
+                    viewModel.uploadRecord("${activity!!.externalCacheDir?.absolutePath}/audiorecord.3gp")
                     Toast.makeText(context, "Finished recording", Toast.LENGTH_SHORT).show()
                     isRecording = !isRecording
 
@@ -303,7 +325,7 @@ class ChatFragment : Fragment() {
                                 increaser.start()
                                 binding.recordFab.backgroundTintList =
                                     ColorStateList.valueOf(Color.parseColor("#EE4B4B"))
-
+                                //start recording
                                 startRecording()
                                 Toast.makeText(context, "Recording", Toast.LENGTH_SHORT).show()
                                 isRecording = !isRecording
@@ -334,6 +356,7 @@ class ChatFragment : Fragment() {
 
 
     }
+
 
 
     private fun sendMessage() {
@@ -496,6 +519,7 @@ class ChatFragment : Fragment() {
 
 
     private fun startRecording() {
+
         //name of the file where record will be stored
         val fileName = "${activity!!.externalCacheDir?.absolutePath}/audiorecord.3gp"
 
@@ -518,27 +542,31 @@ class ChatFragment : Fragment() {
     private fun stopRecording() {
 
         recorder?.apply {
-
             stop()
             release()
+            recorder = null
         }
-        recorder = null
+
+    }
+
+    override fun onStart() {
+        super.onStart()
+        EventBus.getDefault().register(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        EventBus.getDefault().unregister(this)
+    }
 
 
-        viewModel.uploadRecord("${activity!!.externalCacheDir?.absolutePath}/audiorecord.3gp")
-            .observe(this@ChatFragment,
-                Observer {
-                    viewModel.sendMessage(
-                        RecordMessage(
-                            AuthUtil.getAuthId(),
-                            Timestamp(Date()), 3.0, null, it.toString(), null
-                        )
-                    )
-                })
-
-        showPlaceholderRecord()
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onRecycleItemEvent(event: UpdateRecycleItemEvent) {
+        for (i in 0 until messageList.size)
+            if (event.adapterPosition != i) adapter.notifyItemChanged(i)
 
     }
 
 
 }
+

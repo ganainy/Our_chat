@@ -25,7 +25,7 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
     private val chatFileMapMutableLiveData = MutableLiveData<Map<String, Any?>>()
     private val messagesMutableLiveData = MutableLiveData<List<Message>>()
     private val chatImageDownloadUriMutableLiveData = MutableLiveData<Uri>()
-    private val chatRecordDownloadUriMutableLiveData = MutableLiveData<Uri>()
+    val chatRecordDownloadUriMutableLiveData = MutableLiveData<Uri>()
 
 
     fun loadMessages(): LiveData<List<Message>> {
@@ -244,15 +244,11 @@ throw Exception("unknown type")
     }
 
 
-    fun uploadRecord(filePath: String): LiveData<Uri> {
+    fun uploadRecord(filePath: String) {
 
         mStorageRef = StorageUtil.storageInstance.reference
         val ref = mStorageRef.child("records/" + Date().time)
         var uploadTask = ref.putFile(Uri.fromFile(File(filePath)))
-
-
-        println("ChatViewModel.uploadRecord:${Uri.fromFile(File(filePath))}")
-        println("ChatViewModel.uploadRecord:${filePath}")
 
         uploadTask.continueWithTask { task ->
             if (!task.isSuccessful) {
@@ -267,8 +263,6 @@ throw Exception("unknown type")
                 //error
             }
         }
-
-        return chatRecordDownloadUriMutableLiveData
     }
 
     fun uploadChatImageByUri(data: Uri?): LiveData<Uri> {
@@ -293,64 +287,6 @@ throw Exception("unknown type")
         return chatImageDownloadUriMutableLiveData
     }
 
-
-    fun updateRecord(recordMessage: RecordMessage) {
-        /*  FirestoreUtil.firestoreInstance.collection("messages").document("${senderId}_${receiverId}").get().addOnSuccessListener {
-                  if(it.exists()){
-                      val messagesList = it["messages"] as MutableList<Message>?
-                      if (messagesList != null) {
-                          for ((index, message) in messagesList.withIndex()){
-                              if (message.date==recordMessage.date){
-                                  //this is the record we want to update
-
-                              }
-                          }
-                      }
-                  }else{
-                      //try receiver_sender document
-                      val messagesList = it["messages"] as MutableList<Message>?
-                      if (messagesList != null) {
-                          for ((index, message) in messagesList.withIndex()){
-                              if (message.date==recordMessage.date){
-                                  //this is the record we want to update
-                                  FirestoreUtil.firestoreInstance.collection("messages").document("${receiverId}_${senderId}")
-                                      .update("messages",FieldValue.arrayRemove(recordMessage))
-                              }
-                          }
-                      }
-                  }
-              }*/
-        recordMessage.currentProgress = null
-        recordMessage.duration = null
-        println("ChatViewModel.updateRecord:${recordMessage.serializeToMap()}")
-
-
-        //todo replace this hard coded parts with  recordMessage and add  senderId_receiver and then add new record updated map and connect this with
-        //play pause or remove the damn whole thing
-        FirestoreUtil.firestoreInstance.collection("messages").document("${receiverId}_${senderId}")
-            .update("messages", FieldValue.arrayRemove(recordMessage.serializeToMap()))/*mapOf("date" to 1579731366117,
-                "from" to "Hi0eUYTQ0LWnSQU2kWnZ5dFuLRv2",
-                "name" to null,
-                "text" to null,
-                "type" to 3 ,
-                "uri" to "https://firebasestorage.googleapis.com/v0/b/our-chat-a76bb.appspot.com/o/records%2F1579731363763?alt=media&token=6ba12e4e-f1ac-445b-9abd-4dce4ae8abc4")))
-               */.addOnSuccessListener {
-            println("ChatViewModel.updateRecord:")
-        }.addOnFailureListener {
-                println("ChatViewModel.updateRecord:${it.message}")
-            }
-
-
-        /*   FirestoreUtil.firestoreInstance.collection("messages").document("${receiverId}_${senderId}")
-               .update("messages",FieldValue.arrayRemove(recordMessage.serializeToMap())).addOnSuccessListener {
-                   println("ChatViewModel.updateRecord:2")
-               }.addOnFailureListener {
-                   println("ChatViewModel.updateRecord:${it.message}")
-               }
-   */
-
-
-    }
 
 
 }
