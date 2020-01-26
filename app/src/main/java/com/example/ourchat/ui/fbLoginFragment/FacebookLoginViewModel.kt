@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.ourchat.Utils.ErrorMessage
+import com.example.ourchat.Utils.FirestoreUtil
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.data.model.User
 import com.facebook.AccessToken
@@ -46,12 +47,11 @@ class FacebookLoginViewModel : ViewModel() {
 
 
     fun isUserAlreadyStoredInFirestore(uid: String): LiveData<Boolean> {
-        val usersRef = FirebaseFirestore.getInstance().collection("users")
+        val usersRef = FirestoreUtil.firestoreInstance.collection("users")
         usersRef.document(uid).get().addOnSuccessListener {
             userExists.value = it.exists()
         }.addOnFailureListener {
-            ErrorMessage.errorMessage = it.message
-            loadState.value = LoadState.FAILURE
+            println("FacebookLoginViewModel.isUserAlreadyStoredInFirestore:${it.message}")
         }
         return userExists
     }

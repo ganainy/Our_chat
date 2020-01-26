@@ -22,6 +22,8 @@ import android.media.MediaPlayer
 import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.ProgressBar
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -38,7 +40,7 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
     ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallbackMessages()) {
 
 
-    lateinit var messageList: MutableList<Message>
+
 
     companion object {
         private const val TYPE_SENT_MESSAGE = 0
@@ -50,6 +52,9 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
         private const val TYPE_SENT_RECORD = 6
         private const val TYPE_RECEIVED_RECORD = 7
         private const val TYPE_SENT_RECORD_PLACEHOLDER = 8
+
+        lateinit var messageList: MutableList<Message>
+
     }
 
 
@@ -150,7 +155,6 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
         }
 
     }
-
 
 
     //----------------SentMessageViewHolder------------
@@ -298,42 +302,23 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
 
 
             //reset views (to reset other records other than the one playing)
-            var isPlaying = false
+            val recordMessage = messageList[adapterPosition] as RecordMessage
+            recordMessage.isPlaying = false
+
             binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
             binding.progressbar.max = 0
+            binding.durationTextView.text = ""
 
 
             binding.playPauseImage.setOnClickListener {
-                if (isPlaying) {
-                    //pause the record
-                    binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
-                    stopPlaying()
-                    isPlaying = !isPlaying
-                } else {
-                    //play the record
-                    startPlaying(item.uri!!, adapterPosition)
-                    binding.progressbar.max = player.duration
-                    binding.playPauseImage.setImageResource(R.drawable.ic_pause_black_24dp)
-                    isPlaying = !isPlaying
-                }
 
-
-
-                countDownTimer = object : CountDownTimer(player.duration.toLong(), 50) {
-                    override fun onFinish() {
-                        if (isPlaying) {
-                            binding.progressbar.progress = (player.duration)
-                            binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
-                        }
-                    }
-
-                    override fun onTick(millisUntilFinished: Long) {
-                        if (isPlaying)
-                            binding.progressbar.progress =
-                                (player.duration.minus(millisUntilFinished)).toInt()
-                    }
-
-                }.start()
+                startPlaying(
+                    item.uri!!,
+                    adapterPosition,
+                    recordMessage,
+                    binding.playPauseImage,
+                    binding.progressbar
+                )
 
 
             }
@@ -389,46 +374,27 @@ class ChatAdapter(private val context: Context?, private val clickListener: Mess
             binding.executePendingBindings()
 
 
-            /*   binding.playPauseImage.setOnClickListener {
-                   isPlayingList[adapterPosition] = if (!isPlayingList[adapterPosition]) {
-                       //play audio if icon is play
-                       startPlaying(
-                           item.uri!!,
-                           adapterPosition
-                       )
+            //reset views (to reset other records other than the one playing)
+            val recordMessage = messageList[adapterPosition] as RecordMessage
+            recordMessage.isPlaying = false
+
+            binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+            binding.progressbar.max = 0
+            binding.durationTextView.text = ""
 
 
-                       binding.playPauseImage.setImageResource(R.drawable.ic_pause_black_24dp)
 
-                       binding.progressbar.max = player?.duration ?: 0
-                       binding.progressbar.progressDrawable.setColorFilter(
-                           Color.RED, android.graphics.PorterDuff.Mode.SRC_IN
-                       )
-
-                       countDownTimer = object : CountDownTimer(player?.duration?.toLong() ?: 0L, 50) {
-                           override fun onFinish() {
-                               binding.progressbar.progress = (player?.duration) ?: 0
-                               isPlayingList[adapterPosition] = false
-                               binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
-                           }
-
-                           override fun onTick(millisUntilFinished: Long) {
-                               binding.progressbar.progress =
-                                   (player?.duration?.minus(millisUntilFinished))?.toInt() ?: 0
-
-                           }
-
-                       }.start()
+            binding.playPauseImage.setOnClickListener {
+                startPlaying(
+                    item.uri!!,
+                    adapterPosition,
+                    recordMessage,
+                    binding.playPauseImage,
+                    binding.progressbar
+                )
 
 
-                       true
-                   } else {
-                       stopPlaying()
-                       binding.playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
-                       false
-                   }
-               }
-   */
+            }
         }
 
         companion object {
@@ -449,27 +415,77 @@ private var player = MediaPlayer()
 private lateinit var countDownTimer: CountDownTimer
 
 
-private fun startPlaying(fileName: String, adapterPosition: Int) {
+private fun startPlaying(
+    audioUri: String,
+    adapterPosition: Int,
+    recordMessage: RecordMessage,
+    playPauseImage: ImageView,
+    progressbar: ProgressBar
+) {
 
-    EventBus.getDefault().post(UpdateRecycleItemEvent(adapterPosition))
+    //show temporary loading while audio is downloaded
+    playPauseImage.setImageResource(R.drawable.loading_animation)
 
-    stopPlaying()
+    if (recordMessage.isPlaying == null || recordMessage.isPlaying == false) {
 
-    player.apply {
-        try {
-            setDataSource(fileName)
-            prepare()
-            start()
-        } catch (e: IOException) {
-            println("ChatFragment.startPlaying:prepare failed")
+        stopPlaying()
+        recordMessage.isPlaying = false
+
+        player.apply {
+            try {
+                setDataSource(audioUri)
+                prepareAsync()
+            } catch (e: IOException) {
+                println("ChatFragment.startPlaying:prepare failed")
+            }
+
+            setOnPreparedListener {
+                //media downloaded and will play
+
+                recordMessage.isPlaying = true
+                //play the record
+                start()
+
+                //change image to stop and show progress of record
+                progressbar.max = player.duration
+                playPauseImage.setImageResource(R.drawable.ic_stop_black_24dp)
+
+                //count down timer to show record progess but on when record is playing
+                countDownTimer = object : CountDownTimer(player.duration.toLong(), 50) {
+                    override fun onFinish() {
+
+                        progressbar.progress = (player.duration)
+                        playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+
+                    }
+
+                    override fun onTick(millisUntilFinished: Long) {
+
+                        progressbar.progress = (player.duration.minus(millisUntilFinished)).toInt()
+                    }
+
+                }.start()
+            }
         }
+
+    } else {
+        //stop the record
+        playPauseImage.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+        stopPlaying()
+        recordMessage.isPlaying = false
+        progressbar.progress = 0
+
     }
+
+//update all items to be reset to original views except currently playing item
+    EventBus.getDefault().post(UpdateRecycleItemEvent(adapterPosition))
 
 
 }
 
 private fun stopPlaying() {
-//        countDownTimer.cancel()
+    if (::countDownTimer.isInitialized)
+        countDownTimer.cancel()
     player.reset()
 }
 

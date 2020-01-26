@@ -63,6 +63,9 @@ const val CHOOSE_FILE_REQUEST = 4
 
 class ChatFragment : Fragment() {
 
+    private var recordStart = 0L
+    private var recordDuration = 0L
+
     private var recorder: MediaRecorder? = null
     var isRecording = false //whether is recoding now or not
     var isRecord = true //whether it is text message or record
@@ -206,12 +209,14 @@ class ChatFragment : Fragment() {
             true
         }
 
+
+        binding.recycler.adapter = adapter
+
         //pass messages list for recycler to show
         viewModel.loadMessages().observe(this, Observer { mMessagesList ->
             messageList = mMessagesList as MutableList<Message>
-            adapter.messageList = messageList
+            ChatAdapter.messageList = messageList
             adapter.submitList(mMessagesList)
-            binding.recycler.adapter = adapter
             //scroll to last items in recycler (recent messages)
             binding.recycler.scrollToPosition(mMessagesList.size - 1)
 
@@ -256,9 +261,10 @@ class ChatFragment : Fragment() {
                         AuthUtil.getAuthId(),
                         Timestamp(Date()),
                         3.0,
-                        null,
+                        recordDuration.toString(),
                         recordUri.toString(),
                         null
+                        , null
                     )
                 )
             })
@@ -356,7 +362,6 @@ class ChatFragment : Fragment() {
 
 
     }
-
 
 
     private fun sendMessage() {
@@ -468,6 +473,7 @@ class ChatFragment : Fragment() {
                 null,
                 null,
                 null
+                , null
             )
         )
         adapter.submitList(messageList)
@@ -536,6 +542,7 @@ class ChatFragment : Fragment() {
             }
 
             start()
+            recordStart = Date().time
         }
     }
 
@@ -546,6 +553,8 @@ class ChatFragment : Fragment() {
             release()
             recorder = null
         }
+
+        recordDuration = Date().time - recordStart
 
     }
 
@@ -562,11 +571,9 @@ class ChatFragment : Fragment() {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onRecycleItemEvent(event: UpdateRecycleItemEvent) {
-        for (i in 0 until messageList.size)
-            if (event.adapterPosition != i) adapter.notifyItemChanged(i)
-
+        for (i in 0 until messageList.size) {
+            if (i != event.adapterPosition) adapter.notifyItemChanged(i)
+        }
     }
-
-
 }
 

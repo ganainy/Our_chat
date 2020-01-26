@@ -30,6 +30,8 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
 
     fun loadMessages(): LiveData<List<Message>> {
 
+        if (messagesMutableLiveData.value != null) return messagesMutableLiveData
+
         messageCollectionReference.addSnapshotListener(EventListener { querySnapShot, firebaseFirestoreException ->
             if (firebaseFirestoreException == null) {
                 messagesList.clear()//clear message list so won't get duplicated with each new message

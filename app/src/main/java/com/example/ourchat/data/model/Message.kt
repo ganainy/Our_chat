@@ -48,7 +48,8 @@ data class RecordMessage(
     override val type: Double?,
     var duration: String?,
     val uri: String?,
-    var currentProgress: String?
+    var currentProgress: String?,
+    var isPlaying: Boolean?
 
 ) : Message
 

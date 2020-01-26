@@ -55,6 +55,27 @@ fun MaterialButton.setTheLoadingState(state: LoadState) {
 }
 
 
+@BindingAdapter("setDuration")
+fun setDuration(textView: TextView, timeinmillis: String?) {
+
+    if (timeinmillis == null) return
+
+    val h = (timeinmillis.toInt().div(3600000))
+    val m = (timeinmillis.toInt().div(60000).rem(60))
+    val s = (timeinmillis.toInt().div(1000).rem(60))
+
+    val sp = when (h) {
+        0 -> {
+            StringBuilder().append(m).append(":").append(s)
+        }
+        else -> {
+            StringBuilder().append(h).append(":").append(m).append(":").append(s)
+        }
+    }
+    textView.text = sp
+}
+
+
 @BindingAdapter("setLastMessageText")
 fun setLastMessageText(textView: TextView, chatParticipant: ChatParticipant) {
 

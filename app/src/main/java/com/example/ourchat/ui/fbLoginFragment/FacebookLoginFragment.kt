@@ -68,18 +68,15 @@ class FacebookLoginFragment : Fragment() {
                 viewModel.handleFacebookAccessToken(
                     AuthUtil.firebaseAuthInstance,
                     loginResult.accessToken
-                )
-                    .observe(this@FacebookLoginFragment,
-                        Observer { firebaseUser ->
+                ).observe(this@FacebookLoginFragment, Observer { firebaseUser ->
                             //login with facebook successful
-                            viewModel.isUserAlreadyStoredInFirestore(firebaseUser.uid).observe(
-                                this@FacebookLoginFragment,
-                                Observer { isUserStoredInFirestore ->
+                    viewModel.isUserAlreadyStoredInFirestore(firebaseUser.uid)
+                        .observe(this@FacebookLoginFragment, Observer { isUserStoredInFirestore ->
                                     //if user doesn't exist in firestore store him
-                                    if (!isUserStoredInFirestore) {
-                                        viewModel.storeFacebookUserInFirebase()
-                                            .observe(this@FacebookLoginFragment,
-                                                Observer { isStoredSuccessfully ->
+                            if (!isUserStoredInFirestore) {
+                                viewModel.storeFacebookUserInFirebase().observe(
+                                    this@FacebookLoginFragment,
+                                    Observer { isStoredSuccessfully ->
                                                     //if true facebook user been stored in firebase successfully
                                                     if (isStoredSuccessfully) {
                                                         navigateToHome()
