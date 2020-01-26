@@ -163,10 +163,7 @@ class HomeFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_settings -> {
-            //findNavController().navigate(R.id.home)
-            true
-        }
+
         R.id.action_add_friend -> {
             findNavController().navigate(R.id.action_homeFragment_to_findUserFragment)
             true

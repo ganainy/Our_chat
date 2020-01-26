@@ -18,6 +18,7 @@ import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
+import com.facebook.login.LoginBehavior
 import com.facebook.login.LoginResult
 import org.greenrobot.eventbus.EventBus
 
@@ -60,7 +61,7 @@ class FacebookLoginFragment : Fragment() {
         EventBus.getDefault().post(CallbackManagerEvent(callbackManager))
 
 
-
+        binding.FBloginButton.loginBehavior = LoginBehavior.WEB_ONLY
         binding.FBloginButton.setPermissions("email", "public_profile")
         binding.FBloginButton.registerCallback(callbackManager, object :
             FacebookCallback<LoginResult> {

@@ -4,8 +4,8 @@ import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.LayoutInflater
@@ -93,7 +93,7 @@ class ProfileFragment : Fragment() {
         //create adapter and handle recycle item click callback
         adapter = FriendsAdapter(object : FriendsAdapter.ItemClickCallback {
             override fun onItemClicked(user: User) {
-                //todo open profile of clicked user
+                //optional open profile of clicked user
             }
         })
 
@@ -136,10 +136,6 @@ class ProfileFragment : Fragment() {
         binding.cameraImageView.setOnClickListener { selectProfilePicture() }
 
 
-
-
-
-
         //edit bio handle click
         binding.editTextview.setOnClickListener {
             if (binding.editTextview.text.equals(getString(R.string.edit))) {
@@ -167,22 +163,22 @@ class ProfileFragment : Fragment() {
         }
 
 
-
-
     }
 
-    private fun uploadTakenImage(imageBitmap: Bitmap) {
+    private fun uploadTakenImage(view: View) {
+//create bitmap from profile imageView then upload it as bytearray
+        val bitmap = Bitmap.createBitmap(
+            view.width,
+            view.height,
+            Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        view.draw(canvas)
 
-        binding.profileImage.setImageBitmap(imageBitmap)
-
-        // Get the data from an ImageView as bytes
-        //todo fix those deperacated methods
-        binding.profileImage.isDrawingCacheEnabled = true
-        binding.profileImage.buildDrawingCache()
-        val bitmap = (binding.profileImage.drawable as BitmapDrawable).bitmap
         val baos = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
         val data = baos.toByteArray()
+
 
         //upload image and show loading layout while uploading
         viewModel.uploadImageAsBytearray(data).observe(this, Observer { imageUploadState ->
@@ -250,11 +246,28 @@ class ProfileFragment : Fragment() {
         //result of taking camera image
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == AppCompatActivity.RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as Bitmap
-            uploadTakenImage(imageBitmap)
+
+            binding.profileImage.setImageBitmap(imageBitmap)
+
+
+            val baos = ByteArrayOutputStream()
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+            val data = baos.toByteArray()
+
+
+            //upload image and show loading layout while uploading
+            viewModel.uploadImageAsBytearray(data).observe(this, Observer { imageUploadState ->
+                setProfileImageLoadUi(imageUploadState)
+            })
+
+
+            mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+            //uploadTakenImage(binding.profileImage)
         }
 
 
     }
+
 
     private fun selectFromGallery() {
         var intent = Intent()
