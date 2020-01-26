@@ -21,10 +21,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -39,6 +39,7 @@ import com.example.ourchat.Utils.eventbus_events.PermissionEvent
 import com.example.ourchat.Utils.eventbus_events.UpdateRecycleItemEvent
 import com.example.ourchat.data.model.*
 import com.example.ourchat.databinding.ChatFragmentBinding
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
@@ -50,6 +51,7 @@ import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.single.PermissionListener
 import com.stfalcon.imageviewer.StfalconImageViewer
 import com.stfalcon.imageviewer.loader.ImageLoader
+import kotlinx.android.synthetic.main.attachment_layout.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -66,6 +68,7 @@ class ChatFragment : Fragment() {
     private var recordStart = 0L
     private var recordDuration = 0L
 
+    private lateinit var mBottomSheetBehavior: BottomSheetBehavior<NestedScrollView>
     private var recorder: MediaRecorder? = null
     var isRecording = false //whether is recoding now or not
     var isRecord = true //whether it is text message or record
@@ -175,6 +178,9 @@ class ChatFragment : Fragment() {
 
         println("ChatFragment.onActivityCreated:${FieldValue.serverTimestamp()}")
 
+        //setup bottomsheet
+        mBottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet)
+
         //set record view
         handleRecord()
 
@@ -223,31 +229,25 @@ class ChatFragment : Fragment() {
         })
 
 
-        //open alert dialog with option on attachmentImageView click
+        //handle click of bottomsheet items
+        binding.bottomSheet.sendPictureButton.setOnClickListener {
+            selectFromGallery()
+            mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+
+        binding.bottomSheet.sendFileButton.setOnClickListener {
+            openFileChooser()
+            mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+
+        binding.bottomSheet.hide.setOnClickListener {
+            mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+
+
+        //show bottom sheet
         binding.attachmentImageView.setOnClickListener {
-
-            //todo replace with bottom sheet like whatsapp
-            val dialogBuilder = context?.let { it1 -> AlertDialog.Builder(it1) }
-            val inflater = this.layoutInflater
-            val dialogView: View = inflater.inflate(R.layout.attachment_layout, null)
-            dialogBuilder?.setView(dialogView)
-            val alertDialog = dialogBuilder?.create()
-            alertDialog?.show()
-
-            //handle sendPictureButton click
-            val sendPictureButton = dialogView.findViewById<View>(R.id.sendPictureButton) as Button
-            sendPictureButton.setOnClickListener {
-                selectFromGallery()
-                alertDialog?.dismiss()
-            }
-            //handle sendFileButton click
-            val sendFileButton = dialogView.findViewById<View>(R.id.sendFileButton) as Button
-            sendFileButton.setOnClickListener {
-                openFileChooser()
-                alertDialog?.dismiss()
-            }
-
-
+            mBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
 
 
@@ -571,9 +571,7 @@ class ChatFragment : Fragment() {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onRecycleItemEvent(event: UpdateRecycleItemEvent) {
-        for (i in 0 until messageList.size) {
-            if (i != event.adapterPosition) adapter.notifyItemChanged(i)
-        }
+        adapter.notifyItemChanged(event.adapterPosition)
     }
 }
 

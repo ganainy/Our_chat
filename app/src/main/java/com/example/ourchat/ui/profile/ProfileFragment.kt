@@ -126,6 +126,10 @@ class ProfileFragment : Fragment() {
             selectFromGallery()
         }
 
+        binding.bottomSheet.hide.setOnClickListener {
+            mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+
 
         //show selection bottom sheet when those buttons clicked
         binding.profileImage.setOnClickListener { selectProfilePicture() }

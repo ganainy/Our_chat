@@ -143,7 +143,6 @@ class HomeFragment : Fragment() {
         //do filtering when i type in search or click search
         val searchItem = menu.findItem(R.id.action_search)
         val searchView = searchItem?.actionView as SearchView
-        //todo search messages
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(queryString: kotlin.String?): Boolean {

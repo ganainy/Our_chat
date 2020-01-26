@@ -34,7 +34,14 @@ import com.example.ourchat.data.model.*
 import com.example.ourchat.databinding.*
 import org.greenrobot.eventbus.EventBus
 import java.io.IOException
+import kotlin.properties.Delegates
 
+var positionDelegate: Int by Delegates.observable(-1) { prop, old, new ->
+    println("<positionDelegate>.:${old},,,,$new")
+    if (old != new && old != -1)    //if old =-1 or old=new don't update item
+        EventBus.getDefault().post(UpdateRecycleItemEvent(old))
+
+}
 
 class ChatAdapter(private val context: Context?, private val clickListener: MessageClickListener) :
     ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallbackMessages()) {
@@ -422,6 +429,8 @@ private fun startPlaying(
     playPauseImage: ImageView,
     progressbar: ProgressBar
 ) {
+//update last clicked item to be reset
+    positionDelegate = adapterPosition
 
     //show temporary loading while audio is downloaded
     playPauseImage.setImageResource(R.drawable.loading_animation)
@@ -476,9 +485,6 @@ private fun startPlaying(
         progressbar.progress = 0
 
     }
-
-//update all items to be reset to original views except currently playing item
-    EventBus.getDefault().post(UpdateRecycleItemEvent(adapterPosition))
 
 
 }

@@ -114,8 +114,9 @@ class UserAdapter(private val clickListener: UserClickListener) :
 
             override fun publishResults(charSequence: CharSequence, filterResults: FilterResults) {
 
-                submitList(filterResults.values as MutableList<User?>)
-                notifyDataSetChanged()//todo find other way to force call on bind after filtering
+                val mutableList = filterResults.values as MutableList<User?>
+                submitList(mutableList)
+                notifyItemRangeChanged(0, mutableList.size)
 
             }
         }

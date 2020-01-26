@@ -50,7 +50,9 @@ class HomeViewModel : ViewModel() {
                         val lastMessageType = lastMessage?.get("type") as Double?
                         chatParticipant.lastMessage = lastMessage?.get("text") as String?
                         chatParticipant.lastMessageType = lastMessageType
-                        //todo fix sees created_at as hashmap not timestamp   chatParticipant.lastMessageDate = lastMessage?.get("created_at") as Timestamp?
+                        chatParticipant.lastMessageDate =
+                            lastMessage?.get("created_at") as HashMap<String, Double>?
+                        println("HomeViewModel.getChats:${chatParticipant.lastMessageDate?.get("seconds")}")
                         val lastMessageOwnerId = lastMessage?.get("from") as String?
 
 

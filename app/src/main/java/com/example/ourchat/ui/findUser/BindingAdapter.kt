@@ -14,6 +14,7 @@ import com.example.ourchat.data.model.User
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.Timestamp
 import org.ocpsoft.prettytime.PrettyTime
+import java.util.*
 
 
 @BindingAdapter("setRoundImage")
@@ -36,6 +37,14 @@ fun setRoundImage(imageView: ImageView, item: User) {
 @BindingAdapter("formatDate")
 fun formatDate(textView: TextView, timestamp: Timestamp?) {
     textView.text = PrettyTime().format(timestamp?.toDate())
+}
+
+@BindingAdapter("formatDateFromMap")
+fun formatDateFromMap(textView: TextView, map: Map<String, Double>?) {
+    var time = (map?.get("seconds"))
+    if (time != null) {
+        textView.text = PrettyTime().format(Date(time.toLong() * 1000))
+    }
 }
 
 
