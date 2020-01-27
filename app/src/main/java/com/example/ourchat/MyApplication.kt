@@ -34,7 +34,11 @@ open class MyApplication : Application() {
 
             override fun onActivityDestroyed(activity: Activity) {
                 if (::networkCallback.isInitialized) {
-                    connectivityManager.unregisterNetworkCallback(networkCallback)
+                    try {
+                        connectivityManager.unregisterNetworkCallback(networkCallback)
+                    } catch (e: Exception) {
+                        println("MyApplication.onActivityDestroyed:${e.message}")
+                    }
 
                 }
             }

@@ -14,10 +14,14 @@ import java.util.*
 class HomeViewModel : ViewModel() {
 
 
+    init {
+        getUserData()
+    }
+
     private val chatParticipantList: MutableList<ChatParticipant> by lazy { mutableListOf<ChatParticipant>() }
     private val chatParticipantsListMutableLiveData =
         MutableLiveData<MutableList<ChatParticipant>>()
-    private val loggedUserMutableLiveData = MutableLiveData<User>()
+    val loggedUserMutableLiveData = MutableLiveData<User>()
 
 
     fun getChats(loggedUser: User): LiveData<MutableList<ChatParticipant>>? {
@@ -92,18 +96,16 @@ class HomeViewModel : ViewModel() {
         return chatParticipantsListMutableLiveData
     }
 
-    fun getUserData(): LiveData<User> {
-
-        if (loggedUserMutableLiveData.value != null) return loggedUserMutableLiveData
+    fun getUserData() {
 
         FirestoreUtil.firestoreInstance.collection("users").document(AuthUtil.getAuthId())
-            .addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
-                if (firebaseFirestoreException == null) {
-                    val loggedUser = documentSnapshot?.toObject(User::class.java)
-                    loggedUserMutableLiveData.value = loggedUser
-                }
+            .get().addOnSuccessListener { documentSnapshot ->
+                val loggedUser = documentSnapshot?.toObject(User::class.java)
+                loggedUserMutableLiveData.value = loggedUser
+            }.addOnFailureListener {
+                println("HomeViewModel.getUserData:${it.message}")
             }
-        return loggedUserMutableLiveData
+
     }
 
 

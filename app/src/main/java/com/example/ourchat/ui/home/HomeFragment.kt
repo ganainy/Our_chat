@@ -15,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
 import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.databinding.HomeFragmentBinding
+import com.example.ourchat.service.MyFirebaseMessagingService
 import com.example.ourchat.ui.main_activity.SharedViewModel
 import com.facebook.login.LoginManager
 import com.google.firebase.auth.FirebaseAuth
@@ -66,9 +67,26 @@ class HomeFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
+        //get logged user token and add it to user document (for FCM)
+        MyFirebaseMessagingService.getInstanceId()
+
+
+        //theses intent extras are coming from FCM notification click so we need to move to specific chat if not null
+        val senderId = activity!!.intent.getStringExtra("senderId")
+        val senderName = activity!!.intent.getStringExtra("senderName")
+        if (senderId != null && senderName != null) {
+            val receiverUser =
+                com.example.ourchat.data.model.User(uid = senderId, username = senderName)
+            findNavController().navigate(
+                R.id.action_homeFragment_to_chatFragment, bundleOf(
+                    CLICKED_USER to gson.toJson(receiverUser)
+                )
+            )
+        }
+
 
         //get user data
-        viewModel.getUserData().observe(this, Observer { loggedUser ->
+        viewModel.loggedUserMutableLiveData.observe(this, Observer { loggedUser ->
             //save logged user data in shared pref to use in other fragments
             val mPrefs: SharedPreferences = activity!!.getPreferences(MODE_PRIVATE)
             val prefsEditor: SharedPreferences.Editor = mPrefs.edit()
@@ -83,7 +101,6 @@ class HomeFragment : Fragment() {
             //show notification badge if there is incoming requests
             receivedRequestsCount = loggedUser.receivedRequests?.size
             setupBadge(receivedRequestsCount)
-
 
 
             //get user chat history
@@ -103,6 +120,7 @@ class HomeFragment : Fragment() {
                 }
 
             })
+
 
         })
 

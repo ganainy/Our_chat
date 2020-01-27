@@ -28,7 +28,7 @@ class SignupViewModel : ViewModel() {
 
         auth.createUserWithEmailAndPassword(email, password)
             .addOnSuccessListener {
-                user.value = User(it.user.uid, username, email)
+                user.value = User(it.user?.uid, username, email)
             }.addOnFailureListener {
                 ErrorMessage.errorMessage = it.message
                 loadingState.value = LoadState.FAILURE

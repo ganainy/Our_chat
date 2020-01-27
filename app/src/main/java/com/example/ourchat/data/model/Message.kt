@@ -7,6 +7,8 @@ interface Message {
     val from: String?
     val created_at: Timestamp?
     val type: Double?
+    val to: String?
+    val senderName: String?
 }
 
 
@@ -15,6 +17,8 @@ data class TextMessage(
     override val from: String?,
     override val created_at: Timestamp?,
     override val type: Double?,
+    override val to: String?,
+    override val senderName: String?,
     val text: String?
 
 ) : Message
@@ -26,6 +30,8 @@ data class ImageMessage(
     override val from: String?,
     override val created_at: Timestamp?,
     override val type: Double?,
+    override val to: String?,
+    override val senderName: String?,
     val uri: String?
 
 ) : Message
@@ -36,6 +42,8 @@ data class FileMessage(
     override val from: String?,
     override val created_at: Timestamp?,
     override val type: Double?,
+    override val to: String?,
+    override val senderName: String?,
     val name: String?,
     val uri: String?
 ) : Message
@@ -46,6 +54,8 @@ data class RecordMessage(
     override val from: String?,
     override val created_at: Timestamp?,
     override val type: Double?,
+    override val to: String?,
+    override val senderName: String?,
     var duration: String?,
     val uri: String?,
     var currentProgress: String?,

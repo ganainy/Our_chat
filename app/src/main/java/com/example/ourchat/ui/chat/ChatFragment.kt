@@ -42,7 +42,6 @@ import com.example.ourchat.databinding.ChatFragmentBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FieldValue
 import com.google.gson.Gson
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
@@ -73,6 +72,7 @@ class ChatFragment : Fragment() {
     var isRecording = false //whether is recoding now or not
     var isRecord = true //whether it is text message or record
     private lateinit var loggedUser: User
+    private lateinit var clickedUser: User
 
 
     private var messageList = mutableListOf<Message>()
@@ -176,7 +176,6 @@ class ChatFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        println("ChatFragment.onActivityCreated:${FieldValue.serverTimestamp()}")
 
         //setup bottomsheet
         mBottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet)
@@ -191,15 +190,15 @@ class ChatFragment : Fragment() {
         val json: String? = mPrefs.getString(LOGGED_USER, null)
         loggedUser = gson.fromJson(json, User::class.java)
 
-        //get receiver data from contacts fragment
-        val clickedUser = gson.fromJson(arguments?.getString(CLICKED_USER), User::class.java)
+        //get receiver data from contacts fragment(NOTE:IF NAVIGATING FROM FCM-NOTIFICATION USER ONLY HAS id,username)
+        clickedUser = gson.fromJson(arguments?.getString(CLICKED_USER), User::class.java)
 
 
         activity?.title = "Chatting with ${clickedUser.username}"
 
         //user viewmodel factory to pass ids on creation of view model
         if (clickedUser.uid != null) {
-            viewModeldFactory = ChatViewModelFactory(loggedUser.uid, clickedUser.uid)
+            viewModeldFactory = ChatViewModelFactory(loggedUser.uid, clickedUser.uid.toString())
             viewModel =
                 ViewModelProviders.of(this, viewModeldFactory).get(ChatViewModel::class.java)
         }
@@ -261,10 +260,12 @@ class ChatFragment : Fragment() {
                         AuthUtil.getAuthId(),
                         Timestamp(Date()),
                         3.0,
+                        clickedUser.uid,
+                        loggedUser.username,
                         recordDuration.toString(),
                         recordUri.toString(),
+                        null,
                         null
-                        , null
                     )
                 )
             })
@@ -374,6 +375,8 @@ class ChatFragment : Fragment() {
                 loggedUser.uid,
                 Timestamp(Date()),
                 0.0,
+                clickedUser.uid,
+                loggedUser.username,
                 binding.messageEditText.text.toString()
             )
         )
@@ -399,6 +402,8 @@ class ChatFragment : Fragment() {
                         loggedUser.uid,
                         Timestamp(Date()),
                         2.0,
+                        clickedUser.uid,
+                        loggedUser.username,
                         chatFileMap["fileName"].toString(),
                         chatFileMap["downloadUri"].toString()
                     )
@@ -423,6 +428,8 @@ class ChatFragment : Fragment() {
                             loggedUser.uid,
                             Timestamp(Date()),
                             1.0,
+                            clickedUser.uid,
+                            loggedUser.username,
                             uploadedChatImageUri.toString()
                         )
                     )
@@ -454,6 +461,8 @@ class ChatFragment : Fragment() {
                 AuthUtil.getAuthId(),
                 null,
                 1.0,
+                clickedUser.uid,
+                loggedUser.username,
                 data.toString()
             )
         )
@@ -472,8 +481,10 @@ class ChatFragment : Fragment() {
                 8.0,
                 null,
                 null,
+                null,
+                null,
+                null,
                 null
-                , null
             )
         )
         adapter.submitList(messageList)
@@ -488,6 +499,8 @@ class ChatFragment : Fragment() {
                 AuthUtil.getAuthId(),
                 null,
                 2.0,
+                clickedUser.uid,
+                loggedUser.username,
                 data.toString(),
                 data?.path.toString()
             )
