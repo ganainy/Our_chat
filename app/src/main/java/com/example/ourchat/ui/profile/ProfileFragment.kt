@@ -247,13 +247,15 @@ class ProfileFragment : Fragment() {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == AppCompatActivity.RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as Bitmap
 
-            binding.profileImage.setImageBitmap(imageBitmap)
+
 
 
             val baos = ByteArrayOutputStream()
             imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
             val data = baos.toByteArray()
 
+
+            binding.profileImage.setImageBitmap(imageBitmap)
 
             //upload image and show loading layout while uploading
             viewModel.uploadImageAsBytearray(data).observe(this, Observer { imageUploadState ->

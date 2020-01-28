@@ -67,6 +67,7 @@ class HomeFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
+
         //get logged user token and add it to user document (for FCM)
         MyFirebaseMessagingService.getInstanceId()
 
@@ -82,6 +83,9 @@ class HomeFragment : Fragment() {
                     CLICKED_USER to gson.toJson(receiverUser)
                 )
             )
+            val nullSting: CharSequence? = null
+            activity!!.intent.putExtra("senderId", nullSting)
+            activity!!.intent.putExtra("senderName", nullSting)
         }
 
 
@@ -95,8 +99,6 @@ class HomeFragment : Fragment() {
             prefsEditor.apply()
 
 
-            //todo remove this line
-            activity?.title = loggedUser.username
 
             //show notification badge if there is incoming requests
             receivedRequestsCount = loggedUser.receivedRequests?.size
@@ -115,8 +117,8 @@ class HomeFragment : Fragment() {
 
                     binding.noChatLayout.visibility = View.GONE
                     binding.recycler.adapter = adapter
-                    adapter.submitList(chatParticipantsList.distinct())
-                    adapter.chatList = chatParticipantsList.distinct()
+                    adapter.submitList(chatParticipantsList)
+                    adapter.chatList = chatParticipantsList
                 }
 
             })

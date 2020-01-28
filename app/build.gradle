@@ -112,4 +112,10 @@ dependencies {
 
     //FCM
     implementation 'com.google.firebase:firebase-messaging:20.1.0'
+    // Apply the Crashlytics Gradle plugin
+    apply plugin: 'com.google.firebase.crashlytics'
+    // Recommended: Add the Firebase SDK for Google Analytics.
+    implementation 'com.google.firebase:firebase-analytics:17.2.2'
+    // Add the Firebase SDK for Crashlytics.
+    implementation 'com.google.firebase:firebase-crashlytics:17.0.0-beta01'
 }

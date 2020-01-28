@@ -13,7 +13,7 @@ import java.util.*
 
 class HomeViewModel : ViewModel() {
 
-
+    var calledBefore = false
     init {
         getUserData()
     }
@@ -26,7 +26,13 @@ class HomeViewModel : ViewModel() {
 
     fun getChats(loggedUser: User): LiveData<MutableList<ChatParticipant>>? {
 
-        if (chatParticipantsListMutableLiveData.value != null) return chatParticipantsListMutableLiveData
+        //this method is called each time user document changes but i want to attach listener only once so check with calledBefore
+        if (calledBefore) {
+            return chatParticipantsListMutableLiveData
+
+        }
+
+        calledBefore = true
 
         val loggedUserId = loggedUser.uid.toString()
 
@@ -64,15 +70,33 @@ class HomeViewModel : ViewModel() {
                         chatParticipant.isLoggedUser = (lastMessageOwnerId == loggedUserId)
 
                         //get other chat participant id and use it to get his information
-                        val chatMembers = messageDocument.get("chat_members") as List<String>?
-                        chatMembers?.forEach { chatMemberId ->
-                            if (chatMemberId != loggedUserId) {
-                                //get profile of other chat member
+                        if (lastMessageOwnerId == loggedUserId) {
+                            val recipient = lastMessage?.get("to") as String?
+                            if (recipient != null) {
                                 FirestoreUtil.firestoreInstance.collection("users")
-                                    .document(chatMemberId).get()
+                                    .document(recipient).get()
                                     .addOnSuccessListener { chatMember ->
                                         FirestoreUtil.firestoreInstance.collection("users")
-                                            .document(chatMemberId).get().addOnSuccessListener {
+                                            .document(recipient).get().addOnSuccessListener {
+                                                val particpant = it.toObject(User::class.java)
+                                                chatParticipant.particpant = particpant
+                                                chatParticipantList.add(chatParticipant)
+                                                chatParticipantsListMutableLiveData.value =
+                                                    chatParticipantList
+
+                                            }.addOnFailureListener {
+
+                                            }
+                                    }
+                            }
+                        } else {
+                            val sender = lastMessage?.get("from") as String?
+                            if (sender != null) {
+                                FirestoreUtil.firestoreInstance.collection("users")
+                                    .document(sender).get()
+                                    .addOnSuccessListener { chatMember ->
+                                        FirestoreUtil.firestoreInstance.collection("users")
+                                            .document(sender).get().addOnSuccessListener {
                                                 val particpant = it.toObject(User::class.java)
                                                 chatParticipant.particpant = particpant
                                                 chatParticipantList.add(chatParticipant)
@@ -85,6 +109,29 @@ class HomeViewModel : ViewModel() {
                                     }
                             }
                         }
+
+
+                        /*  val chatMembers = messageDocument.get("chat_members") as List<String>?
+                          chatMembers?.forEach { chatMemberId ->
+                              if (chatMemberId != loggedUserId) {
+                                  //get profile of other chat member
+                                  FirestoreUtil.firestoreInstance.collection("users")
+                                      .document(chatMemberId).get()
+                                      .addOnSuccessListener { chatMember ->
+                                          FirestoreUtil.firestoreInstance.collection("users")
+                                              .document(chatMemberId).get().addOnSuccessListener {
+                                                  val particpant = it.toObject(User::class.java)
+                                                  chatParticipant.particpant = particpant
+                                                  chatParticipantList.add(chatParticipant)
+                                                  chatParticipantsListMutableLiveData.value =
+                                                      chatParticipantList
+
+                                              }.addOnFailureListener {
+
+                                              }
+                                      }
+                              }
+                          }*/
 
                     }
                 } else {
@@ -99,13 +146,14 @@ class HomeViewModel : ViewModel() {
     fun getUserData() {
 
         FirestoreUtil.firestoreInstance.collection("users").document(AuthUtil.getAuthId())
-            .get().addOnSuccessListener { documentSnapshot ->
-                val loggedUser = documentSnapshot?.toObject(User::class.java)
-                loggedUserMutableLiveData.value = loggedUser
-            }.addOnFailureListener {
-                println("HomeViewModel.getUserData:${it.message}")
+            .addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+                if (firebaseFirestoreException == null) {
+                    val loggedUser = documentSnapshot?.toObject(User::class.java)
+                    loggedUserMutableLiveData.value = loggedUser
+                } else {
+                    println("HomeViewModel.getUserData:${firebaseFirestoreException.message}")
+                }
             }
-
     }
 
 
