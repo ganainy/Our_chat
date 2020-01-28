@@ -45,7 +45,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         if (remoteMessage.notification != null) {
-            //todo show notification
+            //pushing to github
             println("MyFirebaseMessagingService.onMessageReceived:${remoteMessage.data}")
         }
     }
