@@ -1,7 +1,7 @@
 # Our_chat
 Private chat app with realtime notification and support audio messages,image sharing,file sharing.
 
-video preview : https://drive.google.com/drive/u/0/folders/1f9svSW-dwqQIq3ZNKbsh2mOP21v5kQi5
+video preview : https://drive.google.com/open?id=1UuDsOisiiO6bD2vl6LNi7nYkCFMALxxm
 
 Used technologies:<br>
 -------------------
@@ -22,8 +22,8 @@ Firebase cloud functions<br>
 Features:<br>
 ----------
 Sign up / login with either normal account or your facebook account <br>
- <img src="https://cdn.discordapp.com/attachments/566581417606119424/671861893148966915/Screenshot_1580254010.png" width="350" ><br>
-  <img src=" https://cdn.discordapp.com/attachments/566581417606119424/671861894700597258/Screenshot_1580254018.png" width="350" ><br>
+ <img src="https://cdn.discordapp.com/attachments/566581417606119424/671861893148966915/Screenshot_1580254010.png" width="350"><br>
+  <img src="https://cdn.discordapp.com/attachments/566581417606119424/671861894700597258/Screenshot_1580254018.png" width="350"><br>
 
 Get preview of your chats in the home screen <br>
 <img src="https://cdn.discordapp.com/attachments/566581417606119424/671861896533639179/Screenshot_1580254051.png" width="350" ><br>
