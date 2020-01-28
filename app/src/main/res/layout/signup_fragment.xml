@@ -138,6 +138,7 @@
                             android:layout_height="wrap_content"
                             android:drawableStart="@drawable/ic_lock"
                             android:drawablePadding="8dp"
+                            android:imeOptions="actionDone"
                             android:gravity="center_vertical"
                             android:hint="@string/login_password_edit_text_hint"
                             android:inputType="textPassword"

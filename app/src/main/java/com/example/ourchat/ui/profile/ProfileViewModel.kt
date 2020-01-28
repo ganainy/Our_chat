@@ -3,16 +3,17 @@ package com.example.ourchat.ui.profile
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.ourchat.Utils.*
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.storage.StorageReference
+import java.util.*
 
 
 class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
 
-    private val uploadImageLoadStateMutableLiveData = MutableLiveData<LoadState>()
+    val uploadImageLoadStateMutableLiveData = MutableLiveData<LoadState>()
+    val newImageUriMutableLiveData = MutableLiveData<Uri>()
     private lateinit var mStorageRef: StorageReference
 
 
@@ -38,12 +39,12 @@ class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
     }
 
 
-    fun uploadProfileImageByUri(data: Uri?): LiveData<LoadState> {
+    fun uploadProfileImageByUri(data: Uri?) {
         //show upload ui
         uploadImageLoadStateMutableLiveData.value = LoadState.LOADING
 
         mStorageRef = StorageUtil.storageInstance.reference
-        val ref = mStorageRef.child("profile_pictures/" + data?.path)
+        val ref = mStorageRef.child("profile_pictures/" + data?.lastPathSegment + Date().time)
         var uploadTask = data?.let { ref.putFile(it) }
 
         uploadTask?.continueWithTask { task ->
@@ -59,11 +60,10 @@ class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
                 uploadImageLoadStateMutableLiveData.value = LoadState.FAILURE
             }
         }
-        return uploadImageLoadStateMutableLiveData
     }
 
 
-    fun uploadImageAsBytearray(bytes: ByteArray): LiveData<LoadState> {
+    fun uploadImageAsBytearray(bytes: ByteArray) {
 
         //show upload ui
         uploadImageLoadStateMutableLiveData.value = LoadState.LOADING
@@ -86,7 +86,6 @@ class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
             }
         }
 
-        return uploadImageLoadStateMutableLiveData
     }
 
     //save download uri of image in the user document
@@ -97,6 +96,7 @@ class ProfileViewModel(val app: Application) : AndroidViewModel(app) {
                 .update(PROFILE_PICTURE_URL, downloadUri.toString())
                 .addOnSuccessListener {
                     uploadImageLoadStateMutableLiveData.value = LoadState.SUCCESS
+                    newImageUriMutableLiveData.value = downloadUri
 
                 }
                 .addOnFailureListener {

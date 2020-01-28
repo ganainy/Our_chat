@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
 import com.example.ourchat.Utils.CLICKED_USER
+import com.example.ourchat.data.model.ChatParticipant
 import com.example.ourchat.databinding.HomeFragmentBinding
 import com.example.ourchat.service.MyFirebaseMessagingService
 import com.example.ourchat.ui.main_activity.SharedViewModel
@@ -115,10 +116,15 @@ class HomeFragment : Fragment() {
                     binding.noChatLayout.visibility = View.VISIBLE
                 } else {
 
+                    //sort messages by date so newwst show on top
+                    val sortedChatParticipantsList: List<ChatParticipant> =
+                        chatParticipantsList.sortedWith(compareBy { it.lastMessageDate?.get("seconds") })
+                            .reversed()
+
                     binding.noChatLayout.visibility = View.GONE
                     binding.recycler.adapter = adapter
-                    adapter.submitList(chatParticipantsList)
-                    adapter.chatList = chatParticipantsList
+                    adapter.submitList(sortedChatParticipantsList)
+                    adapter.chatList = sortedChatParticipantsList
                 }
 
             })

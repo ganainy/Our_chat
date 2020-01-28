@@ -4,7 +4,6 @@ import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
 import android.provider.MediaStore
@@ -66,7 +65,7 @@ class ProfileFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(ProfileViewModel::class.java)
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
-        //setup bottomsheet
+        //setup bottom sheet
         mBottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet)
 
 
@@ -80,14 +79,7 @@ class ProfileFragment : Fragment() {
         binding.email.text = loggedUser.email
         binding.name.text = loggedUser.username
         //download profile photo
-        Glide.with(this).load(loggedUser.profile_picture_url)
-            .apply(
-                RequestOptions()
-                    .placeholder(R.drawable.loading_animation)
-                    .error(R.drawable.anonymous_profile)
-                    .circleCrop()
-            )
-            .into(binding.profileImage)
+        setProfileImage(loggedUser.profile_picture_url)
 
 
         //create adapter and handle recycle item click callback
@@ -165,7 +157,18 @@ class ProfileFragment : Fragment() {
 
     }
 
-    private fun uploadTakenImage(view: View) {
+    private fun setProfileImage(profilePictureUrl: String?) {
+        Glide.with(this).load(profilePictureUrl)
+            .apply(
+                RequestOptions()
+                    .placeholder(R.drawable.loading_animation)
+                    .error(R.drawable.anonymous_profile)
+                    .circleCrop()
+            )
+            .into(binding.profileImage)
+    }
+
+/*    private fun uploadTakenImage(view: View) {
 //create bitmap from profile imageView then upload it as bytearray
         val bitmap = Bitmap.createBitmap(
             view.width,
@@ -187,7 +190,7 @@ class ProfileFragment : Fragment() {
 
 
         mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-    }
+    }*/
 
 
     private fun showFriendsInRecycler(it: List<User>) {
@@ -227,18 +230,18 @@ class ProfileFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
+
+        mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+
+
         //result of selecting image from gallery
         if (requestCode == SELECT_PROFILE_IMAGE_REQUEST && data != null && resultCode == AppCompatActivity.RESULT_OK) {
 
             //set selected image in profile image view and upload it
-            binding.profileImage.setImageURI(data.data)
-            mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
-            //upload image and show loading layout while uploading
+            //upload image
             viewModel.uploadProfileImageByUri(data.data)
-                .observe(this, Observer { imageUploadState ->
-                    setProfileImageLoadUi(imageUploadState)
-                })
+
 
         }
 
@@ -248,26 +251,27 @@ class ProfileFragment : Fragment() {
             val imageBitmap = data?.extras?.get("data") as Bitmap
 
 
-
-
             val baos = ByteArrayOutputStream()
             imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-            val data = baos.toByteArray()
+            val byteArray = baos.toByteArray()
 
 
-            binding.profileImage.setImageBitmap(imageBitmap)
-
-            //upload image and show loading layout while uploading
-            viewModel.uploadImageAsBytearray(data).observe(this, Observer { imageUploadState ->
-                setProfileImageLoadUi(imageUploadState)
-            })
+            //upload image
+            viewModel.uploadImageAsBytearray(byteArray)
 
 
-            mBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-            //uploadTakenImage(binding.profileImage)
         }
 
+        //show loading layout while uploading
+        viewModel.uploadImageLoadStateMutableLiveData.observe(this, Observer { imageUploadState ->
+            setProfileImageLoadUi(imageUploadState)
+        })
 
+
+        //set new image in profile image view
+        viewModel.newImageUriMutableLiveData.observe(this, Observer {
+            setProfileImage(it.toString())
+        })
     }
 
 

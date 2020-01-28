@@ -117,6 +117,8 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
                    val mutableList = filterResults.values as MutableList<ChatParticipant?>
                    submitList(mutableList)
                    notifyItemRangeChanged(0, mutableList.size)
+                   notifyItemChanged(0)
+
 
                }
            }

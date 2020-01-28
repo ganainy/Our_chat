@@ -25,6 +25,7 @@ import java.util.regex.Pattern
 class SignupFragment : Fragment() {
 
     private lateinit var binding: SignupFragmentBinding
+    private lateinit var pattern: Pattern
 
     companion object {
         fun newInstance() = SignupFragment()
@@ -54,60 +55,13 @@ class SignupFragment : Fragment() {
 
         //regex pattern to check email format
         val emailRegex = "^[A-Za-z0-9+_.-]+@(.+)\$"
-        val pattern: Pattern = Pattern.compile(emailRegex)
+        pattern = Pattern.compile(emailRegex)
 
 
         //handle register click
         binding.registerButton.setOnClickListener {
 
-            EventBus.getDefault().post(KeyboardEvent())
-
-            binding.userName.isErrorEnabled = false
-            binding.email.isErrorEnabled = false
-            binding.password.isErrorEnabled = false
-
-
-            if (binding.userName.editText!!.text.length < 4) {
-                binding.userName.error = "User name should be at least 4 characters"
-                return@setOnClickListener
-            }
-
-
-            //check if email is empty or wrong format
-            if (!binding.email.editText!!.text.isEmpty()) {
-                val matcher: Matcher = pattern.matcher(binding.email.editText!!.text)
-                if (!matcher.matches()) {
-                    binding.email.error = "Email format isn't correct."
-                    return@setOnClickListener
-                }
-            } else if (binding.email.editText!!.text.isEmpty()) {
-                binding.email.error = "Email field can't be empty."
-                return@setOnClickListener
-            }
-
-
-            if (binding.password.editText!!.text.length < 6) {
-                binding.password.error = "Password should be at least 6 characters"
-                return@setOnClickListener
-            }
-
-            //email and pass are matching requirements now we can register to firebase auth
-
-            viewModel.registerEmail(
-                AuthUtil.firebaseAuthInstance,
-                binding.email.editText!!.text.toString(),
-                binding.password.editText!!.text.toString(),
-                binding.userName.editText!!.text.toString()
-            ).observe(this, Observer { authUser ->
-                //authentication success and we should save user in firestore
-                viewModel.storeUserInFirestore(authUser)
-                    .observe(this, Observer {
-                        // user is stored in firebase
-                        this@SignupFragment.findNavController()
-                            .navigate(R.id.action_signupFragment_to_homeFragment)
-                        Toast.makeText(context, "Sign up successful", Toast.LENGTH_LONG).show()
-                    })
-            })
+            signUp()
 
         }
 
@@ -136,11 +90,68 @@ class SignupFragment : Fragment() {
 
             }
         })
+
+
+        //sign up on keyboard done click when focus is on passwordEditText
+        binding.passwordEditText.setOnEditorActionListener { _, actionId, _ ->
+            signUp()
+            true
+        }
+
     }
 
+    private fun signUp() {
+        EventBus.getDefault().post(KeyboardEvent())
+
+        binding.userName.isErrorEnabled = false
+        binding.email.isErrorEnabled = false
+        binding.password.isErrorEnabled = false
 
 
+        if (binding.userName.editText!!.text.length < 4) {
+            binding.userName.error = "User name should be at least 4 characters"
+            return
+        }
 
+
+        //check if email is empty or wrong format
+        if (!binding.email.editText!!.text.isEmpty()) {
+            val matcher: Matcher = pattern.matcher(binding.email.editText!!.text)
+            if (!matcher.matches()) {
+                binding.email.error = "Email format isn't correct."
+                return
+            }
+        } else if (binding.email.editText!!.text.isEmpty()) {
+            binding.email.error = "Email field can't be empty."
+            return
+        }
+
+
+        if (binding.password.editText!!.text.length < 6) {
+            binding.password.error = "Password should be at least 6 characters"
+            return
+        }
+
+        //email and pass are matching requirements now we can register to firebase auth
+
+        viewModel.registerEmail(
+            AuthUtil.firebaseAuthInstance,
+            binding.email.editText!!.text.toString(),
+            binding.password.editText!!.text.toString(),
+            binding.userName.editText!!.text.toString()
+        )
+
+
+        viewModel.navigateToHomeMutableLiveData.observe(this, Observer { navigateToHome ->
+            if (navigateToHome != null && navigateToHome) {
+                this@SignupFragment.findNavController()
+                    .navigate(R.id.action_signupFragment_to_homeFragment)
+                Toast.makeText(context, "Sign up successful", Toast.LENGTH_LONG).show()
+                viewModel.doneNavigating()
+            }
+        })
+
+    }
 
 }
 

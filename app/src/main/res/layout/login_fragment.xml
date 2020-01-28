@@ -124,6 +124,7 @@
                             android:drawablePadding="8dp"
                             android:gravity="center_vertical"
                             android:hint="@string/login_password_edit_text_hint"
+                            android:imeOptions="actionDone"
                             android:inputType="textPassword"
                             android:singleLine="true"
                             android:textColor="@color/primaryTextColor"

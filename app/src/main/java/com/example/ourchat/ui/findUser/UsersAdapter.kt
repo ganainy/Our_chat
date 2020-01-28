@@ -117,6 +117,7 @@ class UserAdapter(private val clickListener: UserClickListener) :
                 val mutableList = filterResults.values as MutableList<User?>
                 submitList(mutableList)
                 notifyItemRangeChanged(0, mutableList.size)
+                notifyItemChanged(0)
 
             }
         }

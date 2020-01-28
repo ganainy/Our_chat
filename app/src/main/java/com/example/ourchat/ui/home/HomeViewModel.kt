@@ -138,6 +138,10 @@ class HomeViewModel : ViewModel() {
                     //user has no chats
                     chatParticipantsListMutableLiveData.value = null
                 }
+            } else {
+                //error
+                println("HomeViewModel.getChats:${firebaseFirestoreException.message}")
+                chatParticipantsListMutableLiveData.value = null
             }
         }
         return chatParticipantsListMutableLiveData

@@ -80,6 +80,7 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
 
 
     fun sendMessage(message: Message) {
+        //todo add last message date field to chat members document so we can sort home chats with
 
         //so we don't create multiple nodes for same chat
         messageCollectionReference.document("${senderId}_${receiverId}").get()
@@ -92,9 +93,9 @@ class ChatViewModel(val senderId: String?, val receiverId: String) : ViewModel()
                 } else {
                     //senderId_receiverId node doesn't exist check receiverId_senderId
                     messageCollectionReference.document("${receiverId}_${senderId}").get()
-                        .addOnSuccessListener { documentSnapshot ->
+                        .addOnSuccessListener { documentSnapshot2 ->
 
-                            if (documentSnapshot.exists()) {
+                            if (documentSnapshot2.exists()) {
                                 messageCollectionReference.document("${receiverId}_${senderId}")
                                     .update(
                                         "messages",

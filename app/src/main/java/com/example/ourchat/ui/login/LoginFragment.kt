@@ -86,40 +86,7 @@ class LoginFragment : Fragment() {
 
         //handle login click
         binding.loginButton.setOnClickListener {
-            EventBus.getDefault().post(KeyboardEvent())
-            if (binding.email.error != null || binding.password.error != null || binding.email.editText!!.text.isEmpty() || binding.password.editText!!.text.isEmpty()) {
-                //name or password doesn't match format
-                Toast.makeText(context, "Check email and password then retry.", Toast.LENGTH_LONG)
-                    .show()
-            } else {
-
-                //All fields are correct we can login
-                viewModel.login(
-                    AuthUtil.firebaseAuthInstance,
-                    binding.email.editText!!.text.toString(),
-                    binding.password.editText!!.text.toString()
-                ).observe(this, Observer { loadState ->
-
-                    when (loadState) {
-                        LoadState.SUCCESS -> {   //triggered when login with email and password is successful
-                            this@LoginFragment.findNavController()
-                                .navigate(R.id.action_loginFragment_to_homeFragment)
-                            Toast.makeText(context, "Login successful", Toast.LENGTH_LONG).show()
-                            viewModel.doneNavigating()
-                        }
-                        LoadState.LOADING -> {
-                            binding.loadingLayout.visibility = View.VISIBLE
-                            binding.issueLayout.visibility = View.GONE
-                        }
-                        LoadState.FAILURE -> {
-                            binding.loadingLayout.visibility = View.GONE
-                            binding.issueLayout.visibility = View.VISIBLE
-                            binding.issueLayout.textViewIssue.text = ErrorMessage.errorMessage
-                        }
-                    }
-                })
-
-            }
+            login()
         }
 
 
@@ -129,6 +96,49 @@ class LoginFragment : Fragment() {
         }
 
 
+        //login on keyboard done click when focus is on passwordEditText
+        binding.passwordEditText.setOnEditorActionListener { _, actionId, _ ->
+            login()
+            true
+        }
+
+    }
+
+    private fun login() {
+        EventBus.getDefault().post(KeyboardEvent())
+        if (binding.email.error != null || binding.password.error != null || binding.email.editText!!.text.isEmpty() || binding.password.editText!!.text.isEmpty()) {
+            //name or password doesn't match format
+            Toast.makeText(context, "Check email and password then retry.", Toast.LENGTH_LONG)
+                .show()
+        } else {
+
+            //All fields are correct we can login
+            viewModel.login(
+                AuthUtil.firebaseAuthInstance,
+                binding.email.editText!!.text.toString(),
+                binding.password.editText!!.text.toString()
+            ).observe(this, Observer { loadState ->
+
+                when (loadState) {
+                    LoadState.SUCCESS -> {   //triggered when login with email and password is successful
+                        this@LoginFragment.findNavController()
+                            .navigate(R.id.action_loginFragment_to_homeFragment)
+                        Toast.makeText(context, "Login successful", Toast.LENGTH_LONG).show()
+                        viewModel.doneNavigating()
+                    }
+                    LoadState.LOADING -> {
+                        binding.loadingLayout.visibility = View.VISIBLE
+                        binding.issueLayout.visibility = View.GONE
+                    }
+                    LoadState.FAILURE -> {
+                        binding.loadingLayout.visibility = View.GONE
+                        binding.issueLayout.visibility = View.VISIBLE
+                        binding.issueLayout.textViewIssue.text = ErrorMessage.errorMessage
+                    }
+                }
+            })
+
+        }
     }
 
 
