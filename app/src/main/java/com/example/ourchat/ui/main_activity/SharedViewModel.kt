@@ -22,7 +22,7 @@ class SharedViewModel : ViewModel() {
     fun loadFriends(loggedUser: User): LiveData<List<User>> {
 
         val friendsIds = loggedUser.friends
-                if (friendsIds != null && friendsIds.isNotEmpty()) {
+        if (!friendsIds.isNullOrEmpty()) {
                     val mFriendList = mutableListOf<User>()
                     for (friendId in friendsIds) {
                         usersCollectionRef.document(friendId).get()
@@ -34,6 +34,7 @@ class SharedViewModel : ViewModel() {
                         }
                     }
                 } else {
+            //user has no friends
                     friendsListMutableLiveData.value = null
                 }
 

@@ -107,8 +107,7 @@ dependencies {
     //image zoom
     implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.0'
 
-//pretty time
-    implementation 'org.ocpsoft.prettytime:prettytime:4.0.1.Final'
+
 
     //FCM
     implementation 'com.google.firebase:firebase-messaging:20.1.0'

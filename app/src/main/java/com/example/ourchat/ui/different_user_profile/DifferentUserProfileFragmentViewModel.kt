@@ -9,6 +9,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.example.ourchat.R
 import com.example.ourchat.Utils.AuthUtil
+import com.example.ourchat.ui.incoming_requests.FRIENDS
 
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -65,30 +66,50 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
     }
 
 
-    enum class FriendRequestState { SENT, NOT_SENT }
+    enum class FriendRequestState { SENT, NOT_SENT, ALREADY_FRIENDS }
 
 
     //get document if logged in user and check if other user id is in the sentRequest list
-    fun checkIfFriends(uid: String?): LiveData<FriendRequestState> {
+    fun checkIfFriends(recepiantId: String?): LiveData<FriendRequestState> {
         val db = FirebaseFirestore.getInstance()
-        if (uid != null) {
+        if (recepiantId != null) {
             AuthUtil.getAuthId().let {
-                db.collection("users").document(it).get().addOnSuccessListener {
-                    val user = it?.toObject(com.example.ourchat.data.model.User::class.java)
+                db.collection("users").document(it)
+                    .addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
 
-                    val sentRequests = user?.sentRequests
-                    if (sentRequests != null) {
-                        for (sentRequest in sentRequests) {
-                            if (sentRequest == uid) {
-                                friendRequestStateMutableLiveData.value = FriendRequestState.SENT
-                                return@addOnSuccessListener
+                        if (firebaseFirestoreException == null) {
+                            val user =
+                                documentSnapshot?.toObject(com.example.ourchat.data.model.User::class.java)
+
+                            //Check if friends already
+                            val friendsList = user?.friends
+                            if (!friendsList.isNullOrEmpty()) {
+                                //user has friends
+                                for (friendId in friendsList) {
+                                    if (friendId == recepiantId) {
+                                        friendRequestStateMutableLiveData.value =
+                                            FriendRequestState.ALREADY_FRIENDS
+                                        return@addSnapshotListener
+                                    }
+                                }
                             }
+
+                            val sentRequests = user?.sentRequests
+                            if (sentRequests != null) {
+                                for (sentRequest in sentRequests) {
+                                    if (sentRequest == recepiantId) {
+                                        friendRequestStateMutableLiveData.value =
+                                            FriendRequestState.SENT
+                                        return@addSnapshotListener
+                                    }
+                                }
+                                friendRequestStateMutableLiveData.value =
+                                    FriendRequestState.NOT_SENT
+                            }
+                        } else {
+                            println("DifferentUserProfileFragmentViewModel.checkIfFriends:${firebaseFirestoreException.message}")
                         }
-                        friendRequestStateMutableLiveData.value = FriendRequestState.NOT_SENT
                     }
-                }.addOnFailureListener {
-                    //error
-                }
 
             }
 
@@ -109,6 +130,31 @@ class DifferentUserProfileFragmentViewModel(val app: Application) : AndroidViewM
                         db.collection("users").document(uid)
                             .update(
                                 RECEIVED_REQUEST_ARRAY,
+                                FieldValue.arrayRemove(AuthUtil.getAuthId())
+                            )
+                            .addOnSuccessListener {
+                            }.addOnFailureListener {
+                            }
+                    }.addOnFailureListener {
+                    }
+            }
+        }
+
+
+    }
+
+    fun removeFromFriends(uid: String?) {
+
+        //remove id from sentRequest array for logged in user
+        val db = FirebaseFirestore.getInstance()
+        if (uid != null) {
+            AuthUtil.getAuthId().let {
+                db.collection("users").document(it)
+                    .update(FRIENDS, FieldValue.arrayRemove(uid)).addOnSuccessListener {
+                        //remove loggedInUserId from receivedRequest array for other user
+                        db.collection("users").document(uid)
+                            .update(
+                                FRIENDS,
                                 FieldValue.arrayRemove(AuthUtil.getAuthId())
                             )
                             .addOnSuccessListener {

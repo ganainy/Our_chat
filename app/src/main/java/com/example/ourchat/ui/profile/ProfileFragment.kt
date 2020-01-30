@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -20,6 +21,7 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.ourchat.R
+import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.Utils.LOGGED_USER
 import com.example.ourchat.Utils.LoadState
 import com.example.ourchat.Utils.eventbus_events.KeyboardEvent
@@ -84,8 +86,18 @@ class ProfileFragment : Fragment() {
 
         //create adapter and handle recycle item click callback
         adapter = FriendsAdapter(object : FriendsAdapter.ItemClickCallback {
-            override fun onItemClicked(user: User) {
-                //optional open profile of clicked user
+            override fun onItemClicked(clickedUser: User) {
+
+                val clickedUserString = gson.toJson(clickedUser)
+
+                var bundle = bundleOf(
+                    CLICKED_USER to clickedUserString
+                )
+
+                findNavController().navigate(
+                    R.id.action_profileFragment_to_differentUserProfile,
+                    bundle
+                )
             }
         })
 

@@ -1,6 +1,7 @@
 package com.example.ourchat.ui.findUser
 
 import android.text.SpannableString
+import android.text.format.DateUtils
 import android.text.style.UnderlineSpan
 import android.widget.ImageView
 import android.widget.TextView
@@ -13,8 +14,6 @@ import com.example.ourchat.data.model.ChatParticipant
 import com.example.ourchat.data.model.User
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.Timestamp
-import org.ocpsoft.prettytime.PrettyTime
-import java.util.*
 
 
 @BindingAdapter("setRoundImage")
@@ -36,14 +35,16 @@ fun setRoundImage(imageView: ImageView, item: User) {
 
 @BindingAdapter("formatDate")
 fun formatDate(textView: TextView, timestamp: Timestamp?) {
-    textView.text = PrettyTime().format(timestamp?.toDate())
+    textView.text = timestamp?.seconds?.let { DateUtils.getRelativeTimeSpanString(it * 1000) }
+
+
 }
 
 @BindingAdapter("formatDateFromMap")
 fun formatDateFromMap(textView: TextView, map: Map<String, Double>?) {
     var time = (map?.get("seconds"))
     if (time != null) {
-        textView.text = PrettyTime().format(Date(time.toLong() * 1000))
+        textView.text = DateUtils.getRelativeTimeSpanString(time.toLong() * 1000)
     }
 }
 

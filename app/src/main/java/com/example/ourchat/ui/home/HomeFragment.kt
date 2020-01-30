@@ -13,7 +13,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.ourchat.R
+import com.example.ourchat.Utils.AuthUtil
 import com.example.ourchat.Utils.CLICKED_USER
+import com.example.ourchat.Utils.FirestoreUtil
 import com.example.ourchat.data.model.ChatParticipant
 import com.example.ourchat.databinding.HomeFragmentBinding
 import com.example.ourchat.service.MyFirebaseMessagingService
@@ -67,6 +69,7 @@ class HomeFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
+
 
 
         //get logged user token and add it to user document (for FCM)
@@ -145,9 +148,18 @@ class HomeFragment : Fragment() {
 
 
     private fun logout() {
+        removeUserToken()
         FirebaseAuth.getInstance().signOut()
         LoginManager.getInstance().logOut()
         findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
+    }
+
+    private fun removeUserToken() {
+        val loggedUserID = AuthUtil.firebaseAuthInstance.currentUser?.uid
+        if (loggedUserID != null) {
+            FirestoreUtil.firestoreInstance.collection("users").document(loggedUserID)
+                .update("token", null)
+        }
     }
 
 

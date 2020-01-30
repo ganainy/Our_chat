@@ -58,6 +58,9 @@
         <action
             android:id="@+id/action_profileFragment_to_findUserFragment"
             app:destination="@id/findUserFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_differentUserProfile"
+            app:destination="@id/differentUserProfile" />
     </fragment>
     <fragment
         android:id="@+id/findUserFragment"

@@ -14,10 +14,19 @@ import com.example.ourchat.Utils.CLICKED_USER
 import com.example.ourchat.data.model.User
 import com.example.ourchat.databinding.DifferentUserProfileFragmentBinding
 import com.example.ourchat.ui.main_activity.SharedViewModel
+import com.example.ourchat.ui.profile.FriendsAdapter
 import com.google.gson.Gson
 
 class DifferentUserProfileFragment : Fragment() {
     private lateinit var binding: DifferentUserProfileFragmentBinding
+    private val adapter by lazy {
+        FriendsAdapter(object : FriendsAdapter.ItemClickCallback {
+            override fun onItemClicked(user: User) {
+                //don't do anything for now
+            }
+
+        })
+    }
 
     companion object {
         fun newInstance() = DifferentUserProfileFragment()
@@ -61,6 +70,9 @@ class DifferentUserProfileFragment : Fragment() {
                 DifferentUserProfileFragmentViewModel.FriendRequestState.NOT_SENT -> {
                     showButtonAsRequestNotSent()
                 }
+                DifferentUserProfileFragmentViewModel.FriendRequestState.ALREADY_FRIENDS -> {
+                    showButtonAsAlreadyFriends()
+                }
             }
         })
 
@@ -81,8 +93,11 @@ class DifferentUserProfileFragment : Fragment() {
             if (binding.sendFriendRequestButton.text == getString(R.string.friend_request_not_sent)) {
                 viewModel.updateSentRequestsForSender(user.uid)
                 showButtonAsSentRequest()
-            } else if (binding.sendFriendRequestButton.text == getString(R.string.friend_request_sent)) {
+            } else if (binding.sendFriendRequestButton.text == getString(R.string.cancel_request)) {
                 viewModel.cancelFriendRequest(user.uid)
+                showButtonAsRequestNotSent()
+            } else if (binding.sendFriendRequestButton.text == getString(R.string.delete_from_friends)) {
+                viewModel.removeFromFriends(user.uid)
                 showButtonAsRequestNotSent()
             }
         }
@@ -91,10 +106,31 @@ class DifferentUserProfileFragment : Fragment() {
 
 
         //load friends of that user
-        sharedViewModel.loadFriends(user).observe(this, Observer {
-            println("DifferentUserProfileFragment.onActivityCreated:${it?.size}")
+        sharedViewModel.loadFriends(user).observe(this, Observer { friendsList ->
+            if (friendsList.isNullOrEmpty()) {
+                binding.friendsTextView.text = getString(R.string.no_friends)
+            } else {
+                binding.friendsTextView.text = getString(R.string.friends)
+                binding.friendsCountTextView.text = friendsList.size.toString()
+                showFriendsInRecycler(friendsList)
+            }
         })
 
+    }
+
+    private fun showFriendsInRecycler(friendsList: List<User>?) {
+        adapter.setDataSource(friendsList)
+        binding.friendsRecycler.adapter = adapter
+
+    }
+
+    //change button to show that users are friends
+    private fun showButtonAsAlreadyFriends() {
+        binding.sendFriendRequestButton.text =
+            getString(R.string.delete_from_friends)
+        binding.sendFriendRequestButton.setIconResource(R.drawable.ic_remove_circle_black_24dp)
+        binding.sendFriendRequestButton.backgroundTintList =
+            context?.let { it1 -> ContextCompat.getColorStateList(it1, R.color.red) }
     }
 
 
@@ -110,7 +146,7 @@ class DifferentUserProfileFragment : Fragment() {
 
     //change sent button to show that  request is sent
     private fun showButtonAsSentRequest() {
-        binding.sendFriendRequestButton.text = getString(R.string.friend_request_sent)
+        binding.sendFriendRequestButton.text = getString(R.string.cancel_request)
         binding.sendFriendRequestButton.setIconResource(R.drawable.ic_done_black_24dp)
         binding.sendFriendRequestButton.backgroundTintList =
             context?.let { it1 -> ContextCompat.getColorStateList(it1, R.color.green) }

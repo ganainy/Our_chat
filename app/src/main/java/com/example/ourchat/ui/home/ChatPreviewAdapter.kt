@@ -114,9 +114,9 @@ class ChatPreviewAdapter(private val clickListener: ClickListener) :
 
                override fun publishResults(charSequence: CharSequence, filterResults: FilterResults) {
 
-                   val mutableList = filterResults.values as MutableList<ChatParticipant?>
+                   val mutableList = filterResults.values as MutableList<ChatParticipant?>?
                    submitList(mutableList)
-                   notifyItemRangeChanged(0, mutableList.size)
+                   mutableList?.size?.let { notifyItemRangeChanged(0, it) }
                    notifyItemChanged(0)
 
 

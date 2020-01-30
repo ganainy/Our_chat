@@ -24,7 +24,7 @@
     <string name="uploading">Uploading...</string>
     <string name="type_something_to_let_your_friends_know_you_better">Type something to let your friends know you better</string>
     <string name="submit">Submit</string>
-    <string name="friend_request_sent">Friend request sent.</string>
+    <string name="cancel_request">Cancel request</string>
     <string name="friend_request_not_sent">Send friend request</string>
     <string name="confirm">Confirm</string>
     <string name="delete">Delete</string>
@@ -52,6 +52,8 @@
     <string name="you_sent_file">you sent a file</string>
     <string name="you_sent_record">you sent a voice record</string>
     <string name="other_record">%1$s sent a voice record</string>
+    <string name="delete_from_friends">Remove from friends</string>
+    <string name="no_friends">User has no friends yet</string>
 
 
 </resources>
