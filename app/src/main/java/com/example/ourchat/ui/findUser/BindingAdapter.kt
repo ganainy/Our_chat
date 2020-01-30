@@ -33,6 +33,8 @@ fun setRoundImage(imageView: ImageView, item: User) {
 
 }
 
+//github push
+
 @BindingAdapter("formatDate")
 fun formatDate(textView: TextView, timestamp: Timestamp?) {
     textView.text = timestamp?.seconds?.let { DateUtils.getRelativeTimeSpanString(it * 1000) }
