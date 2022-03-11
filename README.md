@@ -1,7 +1,11 @@
 # Our_chat
 Private chat app with realtime notification and support audio messages,image sharing,file sharing.
 
-video preview : https://drive.google.com/open?id=1UuDsOisiiO6bD2vl6LNi7nYkCFMALxxm
+
+
+https://user-images.githubusercontent.com/44480226/157985638-958af0f6-1ae5-4780-b241-c774023296e7.mp4
+
+
 
 Used technologies:<br>
 -------------------
