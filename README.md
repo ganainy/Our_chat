@@ -3,7 +3,8 @@ Private chat app with realtime notification and support audio messages,image sha
 
 
 
-https://user-images.githubusercontent.com/44480226/157985638-958af0f6-1ae5-4780-b241-c774023296e7.mp4
+https://user-images.githubusercontent.com/44480226/157986079-adeee685-5db5-4910-a957-766fefd5cc5a.mp4
+
 
 
 
